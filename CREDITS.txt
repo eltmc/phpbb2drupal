@@ -1,0 +1,40 @@
+
+
+
+----------------------------------------------------------------------------------
+----------|---------|---------|-----------------------------|---------------------	
+date  	  | phpbb   | Drupal  | Who 	 		    | What 
+	  | version | version |				    |
+----------|---------|---------|-----------------------------|---------------------	
+----------|---------|---------|-----------------------------|---------------------	
+ 	  |         | 	      | add your name here	    | be in charge of keeping this 
+ 	  |         |         |				    | module up to date.	
+ 	  |         |         |				    |	
+ 	  |         |         |				    |	
+----------|---------|---------|-----------------------------|---------------------	
+ 3 Apr	  | 2.0.18  | 4.6.6   |	Augustin Masquilier	    |	
+ 2006	  |   to    |   to    | a.k.a beginner		    | Released the first phpbb2drupal.module	
+ 	  | 2.0.19  | 4.6.6   | drupal.org/user/23181 	    | to allow for easy migration path.	
+ 	  |         |         |	www.wechange.org	    |	
+ 	  |         |         |	www.masquilier.org	    |	
+ 	  |         |         |				    |	
+----------|---------|---------|-----------------------------|---------------------	
+ up to 	  | 2.0.13  | 4.6.4   |	beginner 		    | took part in discussion	
+ march	  |    to   |         |http://drupal.org/user/23181 | helping people to use	
+ 2006	  | 2.0.18  |         | and many other		    | the script with Drupal 4.6.
+ 	  |         |         |	contributors		    | archived discussion:
+ 	  |         |         |				    | http://drupal.org/node/24639	
+ 	  |         |         |				    |	
+----------|---------|---------|-----------------------------|---------------------	
+2005	  | 2.0.11  | 4.5.2   | Alexander Mikhailian	    | modified  mysql script and added poll 	
+ 	  |   to    |         | <mikhailian@altern.org>	    | migration.	
+ 	  | 2.0.13  |         |				    |	
+----------|---------|---------|-----------------------------|---------------------	
+2005 ?	  | 2.0.?   | 4.4 ?   | Feodor (feodor[at]mundo.ru) | Wrote the original .mysql script	
+ 	  |         |         |				    |	
+----------|---------|---------|-----------------------------|---------------------	
+----------------------------------------------------------------------------------
+
+
+
+
