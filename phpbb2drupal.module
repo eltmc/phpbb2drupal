@@ -44,7 +44,7 @@ function phpbb2drupal_menu($may_cache) {
  * Implementation of hook_perm()
  *
 ****************************************************/
-function phpbb2drupal() {
+function phpbb2drupal_perm() {
   return array ('migrate phpBB');
 }
 
@@ -71,6 +71,11 @@ function phpbb2drupal_help( $section='') {
 function _phpbb2drupal() {
   $output ='';
   
+  $output .='<strong>';
+  $output .='BEWARE: see the <a href="http://drupal.org/node/57197">online phpbb2drupal documentation</a> for important recent news about this module!!';
+  $output .='';
+  $output .='</strong>';
+  $output .='';
   $output .='<h3>Beware</h3>';
   $output .='<ul>';
   $output .='<li>phpbb and drupal should be in the same database.</li>';
@@ -84,7 +89,7 @@ function _phpbb2drupal() {
   
   $output .='<h3>Migration</h3>';
   $output .='<ol><li>';
-  $output .=l("Configure the migration", "admin/phpbb2drupal/configure");
+  $output .=l("Configure the migration", "admin/settings/phpbb2drupal");
   $output .='</li>';
   $output .='<li>';
   $output .=l("Execute the migration", "admin/phpbb2drupal/migrate");
@@ -102,12 +107,35 @@ function _phpbb2drupal() {
  * Callback admin/phpbb2drupal/configure
  *
 ****************************************************/
-function _phpbb2drupal_configure() {
+function phpbb2drupal_settings() {
+  global $conf ;
   $output ='';
-  $output .='Nothing to Configure in this version of phpbb2drupal.module.';
+
+  $output .='<h3>Test the module on a copy first</h3>';
+  $output .='The migration will modify and even destroy some data. You must test this module to a copy of your data first, several times if necessary. Only use this module on your live data when you are familiar with the procedure and you\'re confident everything will run smoothly.';
   $output .='';
-  print theme ("page", $output);
-  return 0;
+  $output .= form_checkbox(t('I am running a trial migration on a disposable copy of the database OR I have already done so and I am running this on my live site, confident that the migration will proceed smoothly'), 'phpbb_trials', 1, 
+     variable_get('phpbb_trials', 0), ''); 
+
+  $output .='<h3>Checking presence of phpBB2</h3>';
+  $output .='<span class="marker">highlighted</span>';
+  $query = 'SHOW TABLES LIKE "phpbb_categories"';
+  $result = db_query ($query);
+  $my_row = db_result ($result);
+  $output .= "my row " . $my_row;
+  $output .='';
+  $output .='';
+
+  $output .='<h3>Misc. settings</h3>';
+  $output .= form_textfield(t('Forum title'), 'phpbb_forum_title', 
+    variable_get('phpbb_forum_title', 'Forums'), 20, 255, 
+    t('The title will show in the breadcrumbs. It can be anything you like.')); 
+
+  $output .='';
+  $output .='';
+  $output .='';
+  $output .='';
+  return $output; 
 }
 
 /****************************************************
@@ -116,6 +144,18 @@ function _phpbb2drupal_configure() {
  *
 ****************************************************/
 function _phpbb2drupal_migrate() {
+  global $conf ;
+  if (!$conf['phpbb_trials']) {
+    $output ='';
+    $output .='<p>';
+    $output .= t('You have not properly <a href="admin/settings/phpbb2drupal">configured</a> this module.');
+    $output .='</p>';
+    $output .='';
+    $output .='';
+    print theme ("page", $output);
+     return 0;
+  }
+
   $output ='';
   $output .='Execute';
   $output .='';
