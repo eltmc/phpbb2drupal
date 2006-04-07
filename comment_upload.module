@@ -1,0 +1,63 @@
+<?php
+
+function comment_upload_comment($op, $comment) {
+  static $file;
+  $cid = is_object($comment) ? $comment->cid : $comment['cid'];
+  switch ($op) {
+    case 'form post':
+      return form_file(t('Attachment'), 'file', 50, $file || ($cid && _comment_upload_load_file($cid)) ? t('You already have a file uploaded, if you upload another it\'ll overwrite the current one.') :'');
+      break;
+    case 'form param';
+      return array('enctype' => 'multipart/form-data');
+    case 'validate':
+      if ($file = file_check_upload('file')) {
+        $file = file_save_upload('file');
+      }
+      break;
+    case 'insert':
+      if ($file) {
+        file_save_upload($file, $file->filename);
+        $fid = db_next_id('{files}_fid');
+        db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, 0, $file->filename, $file->filename, $file->filemime, $file->filesize);
+        db_query("INSERT INTO {comment_files} (cid, fid) VALUES (%d, %d)", $cid, $fid);
+      }
+      break;
+    case 'update':
+      // admin comment edit does not call validate, so we need to $file = file_check_upload('file')
+      if ($file || ($file = file_check_upload('file'))) {
+        file_save_upload($file, $file->filename);
+        $fid = _comment_upload_delete($cid);
+        db_query("UPDATE {files} SET filename = '%s', filepath = '%s', filemime = '%s', filesize = %d WHERE fid = %d", $file->filename, $file->filename, $file->filemime, $file->filesize, $fid);
+      }
+      break;
+    case 'delete':
+      _comment_upload_delete($cid, TRUE);
+      break;
+    case 'view':
+      if ($file) {
+        $file_view = $file; // this is for preview
+      }
+      else {
+        $file_view = _comment_upload_load_file($cid);
+      }
+      if ($file_view) {
+         return '<div class="comment_attachment"><a href="'. check_url(file_create_url($file_view->filepath)) .'">'. check_plain($file_view->filename) .' ('. format_size($file_view->filesize) .')</a></div>';
+      }
+      break;
+  }
+}
+
+function _comment_upload_load_file($cid) {
+  return db_fetch_object(db_query('SELECT * FROM {files} f INNER JOIN {comment_files} cf ON f.fid = cf.fid WHERE cf.cid = %d', $cid));
+}
+
+function _comment_upload_delete($cid, $db = FALSE) {
+  if ($file = _comment_upload_load_file($cid)) {
+    file_delete($file->filepath);
+    if ($db) {
+      db_query('DELETE FROM {files} WHERE fid = %d', $file->fid);
+      db_query('DELETE FROM {comment_files} WHERE cid = %d', $cid);
+    }
+    return $file->fid;
+  }
+}
