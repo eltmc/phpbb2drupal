@@ -249,7 +249,7 @@ function phpbb2drupal_import_users() {
 
     // Insert the users into drupal
     db_set_active('phpbb');
-    $user_ids = db_query("SELECT user_id FROM {users} WHERE user_id > 2 ORDER BY user_id");
+    $user_ids = db_query("SELECT user_id FROM {phpbb_users} WHERE user_id > 2 ORDER BY user_id");
 
     $user_count = db_num_rows($user_ids);
 
@@ -263,11 +263,11 @@ function phpbb2drupal_import_users() {
     while($result = db_fetch_object($user_ids)) {    
 
         db_set_active('phpbb');
-        $user = db_fetch_object(db_query("SELECT * FROM {users} WHERE user_id = %d", $result->user_id));
+        $user = db_fetch_object(db_query("SELECT * FROM {phpbb_users} WHERE user_id = %d", $result->user_id));
 
         // Make sure the user is not on the banlist
         /* db_set_active('phpbb');
-        $banned = db_result(db_query("SELECT COUNT(*) FROM {banlist} WHERE ban_userid = %d", $user->user_id));
+        $banned = db_result(db_query("SELECT COUNT(*) FROM {phpbb_banlist} WHERE ban_userid = %d", $user->user_id));
         if($banned) {
             db_set_active('phpbb');
             continue;
@@ -372,7 +372,7 @@ function phpbb2drupal_import_categories() {
 
     // Get Categories/Forums from PHPBB
     db_set_active('phpbb');
-    $category_results = db_query("SELECT * FROM {categories} ORDER BY cat_order");
+    $category_results = db_query("SELECT * FROM {phpbb_categories} ORDER BY cat_order");
 
     $cat_count = db_num_rows($category_results);
 
@@ -476,7 +476,7 @@ function phpbb2drupal_import_topics() {
     // Get All topics from PHPBB
     db_set_active('phpbb');
     $topic_ids = db_query("SELECT topic_id
-                            FROM {topics} 
+                            FROM {phpbb_topics} 
                             WHERE topic_vote <> 1
                             ORDER BY topic_id");  // topic_status == 2, Moved topics are duplicates don't import
 
@@ -575,7 +575,7 @@ function phpbb2drupal_import_topics() {
 
         if($topic->topic_status == 2) {
             db_set_active('phpbb');
-            $forum_id = db_result(db_query("SELECT forum_id FROM {topics} WHERE topic_id = %d", $topic_moved_id));
+            $forum_id = db_result(db_query("SELECT forum_id FROM {phpbb_topics} WHERE topic_id = %d", $topic_moved_id));
             db_set_active('default');
             $moved_tid = db_result(db_query("SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d", $forum_id));
 
@@ -608,9 +608,9 @@ function phpbb2drupal_import_topics() {
 
                 db_set_active('phpbb');
                 $files = db_query("SELECT * 
-                                    FROM {attachments} a 
-                                    INNER JOIN {attachments_desc} ad ON a.attach_id = ad.attach_id
-                                    INNER JOIN {posts} p ON a.post_id = p.post_id 
+                                    FROM {phpbb_attachments} a 
+                                    INNER JOIN {phpbb_attachments_desc} ad ON a.attach_id = ad.attach_id
+                                    INNER JOIN {phpbb_posts} p ON a.post_id = p.post_id 
                                     WHERE p.topic_id = %d
                                     ORDER BY a.attach_id", $topic->topic_id);
 
@@ -650,7 +650,7 @@ function phpbb2drupal_import_polls() {
     // Get all polls from PHPBB
     db_set_active('phpbb');
     $topics = db_query("SELECT *
-                        FROM {topics} t
+                        FROM {phpbb_topics} t
                         WHERE topic_vote = 1
                         ORDER BY topic_id");
 
@@ -675,7 +675,7 @@ function phpbb2drupal_import_polls() {
         // get the polls 
         db_set_active('phpbb');
         $query = db_query("SELECT *
-                           FROM {vote_desc} vd
+                           FROM {phpbb_vote_desc} vd
                            WHERE topic_id = %d
                            ORDER BY vote_id", $topic->topic_id); 
 
@@ -772,7 +772,7 @@ function phpbb2drupal_import_polls() {
         // handle moved nodes
         if($topic->topic_status == 2) {
             db_set_active('phpbb');
-            $forum_id = db_result(db_query("SELECT forum_id FROM {topics} WHERE topic_id = %d", $topic_moved_id));
+            $forum_id = db_result(db_query("SELECT forum_id FROM {phpbb_topics} WHERE topic_id = %d", $topic_moved_id));
             db_set_active('default');
             $moved_tid = db_result(db_query("SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d", $forum_id));
 
@@ -822,7 +822,7 @@ function phpbb2drupal_import_posts() {
     global $PHPBB2DRUPAL_IMPORT_ATTACHMENTS;
 
    # db_set_active('phpbb');
-   # $total_posts = db_result(db_query("SELECT COUNT(*) FROM {posts} WHERE post_id <> topic_id"));
+   # $total_posts = db_result(db_query("SELECT COUNT(*) FROM {phpbb_posts} WHERE post_id <> topic_id"));
 
     db_set_active('default');
     // check if the post database has been successfully imported
@@ -843,7 +843,7 @@ function phpbb2drupal_import_posts() {
 
     db_set_active('phpbb');
     $topic_ids = db_query("SELECT topic_id, topic_vote, topic_first_post_id, topic_last_post_id
-                           FROM {topics} 
+                           FROM {phpbb_topics} 
                            WHERE topic_replies > 0
                            ORDER BY topic_id");
 
@@ -862,13 +862,13 @@ function phpbb2drupal_import_posts() {
         db_set_active('phpbb');
         if($obj->topic_vote == 0) {
             $post_ids = db_query("SELECT post_id 
-                                  FROM {posts} 
+                                  FROM {phpbb_posts} 
                                   WHERE topic_id = %d
                                   AND post_id <> $obj->topic_first_post_id
                                   ORDER BY post_id", $obj->topic_id);
         } else {
             $post_ids = db_query("SELECT post_id 
-                                  FROM {posts} 
+                                  FROM {phpbb_posts} 
                                   WHERE topic_id = %d
                                   ORDER BY post_id", $obj->topic_id);
         }
@@ -880,12 +880,12 @@ function phpbb2drupal_import_posts() {
 
             db_set_active('phpbb');
             /*$query = db_query("SELECT *
-                               FROM {posts} p
+                               FROM {phpbb_posts} p
                                INNER JOIN {posts_text} pt ON p.post_id = pt.post_id
                                WHERE p.post_id = %d", $result->post_id); /**/
 
             $query = db_query("SELECT *
-                               FROM {posts} p, {posts_text} pt
+                               FROM {phpbb_posts} p, {phpbb_posts_text} pt
                                WHERE p.post_id = pt.post_id
                                AND p.post_id = %d", $result->post_id);
             
@@ -960,7 +960,7 @@ function phpbb2drupal_import_posts() {
 
                     db_set_active('phpbb');
                     $files = db_query("SELECT * 
-                                        FROM {attachments} a 
+                                        FROM {phpbb_attachments} a 
                                         INNER JOIN {attachments_desc} ad ON a.attach_id = ad.attach_id
                                         WHERE a.post_id = %d", $post->post_id);
 
