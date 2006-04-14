@@ -229,9 +229,57 @@ function phpbb2drupal_settings() {
   $output .='<h3>Misc. settings</h3>';
 
   //Forum title
-  $output .= form_textfield(t('Forum title'), 'phpbb_forum_title', 
-    variable_get('phpbb_forum_title', 'Forums'), 20, 255, 
-    t('The title will show in the breadcrumbs. It can be anything you like.')); 
+  // THIS IS CURRENTLY NOT USED. TO USE THIS, UPDATE VOCABULARY FORUM
+  //$output .= form_textfield(t('Forum title'), 'phpbb2drupal_forum_title', 
+  //  variable_get('phpbb2drupal_forum_title', 'Forums'), 20, 255, 
+  //  t('The title will show in the main forum page. It can be anything you like.')); 
+
+  // Time limit 
+  $output .= form_textfield(t('Time limit'), 'phpbb2drupal_time_limit', 
+    variable_get('phpbb2drupal_time_limit', 1200), 7, 10, 
+    t('How long, in seconds, will the migration take?')); 
+  $output .='<p>1200 = 20 minutes should be enough for most boards. It worked well for a board with 300,000 rows. Beware: if your site is cohosted and safe-mode is on, then this value will have no effect.</p>';
+  $output .='';
+  $output .='';
+
+  
+  //Attachements
+  $output .='<h3>Attachments.</h3>';
+  $output .= form_checkbox(t('Import attachments?'), 'phpbb2drupal_import_attachments', 1, 
+     variable_get('phpbb2drupal_import_attachments', 0), ''); 
+  if (variable_get('phpbb2drupal_import_attachments', 0) == 1) {
+
+     // Comment attachments module
+      $result = _phpbb2drupal_check_module('comment_upload');
+      $output .= $result['html'];
+      if ($result['result'] != 1) {
+        $ready_for_migration = 0;
+        $output .= "<span class='marker'>";
+        $link = l('After having installed it, go to the admin/module page to enable it', 'admin/modules');
+        $output .= "The comment_upload.module is not enabled. <!-- FOR DRUPAL 4.7 only: -- You can <a href='http://drupal.org/node/37197' target='_blank'>go to the module Home Page to download it</a>-->. $link. ";
+        $output .= "</span>";
+      }
+      // patched comment.module for 4.6
+      $output .= form_checkbox(t('Replaced comment.module'), 'phpbb2drupal_comment_module', 1, 
+       variable_get('phpbb2drupal_comment_module', 0), 'Make sure you have replaced the comment.module with the patched version included with phpbb2drupal.'); 
+      if (variable_get('phpbb2drupal_comment_module', 0) == 0) {
+        $output .= "<span class='marker'>";
+        $output .= "<p>Drupal 4.6 doesn't allow files to be attached to comments. Therefore, you must replace the file modules/comment.module with the one that is included in the phpbb2drupal package. The ability to attach files to comment will be possible with a <a href='http://drupal.org/node/37197' target='_blank'>contrib module for Drupal 4.7</a>.  </p>";
+        $output .= "</span>";
+      }
+
+      //private messages tables.
+      $result = _phpbb2drupal_check_tables (array('comment_files'));
+      $output .= $result['html'];
+      if ($result['result'] != 1) {
+        $ready_for_migration = 0;
+        $output .= "<span class='marker'>";
+        $output .= "Some tables couldn't be found. Please make sure you have properly installed the privatemsg.mysql on your Drupal data base.";
+        $output .= "</span>";
+      }
+
+  }
+
 
   // Private messages
   $output .='<h3>Private messages.</h3>';
@@ -345,6 +393,12 @@ function phpbb2drupal_migrate() {
     print theme ("page", $out);
     return 0;
   }
+
+  // Adjust how long you want the script to run...
+  if (!ini_get("safe_mode")) {
+    set_time_limit(variable_get("phpbb2drupal_time_limit", 1200));
+  }
+  
   _phpbb2drupal_db_connect() ;
   if (isset($_POST['edit'])) {
     $edit = $_POST['edit'];
@@ -675,7 +729,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
  */
 function phpbb2drupal_import_topics() {
 $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
-    global $PHPBB2DRUPAL_IMPORT_ATTACHMENTS;
+    $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = get_variable('phpbb2drupal_import_attachments', 0);
 
     db_set_active('default');
 
@@ -1044,7 +1098,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
  */
 function phpbb2drupal_import_posts() {
 $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
-    global $PHPBB2DRUPAL_IMPORT_ATTACHMENTS;
+    $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = get_variable('phpbb2drupal_import_attachments', 0);
 
    # db_set_active('phpbb');
    # $total_posts = db_result(db_query("SELECT COUNT(*) FROM {posts} WHERE post_id <> topic_id"));
@@ -1223,7 +1277,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
  */
 function phpbb2drupal_import_cleanup() {
 $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
-    global $PHPBB2DRUPAL_IMPORT_ATTACHMENTS;
+    $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = get_variable('phpbb2drupal_import_attachments', 0);
 
 #
 # Update Drupal sequence 
