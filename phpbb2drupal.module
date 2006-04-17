@@ -245,6 +245,9 @@ function phpbb2drupal_settings() {
   $output .='';
   $output .='';
 
+  // Import users who have never posted?
+  $output .= form_checkbox(t('Import users who have never posted?'), 'phpbb2drupal_import_spammers', 1, 
+     variable_get('phpbb2drupal_import_spammers', 1), ''); 
   
   //Attachements
   $output .='<h3>Attachments.</h3>';
@@ -522,13 +525,16 @@ function phpbb2drupal_import_pm() {
     $query = "SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d";
     $to_result = db_query ($query, $pm->privmsgs_to_userid);
     $to = db_result($to_result);
-    $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del )
-        VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 )"; 
-    $result = db_query ($query, $pm->privmsgs_id, $from, $to, $pm->privmsgs_subject, $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, $pm->privmsgs_ip);
+    // don't import private messages from or to users who are not imported.
+    if ($from and $to) {
+      $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del )
+          VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 )"; 
+      $result = db_query ($query, $pm->privmsgs_id, $from, $to, $pm->privmsgs_subject, $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, $pm->privmsgs_ip);
+    }
   }
   $out =" <p>Private Message Import successful</p>";
-  return $out; 
   variable_set('phpbb2drupal_import_pm_successful', 1);
+  return $out; 
 }
 
 /**
@@ -575,7 +581,9 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
 
     $out .= "<h3>Found $user_count users: Beginning Import</h3>";
     flush();
-
+    
+    $import_spammers = variable_get('phpbb2drupal_import_spammers',1);
+    
     while($result = db_fetch_object($user_ids)) {    
 
         db_set_active('phpbb');
@@ -588,6 +596,9 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
             db_set_active('phpbb');
             continue;
         }*/
+
+        // If we don't want to import users who have never posted, break this while loop here.
+	if ($import_spammers==1 OR $user->user_posts != 0 ) {
 
         // Make sure the user is has not already been imported
         db_set_active('default');
@@ -646,6 +657,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
         db_query("INSERT INTO {phpbb2drupal_temp_user} (user_id, uid) VALUES ($user->user_id , $drupal_user->uid)");
 
         db_set_active('phpbb');
+	} //if ($import_spammers==1 OR $user->user_posts != 0 ) {
     }
 
     // set the user import successful flag in the variable table
