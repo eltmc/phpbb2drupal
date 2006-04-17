@@ -1362,11 +1362,12 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
         db_query("DELETE FROM {sequences} WHERE name='files_fid'");
         db_query("INSERT INTO {sequences} (name,id) VALUES ('files_fid', $files_fid)");
     }
-
-    db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_user}");
-    db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_forum}");
-    db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_topic}");
-    db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_post}");
+    
+    // don't DROP: the data is used for redirects from old forum.
+    #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_user}");
+    #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_forum}");
+    #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_topic}");
+    #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_post}");
 
     variable_del('phpbb2drupal_import_user_successful');
     variable_del('phpbb2drupal_import_user_started');
