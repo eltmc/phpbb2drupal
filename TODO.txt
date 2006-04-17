@@ -1,0 +1,5 @@
+
+* clean the code, better cleaning of variables after the import script has run.
+* Have a better post configuration screen (private forums, bbcode, etc...)
+* Link drupal users to phpBB users?
+* Port to Drupal 4.7.
