@@ -19,6 +19,14 @@ date  	  | phpbb   | Drupal  | Who 	 		    | What
  	  |         |         |	www.masquilier.org	    |	
  	  |         |         |				    |	
 ----------|---------|---------|-----------------------------|---------------------	
+  Jan 	  | 2.0.18  | 4.6.6   |	John Hwang		    | Developped the first import script
+  2006	  |         |         |				    | written in php. 
+ 	  |         |         |				    |	
+ 	  |         |         |				    |	
+ 	  |         |         |				    |	
+ 	  |         |         |				    |	
+ 	  |         |         |				    |	
+----------|---------|---------|-----------------------------|---------------------	
  up to 	  | 2.0.13  | 4.6.4   |	beginner 		    | took part in discussion	
  march	  |    to   |         |http://drupal.org/user/23181 | helping people to use	
  2006	  | 2.0.18  |         | and many other		    | the script with Drupal 4.6.

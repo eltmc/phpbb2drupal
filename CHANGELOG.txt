@@ -1,4 +1,4 @@
 
-
+17 Apr. 2006: Beginner's (Augustin Masquilier) code and John Hwang's have now been merged into the new phpbb2drupal.module.
 07 Apr. 2006: Just discovered John Hwang's script which is in a more advanced stage. Replacing my whole module by his script.
 04 Apr. 2006: first release by Augustin Masquilier, a.k.a. beginner, of the migration script in a Drupal module form.
