@@ -177,7 +177,10 @@ function phpbb2drupal_settings() {
   $output .= $result5['html'];
   $result6 = _phpbb2drupal_check_module('taxonomy');
   $output .= $result6['html'];
-
+  $result7 = _phpbb2drupal_check_module('bbcode');
+  $output .= $result7['html'];
+  $output .= "<p>The bbcode module is only recommanded. You can download it from the contributed module section at drupal.org. You will need to enable it at admin > modules, then configure it at admin > input formats > configure filtered HTML > and enable bbcode for this input format. You may want to enable it for other input formats, too..</p>.";
+  
   if ($result1['result'] == 0 OR $result2['result'] == 0 OR $result3['result'] == 0 OR $result4['result'] == 0 OR $result5['result'] == 0 OR $result6['result'] == 0 ) {
     $ready_for_migration = 0;
     $output .= "<p><span class='marker'>";
@@ -263,6 +266,7 @@ function phpbb2drupal_settings() {
       $output .= form_checkbox(t('Replaced comment.module'), 'phpbb2drupal_comment_module', 1, 
        variable_get('phpbb2drupal_comment_module', 0), 'Make sure you have replaced the comment.module with the patched version included with phpbb2drupal.'); 
       if (variable_get('phpbb2drupal_comment_module', 0) == 0) {
+        $ready_for_migration = 0;
         $output .= "<span class='marker'>";
         $output .= "<p>Drupal 4.6 doesn't allow files to be attached to comments. Therefore, you must replace the file modules/comment.module with the one that is included in the phpbb2drupal package. The ability to attach files to comment will be possible with a <a href='http://drupal.org/node/37197' target='_blank'>contrib module for Drupal 4.7</a>.  </p>";
         $output .= "</span>";
@@ -274,7 +278,7 @@ function phpbb2drupal_settings() {
       if ($result['result'] != 1) {
         $ready_for_migration = 0;
         $output .= "<span class='marker'>";
-        $output .= "Some tables couldn't be found. Please make sure you have properly installed the privatemsg.mysql on your Drupal data base.";
+        $output .= "The comment_files table couldn't be found. Please make sure you have properly installed the comment_upload.mysql on your Drupal data base.";
         $output .= "</span>";
       }
 
@@ -396,23 +400,29 @@ function phpbb2drupal_migrate() {
 
   // Adjust how long you want the script to run...
   if (!ini_get("safe_mode")) {
-    set_time_limit(variable_get("phpbb2drupal_time_limit", 1200));
+    set_time_limit(variable_get("phpbb2drupal_time_limit", 0));
   }
   
   _phpbb2drupal_db_connect() ;
   if (isset($_POST['edit'])) {
     $edit = $_POST['edit'];
   }
+ini_set('display_errors', TRUE);
 
   $PHPBB2DRUPAL_FUNCTIONS = array(
     'users' => 'Import Users',
     'categories' => 'Import Categories',
     'topics' => 'Import Topics',
     'polls' => 'Import Polls',
-    'posts' => 'Import Posts',
-    'cleanup' => 'Clean Up'
+    'posts' => 'Import Posts'
   );
 
+  if (variable_get("phpbb2drupal_import_pm",0)) { 
+    $new = array('pm' => 'Import Private Messages');
+    $PHPBB2DRUPAL_FUNCTIONS = array_merge( $PHPBB2DRUPAL_FUNCTIONS, $new);
+  }
+  $new = array('cleanup' => 'Clean up');
+  $PHPBB2DRUPAL_FUNCTIONS = array_merge( $PHPBB2DRUPAL_FUNCTIONS, $new);
 
   $action = $edit['import'];
   switch ($action) {
@@ -442,7 +452,6 @@ function phpbb2drupal_migrate() {
       } else {
         $selected = 'polls';
       }
-   
       continue;
     
     case "polls":      
@@ -452,7 +461,6 @@ function phpbb2drupal_migrate() {
       } else {
         $selected = 'posts';
       }
-   
       continue;
       
     case "posts":
@@ -461,11 +469,20 @@ function phpbb2drupal_migrate() {
         $out .= phpbb2drupal_import_posts();
         $selected = 'posts';
       } else {
-        $selected = 'cleanup';
-        $out .= "<h2>Congratulations.  Import Finished</h2>";
+        $selected = 'pm';
       }
       continue;
 
+    case "pm":      
+      if(variable_get('phpbb2drupal_import_pm_successful', 0) == 0) {
+        $out .= phpbb2drupal_import_pm();
+        $selected = 'pm';
+      } else {
+        $out .= "<h2>Congratulations.  Import Finished</h2>";
+        $selected = 'cleanup';
+      }
+      continue;
+      
     case "cleanup":
       $out .= phpbb2drupal_import_cleanup();
       continue;
@@ -484,7 +501,35 @@ function phpbb2drupal_migrate() {
 }
 
 
-
+/**
+ * Private Message Import Functions
+ */
+function phpbb2drupal_import_pm() {
+  $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
+  if(variable_get('phpbb2drupal_import_pm_successful', 0) == 1) return;
+  db_set_active('phpbb');
+  $query = "SELECT p.privmsgs_id, p.privmsgs_from_userid, p.privmsgs_to_userid, p.privmsgs_subject,pt.privmsgs_text,p.privmsgs_date,
+      IF(p.privmsgs_type = 1 OR p.privmsgs_type = 5, 1, 0) AS newmsg,  p.privmsgs_ip,0,0,0
+      FROM %sprivmsgs p
+      LEFT JOIN (%sprivmsgs_text pt) ON p.privmsgs_id=pt.privmsgs_text_id";
+  $messages = db_query($query, $pre, $pre);
+  
+  db_set_active('default');
+  while($pm = db_fetch_object($messages)) {    
+    $query = "SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d";
+    $from_result = db_query ($query, $pm->privmsgs_from_userid);
+    $from = db_result($from_result);
+    $query = "SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d";
+    $to_result = db_query ($query, $pm->privmsgs_to_userid);
+    $to = db_result($to_result);
+    $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del )
+        VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 )"; 
+    $result = db_query ($query, $pm->privmsgs_id, $from, $to, $pm->privmsgs_subject, $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, $pm->privmsgs_ip);
+  }
+  $out =" <p>Private Message Import successful</p>";
+  return $out; 
+  variable_set('phpbb2drupal_import_pm_successful', 1);
+}
 
 /**
  * User Import Functions
@@ -729,7 +774,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
  */
 function phpbb2drupal_import_topics() {
 $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
-    $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = get_variable('phpbb2drupal_import_attachments', 0);
+    $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = variable_get('phpbb2drupal_import_attachments', 0);
 
     db_set_active('default');
 
@@ -1098,7 +1143,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
  */
 function phpbb2drupal_import_posts() {
 $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
-    $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = get_variable('phpbb2drupal_import_attachments', 0);
+    $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = variable_get('phpbb2drupal_import_attachments', 0);
 
    # db_set_active('phpbb');
    # $total_posts = db_result(db_query("SELECT COUNT(*) FROM {posts} WHERE post_id <> topic_id"));
@@ -1144,10 +1189,10 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
                                   FROM %sposts 
                                   WHERE topic_id = %d
                                   AND post_id <> %d
-                                  ORDER BY post_id",$pre, $obj->topic_first_post_id, $obj->topic_id);
+                                  ORDER BY post_id",$pre,$obj->topic_id, $obj->topic_first_post_id);
         } else {
             $post_ids = db_query("SELECT post_id 
-                                  FROM %dposts 
+                                  FROM %sposts 
                                   WHERE topic_id = %d
                                   ORDER BY post_id", $pre, $obj->topic_id);
         }
@@ -1277,7 +1322,6 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
  */
 function phpbb2drupal_import_cleanup() {
 $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
-    $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = get_variable('phpbb2drupal_import_attachments', 0);
 
 #
 # Update Drupal sequence 
@@ -1293,21 +1337,24 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
     db_query("DELETE FROM {sequences} WHERE name='node_nid'");
     db_query("DELETE FROM {sequences} WHERE name='users_uid'");
 
-    db_query("INSERT INTO {sequences} (name,id) VALUE('term_data_tid', $term_data_tid)");
-    db_query("INSERT INTO {sequences} (name,id) VALUE('comments_cid', $comments_cid)");
-    db_query("INSERT INTO {sequences} (name,id) VALUE('node_nid', $node_nid)");
-    db_query("INSERT INTO {sequences} (name,id) VALUE('users_uid', $users_uid)");
+    db_query("INSERT INTO {sequences} (name,id) VALUES ('term_data_tid', $term_data_tid)");
+    db_query("INSERT INTO {sequences} (name,id) VALUES ('comments_cid', $comments_cid)");
+    db_query("INSERT INTO {sequences} (name,id) VALUES ('node_nid', $node_nid)");
+    db_query("INSERT INTO {sequences} (name,id) VALUES ('users_uid', $users_uid)");
 
-    if($PHPBB2DRUPAL_IMPORT_ATTACHMENTS) {
+    if(variable_get('phpbb2drupal_import_attachments', 0)) {
         $files_fid = db_result(db_query("SELECT MAX(fid) FROM {files}"));
+	if (!$files_fid ) { //may be NULL
+	  $files_fid = 0;
+	}
         db_query("DELETE FROM {sequences} WHERE name='files_fid'");
-        db_query("INSERT INTO {sequences} (name,id) VALUE('files_fid', $files_fid)");
+        db_query("INSERT INTO {sequences} (name,id) VALUES ('files_fid', $files_fid)");
     }
 
-    #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_user}");
-    #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_forum}");
-    #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_topic}");
-    #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_post}");
+    db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_user}");
+    db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_forum}");
+    db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_topic}");
+    db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_post}");
 
     variable_del('phpbb2drupal_import_user_successful');
     variable_del('phpbb2drupal_import_user_started');
