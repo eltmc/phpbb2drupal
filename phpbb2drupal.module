@@ -22,6 +22,20 @@ function phpbb2drupal_menu($may_cache) {
       'type'=> MENU_NORMAL_ITEM
     );
     $items[] = array(
+      'path' => 'admin/phpbb2drupal/postconfiguration',
+      'title' => 'Post Migration Configuration',
+      'access' => user_access('migrate phpBB'),
+      'callback' => 'phpbb2drupal_postconfiguration', 
+      'type'=> MENU_NORMAL_ITEM
+    );
+    $items[] = array(
+      'path' => 'admin/phpbb2drupal/cleanup',
+      'title' => 'Cleanup',
+      'access' => user_access('migrate phpBB'),
+      'callback' => 'phpbb2drupal_cleanup', 
+      'type'=> MENU_CALLBACK
+    );
+    $items[] = array(
       'path' => 'admin/phpbb2drupal/migrate',
       'title' => 'Execute Migration',
       'access' => user_access('migrate phpBB'),
@@ -80,6 +94,46 @@ function phpbb2drupal_reset() {
 
 /****************************************************
  *
+ * Callback admin/phpbb2drupal/cleanup
+ *
+****************************************************/
+function phpbb2drupal_cleanup() {
+  $output ='';
+  $output .= phpbb2drupal_import_cleanup();
+  $output .='<p>Drupal database cleaned.</p>';
+  $output .='';
+  $output .='';
+  print theme ("page", $output);
+  return 0;
+}
+
+/****************************************************
+ *
+ * Callback admin/phpbb2drupal/postconfiguration
+ *
+****************************************************/
+function phpbb2drupal_postconfiguration() {
+  $output ='';
+
+  // Private forums.
+  $output .='<h2>Private forums</h2>';
+  $output .='<p>Setup the private forums as explained in the <a href="http://drupal.org/node/58969" target="_blank">documentation</a></p>';
+
+  // Redirection from old URL:
+  $output .='<h2>Redirection from phpBB2 forum URL to new Drupal forum URL</h2>';
+  $output .='<p>Please, configure properly the files viewtopic.php and stories.php and place those files in your forum phpBB2 installation folder. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum.';
+
+  // BBcode
+  $output .='<h2>Configure BBcode module</h2>';
+  $output .='<p>Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode.module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.';
+  $output .='';
+  $output .='';
+  print theme ("page", $output);
+  return 0;
+}
+
+/****************************************************
+ *
  * Callback admin/phpbb2drupal
  *
 ****************************************************/
@@ -87,16 +141,27 @@ function phpbb2drupal_main() {
   $output ='';
 
   $output .='<ol><li>';
+  $output .= "You may want to <a href='http://drupal.org/node/58199' target='_blank'>check the documentation</a> before starting.";
+  $output .='</li>';
+  $output .='<li>';
   $output .=l("Configure the migration", "admin/settings/phpbb2drupal");
   $output .='</li>';
   $output .='<li>';
   $output .=l("Execute the migration", "admin/phpbb2drupal/migrate");
   $output .='</li>';
+  $output .='<li>';
+  $output .=l("Post migration configuration", "admin/phpbb2drupal/postconfiguration");
+  $output .='</li>';
+  $output .='<li>';
+  $output .=l("Cleanup", "admin/phpbb2drupal/cleanup");
+  $output .=' (Accessing this link will delete all the saved phpbb2drupal settings and temporary tables: click only when you\'re done with all the above.)</li>';
+  $output .='<li>If your data migration has proceeded smoothly, please post a "thank you" note in <a href="" target="_blank">this forum topic at drupal.org</a>.';
+  $output .='</li>';
   $output .='</ol><br />';
 
   // process will die() if the link to the phpBB2 database is wrong:
   $link = l("Click here to reset the database url", "admin/phpbb2drupal/reset");
-  $output .='<p>If the phpBB2 data is in another data base, but made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. '. $link. ".</p>" ;
+  $output .='<p>If the phpBB2 data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. '. $link. ".</p>" ;
 
   $output .='';
   $output .='';
@@ -424,8 +489,10 @@ ini_set('display_errors', TRUE);
     $new = array('pm' => 'Import Private Messages');
     $PHPBB2DRUPAL_FUNCTIONS = array_merge( $PHPBB2DRUPAL_FUNCTIONS, $new);
   }
+  /*
   $new = array('cleanup' => 'Clean up');
   $PHPBB2DRUPAL_FUNCTIONS = array_merge( $PHPBB2DRUPAL_FUNCTIONS, $new);
+  */
 
   $action = $edit['import'];
   switch ($action) {
@@ -482,14 +549,15 @@ ini_set('display_errors', TRUE);
         $selected = 'pm';
       } else {
         $out .= "<h2>Congratulations.  Import Finished</h2>";
-        $selected = 'cleanup';
+  	$out .="<p>Please visit the ".l("Post migration configuration", "admin/phpbb2drupal/postconfiguration"). " page</p>";
+        $selected = '';
       }
       continue;
-      
+   /*   
     case "cleanup":
       $out .= phpbb2drupal_import_cleanup();
       continue;
-    
+    */
     default:
        // make update form and output it.
       $selected = 'users';
@@ -1377,6 +1445,17 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
     variable_del('phpbb2drupal_import_topic_started');
     variable_del('phpbb2drupal_import_post_successful');
     variable_del('phpbb2drupal_import_post_started');
+    variable_del('phpbb2drupal_ready');
+    variable_del('phpbb2drupal_tested');
+    variable_del('phpbb2drupal_same_db');
+    variable_del('phpbb2drupal_table_prefix');
+    variable_del('phpbb2drupal_time_limit');
+    variable_del('phpbb2drupal_import_spammers');
+    variable_del('phpbb2drupal_import_attachments');
+    variable_del('phpbb2drupal_import_pm');
+    variable_del('phpbb2drupal_import_poll_started');
+    variable_del('phpbb2drupal_import_poll_successful');
+    variable_del('phpbb2drupal_import_pm_successful');
 
     db_query('DELETE FROM {cache}');
 }
