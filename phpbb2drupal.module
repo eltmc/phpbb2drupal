@@ -687,6 +687,7 @@ function phpbb2drupal_import_users() {
 
   if(!$user_count) {
       drupal_set_message('There were no users found: Aborting script', 'error');
+      return "There were no users found: Aborting script.";
   }
 
   drupal_set_message(t("Found %user_count users: Beginning Import", array('%user_count' => $user_count + 1)));
@@ -707,9 +708,7 @@ function phpbb2drupal_import_users() {
     }*/
 
     // If we don't want to import users who have never posted, break this while loop here.
-    if ($import_spammers!=1 AND $user->user_posts == 0 ) {
-      break;
-    }
+    if ($import_spammers == 1 OR $user->user_posts != 0 ) {
 
     // Make sure the user is has not already been imported
     db_set_active('default');
@@ -745,7 +744,7 @@ function phpbb2drupal_import_users() {
       'timezone' => $user->user_timezone, 
       'picture' => $user->user_avatar,
       'init' => $user->user_email,
-//      'roles' => array(0 => 2),                       # Authenticated User
+      'roles' => array(0 => 2),                       # Authenticated User
       'user_website' => $user->user_website,
       'user_from' => $user->user_from,
       'user_icq' => $user->user_icq,
@@ -764,6 +763,7 @@ function phpbb2drupal_import_users() {
     db_query('INSERT INTO {phpbb2drupal_temp_user} (user_id, uid) VALUES ( %d, %d )', $user->user_id , $drupal_user->uid);
 
     db_set_active('phpbb');
+    }
   }
 
   // set the user import successful flag in the variable table
