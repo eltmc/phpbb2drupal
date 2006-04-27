@@ -113,7 +113,7 @@ function phpbb2drupal_postconfiguration() {
 
   // Redirection from old URL:
   $output .='<h2>Redirection from phpBB2 forum URL to new Drupal forum URL</h2>';
-  $output .='<p>Please, configure properly the files viewtopic.php and stories.php and place those files in your forum phpBB2 installation folder. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum.';
+  $output .='<p>Please, configure properly the files viewtopic.php and stories.php: open them and change the two include path at the top. Place those files in your forum phpBB2 installation folder. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum.';
 
   // BBcode
   $output .='<h2>Configure BBcode module</h2>';

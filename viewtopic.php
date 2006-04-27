@@ -1,7 +1,8 @@
 <?php 
 
-include_once 'includes/bootstrap.inc';
-include_once 'includes/common.inc';
+// adapt the path to the two Drupal files below, according to your server  setup:
+require_once 'includes/bootstrap.inc';
+require_once 'includes/common.inc';
 
 fix_gpc_magic();
 
