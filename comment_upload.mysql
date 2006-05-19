@@ -1,5 +1,0 @@
-CREATE TABLE comment_files (
-  cid int(10) unsigned NOT NULL default '0',
-  fid int(10) unsigned NOT NULL default  '0',
-  KEY cid_fid (cid, fid)
-) TYPE=MyISAM;

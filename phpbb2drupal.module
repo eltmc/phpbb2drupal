@@ -364,25 +364,12 @@ function phpbb2drupal_settings() {
         $ready_for_migration = 0;
         $output .= "<span class='marker'>";
         $link = l('After having installed it, go to the admin/module page to enable it', 'admin/modules');
-        $output .= "The comment_upload.module is not enabled. <!-- FOR DRUPAL 4.7 only: -- You can <a href='http://drupal.org/node/37197' target='_blank'>go to the module Home Page to download it</a>-->. $link. ";
+        $output .= "The comment_upload.module is not enabled. You can <a href='http://drupal.org/node/37197' target='_blank'>go to the module Home Page to download it</a>. $link. ";
         $output .= "</span>";
       }
       $form[] = array('#value' => $output);
       $output = '';
-      // patched comment.module for 4.6
-      $form['phpbb2drupal_comment_module'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Replaced comment.module'),
-        '#return_value' => 1,
-        '#default_value' => variable_get('phpbb2drupal_comment_module', 0),
-        '#description' => 'Make sure you have replaced the comment.module with the patched version included with phpbb2drupal.',
-      );
-      if (variable_get('phpbb2drupal_comment_module', 0) == 0) {
-        $ready_for_migration = 0;
-        $output .= "<span class='marker'>";
-        $output .= "<p>Drupal 4.6 doesn't allow files to be attached to comments. Therefore, you must replace the file modules/comment.module with the one that is included in the phpbb2drupal package. The ability to attach files to comment will be possible with a <a href='http://drupal.org/node/37197' target='_blank'>contrib module for Drupal 4.7</a>.  </p>";
-        $output .= "</span>";
-      }
+
 
       //private messages tables.
       $result = _phpbb2drupal_check_tables (array('comment_files'));

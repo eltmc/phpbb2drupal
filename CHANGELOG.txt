@@ -1,4 +1,7 @@
 
+
+20 May  2006: no need for patched comment.module anymore for file attachments. Use cvs/4.7 version of comment_upload.module
+01 May  2006: tagged final 4.6 version. CVS open for 4.7.
 17 Apr. 2006: settings: choice to not import people who have registered but never posted, a.k.a spammers. 
 17 Apr. 2006: Beginner's (Augustin Masquilier) code and John Hwang's have now been merged into the new phpbb2drupal.module.
 07 Apr. 2006: Just discovered John Hwang's script which is in a more advanced stage. Replacing my whole module by his script.

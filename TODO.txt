@@ -2,4 +2,3 @@
 * add drupal.org forum topic to post success.
 * test viewtopic.php, redirection, etc... How to configure?
 * Link drupal users to phpBB users?
-* Port to Drupal 4.7.
