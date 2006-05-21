@@ -272,6 +272,7 @@ function phpbb2drupal_settings() {
     $ready_for_migration = 0;
     $form['input']['#collapsed']= FALSE;
   }
+  $output .='<p><em>This setting will be applied to all posts and private messages.</em></p>';
   $form['input']['result'] = array('#value' => $output);
 
 
@@ -326,6 +327,7 @@ function phpbb2drupal_settings() {
       '.$link_input_format_configure.'.</p>
       <p>You may want to enable it for other input formats, too.</p>';
   }
+  $output .='<p><em>This setting will be applied to all posts, private messages and the users\' signature.</em></p>';
   $form['bbcode']['result'] = array('#value' => $output);
 
   
