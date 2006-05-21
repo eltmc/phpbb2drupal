@@ -2,6 +2,7 @@
 21 May  2006: 1) added option to change bbcode to html.
               2) In settings page, updated the form to use collapsible fieldsets for each sections.
               3) added option to select input format for imported posts.
+              4) The registration date is now properly imported.
 20 May  2006: no need for patched comment.module anymore for file attachments. Use cvs/4.7 version of comment_upload.module
 01 May  2006: tagged final 4.6 version. CVS open for 4.7.
 17 Apr. 2006: settings: choice to not import people who have registered but never posted, a.k.a spammers. 

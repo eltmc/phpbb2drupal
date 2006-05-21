@@ -116,8 +116,14 @@ function phpbb2drupal_postconfiguration() {
   $output .='<p>Please, configure properly the files viewtopic.php and stories.php: open them and change the two include path at the top. Place those files in your forum phpBB2 installation folder. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum.';
 
   // BBcode
-  $output .='<h2>Configure BBcode module</h2>';
-  $output .='<p>Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode.module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.';
+  $bbcode = variable_get('phpbb2drupal_bbcode', 0);
+  if ($bbcode) {
+    $output .='<h2>Remove BBcode module</h2>
+      <p>The bbcode has been cleaned from the posts. You shouldn\'t need the bbcode module anymore. You can disable it.';
+  } else {
+    $output .='<h2>Configure BBcode module</h2>';
+    $output .='<p>Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode.module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.';
+  }
   $output .='';
   $output .='';
   return $output;
@@ -275,9 +281,9 @@ function phpbb2drupal_settings() {
   $output ='<p>pbpBB2 posts are often formatted in BBcode. During the import process, BBcode can be handled in two diffent ways:</p>
     <ul><li>You can leave the BBcode as is, and use the <a href="http://drupal.org/project/bbcode" target="_blank">bbcode module</a> after the migration to filter the imported posts. In this case, the module is not required during the migration but you will need to install it and configure it later.</li>
     <li>You can decide to have the BBcode filtered now and replaced by plain HTML. The BBcode module will be required during the migration process, but you can disable it later.</li>    </ul>
-    <p>Which one do you choose?</p>';
+    <p>Which one do you choose?</p>
+    <p>Also, make sure to choose the proper input filter, for it will affect how the post is displayed. For example, if you choose to strip the bbcode altogether and use HTML instead, some HTML tags will be stripped by the "filtered HTML" input format, unless you add those tags in the list of allowed tags. Using "Full HTML" is recommanded for the imported posts when doing away with bbcode.</p>';
   $form['bbcode']['intro'] = array('#value' => $output);
-  //DEBUG
   $form['bbcode']['phpbb2drupal_bbcode'] = array(
     '#type' => 'radios',
     '#title' => t('BBcode handling'),
@@ -519,6 +525,7 @@ function phpbb2drupal_settings() {
   if (variable_get('phpbb2drupal_import_pm', 0) == 1) {
 
      // Private messages module
+      $output = '<p>If you want to use the private message module, make sure to configure it properly (admin > settings> private messages) and allow user to view their own private messages (admin > access control).</p>';
       $result = _phpbb2drupal_check_module('privatemsg');
       $output .= $result['html'];
       if ($result['result'] != 1) {
@@ -741,9 +748,10 @@ function phpbb2drupal_migrate_submit($form_id, $form_values) {
  */
 function phpbb2drupal_import_pm() {
   $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
+  $format = variable_get('phpbb2drupal_input_format', 0);
   if(variable_get('phpbb2drupal_import_pm_successful', 0) == 1) return;
   db_set_active('phpbb');
-  $query = "SELECT p.privmsgs_id, p.privmsgs_from_userid, p.privmsgs_to_userid, p.privmsgs_subject,pt.privmsgs_text,p.privmsgs_date,
+  $query = "SELECT p.privmsgs_id, p.privmsgs_from_userid, p.privmsgs_to_userid, p.privmsgs_subject,pt.privmsgs_text, pt.privmsgs_bbcode_uid ,p.privmsgs_date,
       IF(p.privmsgs_type = 1 OR p.privmsgs_type = 5, 1, 0) AS newmsg,  p.privmsgs_ip,0,0,0
       FROM %sprivmsgs p
       LEFT JOIN (%sprivmsgs_text pt) ON p.privmsgs_id=pt.privmsgs_text_id";
@@ -759,9 +767,14 @@ function phpbb2drupal_import_pm() {
     $to = db_result($to_result);
     // don't import private messages from or to users who are not imported.
     if ($from and $to) {
-      $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del )
-          VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 )"; 
-      $result = db_query ($query, $pm->privmsgs_id, $from, $to, $pm->privmsgs_subject, $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, $pm->privmsgs_ip);
+      // remove the bbcode_uid from post_text
+      $pm->privmsgs_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->privmsgs_text);
+      $pm->privmsgs_text = _phpbb2drupal_strip_bbcode($pm->privmsgs_text);
+
+      
+      $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del, format )
+          VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 , %d)"; 
+      $result = db_query ($query, $pm->privmsgs_id, $from, $to, $pm->privmsgs_subject, $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, $pm->privmsgs_ip, $format);
     }
   }
   $out =" <p>Private Message Import successful</p>";
@@ -875,6 +888,9 @@ function phpbb2drupal_import_users() {
       'user_occ' => $user->user_occ,
       'user_interests' => $user->user_interest
       );
+    if (variable_get('phpbb2drupal_import_pm', 0)){
+      $data['privatemsg_allow'] = 1;
+    }
 
     db_set_active('default');
     $drupal_user = phpbb2drupal_user_save($data, array('account', 'Personal', 'Contact'));
@@ -1561,6 +1577,8 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
     variable_del('phpbb2drupal_import_post_successful');
     variable_del('phpbb2drupal_import_post_started');
     variable_del('phpbb2drupal_ready');
+    variable_del('phpbb2drupal_input_format');
+    variable_del('phpbb2drupal_db_url');
     variable_del('phpbb2drupal_tested');
     variable_del('phpbb2drupal_same_db');
     variable_del('phpbb2drupal_table_prefix');
@@ -1587,6 +1605,10 @@ function phpbb2drupal_user_save($phpBB_user, $category = array()) {
     $account = new StdClass();
     $account->uid = FALSE; 
     $user = user_save($account, $phpBB_user);
+    //Drupal overrides the phpBB user registration date when creating a Drupal account. 
+    //so we need to update it here.
+    //DEBUG
+    $user = user_save($user, array('created' => $phpBB_user['created']));
   }
   $phpBB_user['uid'] = $user->uid;
 
