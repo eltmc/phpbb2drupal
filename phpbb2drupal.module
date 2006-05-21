@@ -124,7 +124,12 @@ function phpbb2drupal_postconfiguration() {
     $output .='<h2>Configure BBcode module</h2>';
     $output .='<p>Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode.module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.';
   }
-  $output .='';
+
+  //Avatars
+  $output .='<h2>Avatars</h2>';
+  $output .='<p>Manually copy the avatars from the phpbb2/images/avatars/ directory to the drupal/files/images/ directory.</p>
+    <p>Also, in admin > settings > users, you need to enable picture support. </p>
+    <p>Finally, in admin > themes > configure, you need to allow "User Picture in posts/comments".</p>';
   $output .='';
   return $output;
 }
@@ -868,11 +873,15 @@ function phpbb2drupal_import_users() {
 
     $user->user_avatar =  ($user->user_avatar) ? "$files_path/$pictures_path/$user->user_avatar" : '';
 
+    // remove the :bbcode_uid from signature
+    $signature = preg_replace("/:$post->bbcode_uid/", '', $user->user_sig);
+    $signature = _phpbb2drupal_strip_bbcode ($signature);
+
     $data = array(
       'name' => $user->username,
       'pass' => $user->user_password,
       'mail' => $user->user_email,
-      'signature' => $user->user_sig,
+      'signature' => $signature,
       'created' => $user->user_regdate,
       'status' => $user->user_active,
       'timezone' => $user->user_timezone, 
