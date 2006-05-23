@@ -363,6 +363,7 @@ function phpbb2drupal_settings() {
     $output .= '</p>';
   }
   $form['modules']['result'] = array('#value' => $output);
+  $output = '';
 
   // Where is phpbb2?
   $form['phpbb2'] = array (
@@ -371,7 +372,6 @@ function phpbb2drupal_settings() {
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
-  $output = '';
   $form['phpbb2']['phpbb2drupal_same_db'] = array(
     '#type' => 'checkbox',
     '#title' => t('phpbb is on the same database as drupal'),
@@ -387,7 +387,6 @@ function phpbb2drupal_settings() {
       $form['phpbb2']['#collapsed']= FALSE;
     }
 
-    $output = '';
     $form['phpbb2']['phpbb2drupal_db_url'] = array(
       '#type' => 'textfield',
       '#title' => t('phpBB2 database location'),
@@ -397,10 +396,11 @@ function phpbb2drupal_settings() {
       '#description' => '',
     );
   }
-  $form['phpbb2']['result'] = array('#value' => $output);
+    $output = '<p>Note that due to a limitation within Drupal core, we cannot import messages from one database type to another database type. E.g, we cannot import phpBB for a myqsl DB, to a postgresql DB. You need to import the data into the same type of database first (import all the phpBB data, as is, from mysql to postgresql.</p>
+<p>If both phpBB and Drupal are on postgresql, see <a href="http://drupal.org/node/64877">this issue</a>.</p>';
+  $form['phpbb2']['note'] = array('#value' => $output);
   
   // phpBB2 table prefix
-  $form[] = array('#value' => $output);
   $output = '';
   $form['phpbb2']['phpbb2drupal_table_prefix'] = array(
     '#type' => 'textfield',
@@ -804,8 +804,8 @@ function phpbb2drupal_import_users() {
   if(variable_get('phpbb2drupal_import_user_started', 0) == 0) {
     // create temporary tables
     db_set_active('default');
-    db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_user}');
-    db_query("CREATE TABLE {phpbb2drupal_temp_user} ( user_id mediumint(8) DEFAULT '0' NOT NULL, uid INTEGER UNSIGNED DEFAULT '0' NOT NULL, KEY user_id (user_id))");
+    //db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_user}');
+    //db_query("CREATE TABLE {phpbb2drupal_temp_user} ( user_id mediumint(8) DEFAULT '0' NOT NULL, uid INTEGER UNSIGNED DEFAULT '0' NOT NULL, KEY user_id (user_id))");
 
     // create profile fields for icq, aim, msn...etc
     db_query("INSERT INTO {profile_fields} (title, name, explanation, category, page, type, weight, required, register, visibility, options) VALUES ('YIM','user_yim','','Contact','','textfield',0,0,1,2,''),('AIM','user_aim','','Contact','','textfield',0,0,1,2,''),('MSN','user_msnm','','Contact','','textfield',0,0,1,2,''),('icq','user_icq','','Contact','','textfield',0,0,1,2,''),('Website','user_website','','Contact','','url',0,0,1,2,''),('Location','user_from','','Personal','','textfield',0,0,1,2,''),('Occupation','user_occ','','Personal','','textfield',0,0,1,2,''),('Interests','user_interests','','Personal','','textfield',0,0,1,2,'')");
@@ -940,8 +940,8 @@ function phpbb2drupal_import_categories() {
   // forum mapping temporary tables
   if(variable_get('phpbb2drupal_import_category_started', 0) == 0) {
     db_set_active('default');
-    db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_forum}');
-    db_query("CREATE TABLE {phpbb2drupal_temp_forum} ( forum_id smallint(5) UNSIGNED DEFAULT '0' NOT NULL, tid integer UNSIGNED DEFAULT '0' NOT NULL, KEY forum_id (forum_id))");
+    //db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_forum}');
+    //db_query("CREATE TABLE {phpbb2drupal_temp_forum} ( forum_id smallint(5) UNSIGNED DEFAULT '0' NOT NULL, tid integer UNSIGNED DEFAULT '0' NOT NULL, KEY forum_id (forum_id))");
     variable_set('phpbb2drupal_import_category_started', 1);
   }
 
@@ -1047,8 +1047,8 @@ function phpbb2drupal_import_topics() {
 
   if(!variable_get('phpbb2drupal_import_topic_started', 0)) {
     db_set_active('default');
-    db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_topic}');
-    db_query("CREATE TABLE {phpbb2drupal_temp_topic} ( topic_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, post_id  mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, nid integer UNSIGNED DEFAULT '0' NOT NULL, KEY topic_id (topic_id))");
+    //db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_topic}');
+    //db_query("CREATE TABLE {phpbb2drupal_temp_topic} ( topic_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, post_id  mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, nid integer UNSIGNED DEFAULT '0' NOT NULL, KEY topic_id (topic_id))");
     variable_set('phpbb2drupal_import_topic_started', 1);
   }
 
@@ -1395,13 +1395,13 @@ function phpbb2drupal_import_posts() {
 
   if(!variable_get('phpbb2drupal_import_post_started', 0)) {
     db_set_active('default');
-    db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_post}');
-    db_query("CREATE TABLE {phpbb2drupal_temp_post} (
+    //db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_post}');
+    /*db_query("CREATE TABLE {phpbb2drupal_temp_post} (
                 post_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL,
                 cid int(10) DEFAULT '0' NOT NULL,
                 KEY post_id (post_id))"  
             );
-
+     */
     db_set_active('default');
     variable_set('phpbb2drupal_import_post_started', 1);
   }

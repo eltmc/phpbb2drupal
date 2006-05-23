@@ -1,4 +1,4 @@
-
+23 May  2006: Created phpbb2drupal.install to cater for postgresql. 
 21 May  2006: 1) added option to change bbcode to html.
               2) In settings page, updated the form to use collapsible fieldsets for each sections.
               3) added option to select input format for imported posts.
