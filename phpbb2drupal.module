@@ -513,9 +513,110 @@ function phpbb2drupal_settings() {
       $output = '';
 
   }
+  
+  // Encoding
+  $form['encoding'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Encoding setting',
+    '#collapsible' => 'TRUE',
+    '#collapsed' => 'TRUE',
+  );
 
+ //DEBUG http://php.net/extension_loaded 
+ if (!extension_loaded('mbstring') && variable_get('phpbb2drupal_encode', '1')) {
+   $ready_for_migration = 0;
+   $form['encoding']['#collapsed']= FALSE;
+   $output .= "<p class='marker'>";
+   $output .= "The php mbstring module is not installed on this server: the posts' encoding cannot be changed during the migration.";
+   $output .= "</p>";
+ }
+
+  $encodings = array(
+    'utf-8' => 'utf-8',
+    'iso-8859-1' => 'iso-8859-1',
+    'UCS-4' => 'UCS-4',
+    'UCS-4BE' => 'UCS-4BE',
+    'UCS-4LE' => 'UCS-4LE',
+    'UCS-2' => 'UCS-2',
+    'UCS-2BE' => 'UCS-2BE',
+    'UCS-2LE' => 'UCS-2LE',
+    'UTF-32' => 'UTF-32',
+    'UTF-32BE' => 'UTF-32BE',
+    'UTF-32LE' => 'UTF-32LE',
+    'UTF-16' => 'UTF-16',
+    'UTF-16BE' => 'UTF-16BE',
+    'UTF-16LE' => 'UTF-16LE',
+    'UTF-7' => 'UTF-7',
+    'UTF7-IMAP' => 'UTF7-IMAP',
+    'ASCII' => 'ASCII',
+    'EUC-JP' => 'EUC-JP',
+    'SJIS' => 'SJIS',
+    'eucJP-win' => 'eucJP-win',
+    'SJIS-win' => 'SJIS-win',
+    'ISO-2022-JP' => 'ISO-2022-JP',
+    'JIS' => 'JIS',
+    'ISO-8859-2' => 'ISO-8859-2',
+    'ISO-8859-3' => 'ISO-8859-3',
+    'ISO-8859-4' => 'ISO-8859-4',
+    'ISO-8859-5' => 'ISO-8859-5',
+    'ISO-8859-6' => 'ISO-8859-6',
+    'ISO-8859-7' => 'ISO-8859-7',
+    'ISO-8859-8' => 'ISO-8859-8',
+    'ISO-8859-9' => 'ISO-8859-9',
+    'ISO-8859-10' => 'ISO-8859-10',
+    'ISO-8859-13' => 'ISO-8859-13',
+    'ISO-8859-14' => 'ISO-8859-14',
+    'ISO-8859-15' => 'ISO-8859-15',
+    'byte2be' => 'byte2be',
+    'byte2le' => 'byte2le',
+    'byte4be' => 'byte4be',
+    'byte4le' => 'byte4le',
+    'BASE64' => 'BASE64',
+    'HTML-ENTITIES' => 'HTML-ENTITIES',
+    '7bit' => '7bit',
+    '8bit' => '8bit',
+    'EUC-CN' => 'EUC-CN',
+    'CP936' => 'CP936',
+    'HZ' => 'HZ',
+    'EUC-TW' => 'EUC-TW',
+    'CP950' => 'CP950',
+    'BIG-5' => 'BIG-5',
+    'EUC-KR' => 'EUC-KR',
+    'UHC (CP949)' => 'UHC (CP949)',
+    'ISO-2022-KR' => 'ISO-2022-KR',
+    'Windows-1251 (CP1251)' => 'Windows-1251 (CP1251)',
+    'Windows-1252 (CP1252)' => 'Windows-1252 (CP1252)',
+    'CP866 (IBM866)' => 'CP866 (IBM866)',
+    'KOI8-R' => 'KOI8-R',
+   );
+  
+  $form['encoding']['phpbb2drupal_encode'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Change encoding of text strings during the import',
+    '#default_value' => variable_get('phpbb2drupal_encode', '1'),
+  );
+
+  $output .= '<p>This setting is useful when the phpBB2 encoding is not the same as the Drupal encoding. <strong>You server must have the <em>php mbstring module</em> installed.</strong></p>';
+  $form['encoding']['info'] = array(
+    '#value' => $output 
+  );
+  
+  $form['encoding']['phpbb2drupal_encoding_phpbb'] = array(
+    '#type' => 'select',
+    '#title' => 'phpBB2 encoding',
+    '#default_value' => variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'),
+    '#options' => $encodings,
+  );
+
+  $form['encoding']['phpbb2drupal_encoding_drupal'] = array(
+    '#type' => 'select',
+    '#title' => 'Drupal encoding',
+    '#default_value' => variable_get('phpbb2drupal_encoding_drupal', 'utf-8'),
+    '#options' => $encodings,
+  );
 
   // Private messages
+  $output = '';
   $form['pm'] = array (
     '#type' => 'fieldset',
     '#title' => 'Private Messages',
@@ -777,7 +878,8 @@ function phpbb2drupal_import_pm() {
       // remove the bbcode_uid from post_text
       $pm->privmsgs_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->privmsgs_text);
       $pm->privmsgs_text = _phpbb2drupal_strip_bbcode($pm->privmsgs_text);
-
+      $pm->privmsgs_text = _phpbb2drupal_text_encode($pm->privmsgs_text);
+      $pm->privmsgs_subject = _phpbb2drupal_text_encode($pm->privmsgs_subject);
       
       $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del, format )
           VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 , %d)"; 
@@ -878,6 +980,7 @@ function phpbb2drupal_import_users() {
     // remove the :bbcode_uid from signature
     $signature = preg_replace("/:$post->bbcode_uid/", '', $user->user_sig);
     $signature = _phpbb2drupal_strip_bbcode ($signature);
+    $signature = _phpbb2drupal_text_encode($signature);
 
     $data = array(
       'name' => $user->username,
@@ -902,6 +1005,8 @@ function phpbb2drupal_import_users() {
     if (variable_get('phpbb2drupal_import_pm', 0)){
       $data['privatemsg_allow'] = 1;
     }
+    
+    $data['interests'] = _phpbb2drupal_text_encode($data['interests']);
 
     db_set_active('default');
     $drupal_user = phpbb2drupal_user_save($data, array('account', 'Personal', 'Contact'));
@@ -986,6 +1091,7 @@ function phpbb2drupal_import_categories() {
       'description' => '',
       'weight' => $container_order,
     );
+    $edit['name'] = _phpbb2drupal_text_encode($edit['name']);
 
     taxonomy_save_term($edit);
 
@@ -1006,6 +1112,8 @@ function phpbb2drupal_import_categories() {
           'weight' => $forum_order,
           'parent' => array($edit['tid']),
         );
+        $forum_edit['name'] = _phpbb2drupal_text_encode($forum_edit['name']);
+        $forum_edit['description'] = _phpbb2drupal_text_encode($forum_edit['description']);
 
         taxonomy_save_term($forum_edit);
 
@@ -1131,6 +1239,7 @@ function phpbb2drupal_import_topics() {
     // remove the bbcode_uid from post_text
     $topic->post_text = preg_replace("/:$topic->bbcode_uid/", '', $topic->post_text);
     $topic->post_text = _phpbb2drupal_strip_bbcode($topic->post_text);
+    $topic->post_text = _phpbb2drupal_text_encode($topic->post_text);
 
     $teaser = node_teaser($topic->post_text);
 
@@ -1150,6 +1259,7 @@ function phpbb2drupal_import_topics() {
       'format' => $input_format,
       'teaser' => $teaser,
     );
+    $node['title'] = _phpbb2drupal_text_encode($node['title']);
 
     if($topic->topic_status == 2) {
       db_set_active('phpbb');
@@ -1265,8 +1375,8 @@ function phpbb2drupal_import_polls() {
       $choice = array();
       while($result = db_fetch_object($query)) {
         $choice[] = array(
-          'chtext' => $result->vote_option_text,
-          'chvotes' => $result->vote_result,
+          'chtext' => _phpbb2drupal_text_encode($result->vote_option_text),
+          'chvotes' => _phpbb2drupal_text_encode($result->vote_result),
         );
       }
     } else {
@@ -1332,6 +1442,7 @@ function phpbb2drupal_import_polls() {
       'sticky' => $sticky,
 //      'teaser' => $teaser
     );
+    $node['title'] = _phpbb2drupal_text_encode($node['title']);
 
 
     // handle moved nodes
@@ -1482,6 +1593,8 @@ function phpbb2drupal_import_posts() {
       // remove the :bbcode_uid from post_text
       $post->post_text = preg_replace("/:$post->bbcode_uid/", '', $post->post_text);
       $post->post_text = _phpbb2drupal_strip_bbcode ($post->post_text);
+      $post->post_text = _phpbb2drupal_text_encode($post->post_text);
+      $post->post_subject = _phpbb2drupal_text_encode($post->post_subject);
 
       //construct the node
       $comment = array(
@@ -1601,6 +1714,9 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
     variable_del('phpbb2drupal_import_poll_successful');
     variable_del('phpbb2drupal_import_pm_successful');
     variable_del('phpbb2drupal_admin_user');
+    variable_del('phpbb2drupal_encode');
+    variable_del('phpbb2drupal_encoding_phpbb');
+    variable_del('phpbb2drupal_encoding_drupal');
 
     db_query('DELETE FROM {cache}');
 }
@@ -1766,4 +1882,15 @@ function _phpbb2drupal_strip_bbcode ($text) {
     $text = bbcode_filter('process', 0 , $input_format, $text);
   }
   return $text;
+}
+
+
+// function to properly encode strings.
+function _phpbb2drupal_text_encode ($text) {
+  if(!variable_get('phpbb2drupal_encode', 0)) {
+    return $text;
+  }
+  $text = mb_convert_encoding($text, variable_get('phpbb2drupal_encoding_drupal', 'utf-8'), variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'));
+  return $text;
+  
 }
