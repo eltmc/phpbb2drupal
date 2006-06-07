@@ -1618,8 +1618,10 @@ function phpbb2drupal_user_save($phpBB_user, $category = array()) {
     $user = user_save($account, $phpBB_user);
     //Drupal overrides the phpBB user registration date when creating a Drupal account. 
     //so we need to update it here.
-    //DEBUG
     $user = user_save($user, array('created' => $phpBB_user['created']));
+    // Update the password: just import the md5() hash straight into Drupal without
+    // passing through the Drupal function user_save() which would re-hash the hash.
+    $result = db_query('UPDATE {users} SET pass = "%s" WHERE uid = %d', $phpBB_user['pass'], $user->uid);
   }
   $phpBB_user['uid'] = $user->uid;
 

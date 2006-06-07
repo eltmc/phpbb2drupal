@@ -3,6 +3,7 @@
 // adapt the path to the two Drupal files below, according to your server  setup:
 require_once 'includes/bootstrap.inc';
 require_once 'includes/common.inc';
+drupal_bootstrap('DRUPAL_BOOTSTRAP_FULL')
 
 fix_gpc_magic();
 
