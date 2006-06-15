@@ -113,7 +113,7 @@ function phpbb2drupal_postconfiguration() {
 
   // Redirection from old URL:
   $output .='<h2>Redirection from phpBB2 forum URL to new Drupal forum URL</h2>';
-  $output .='<p>Please, configure properly the files viewtopic.php and stories.php: open them and change the two include path at the top. Place those files in your forum phpBB2 installation folder. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum.';
+  $output .='<p>Enable the phpbb_redirect.module. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum. (note that currently the module assumes that the phpbb forum was located in the forum/ subdirectory of your Drupal installation).';
 
   // BBcode
   $bbcode = variable_get('phpbb2drupal_bbcode', 0);
@@ -127,7 +127,7 @@ function phpbb2drupal_postconfiguration() {
 
   //Avatars
   $output .='<h2>Avatars</h2>';
-  $output .='<p>Manually copy the avatars from the phpbb2/images/avatars/ directory to the drupal/files/images/ directory.</p>
+  $output .='<p>Manually copy the avatars from the phpbb2/images/avatars/ directory to the drupal/files/pictures/ directory.</p>
     <p>Also, in admin > settings > users, you need to enable picture support. </p>
     <p>Finally, in admin > themes > configure, you need to allow "User Picture in posts/comments".</p>';
   $output .='';
@@ -723,7 +723,7 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
   $out['result']= 1;
   foreach ($tables as $table) {
     if ($prefix) {
-      $table = db_prefix_tables($table);
+      $table = db_prefix_tables('{'.$table.'}');
     }  
     $query = 'SHOW TABLES LIKE "%s"';
     $result = db_query ($query, $table);
@@ -1943,7 +1943,6 @@ function _phpbb2drupal_replace_links($html) {
   $html = preg_replace("{Post generated using Mail2Forum \(<a href=\"http://www.mail2forum.com\">http://www.mail2forum.com</a>\)}i", "", $html);
   // You can use the line below to test locally the url's when you are testing:
   //$html = preg_replace("{www.reuniting.info}i", "127.0.0.1/drupal", $html);
-  $html = preg_replace("{www.reuniting.info}i", "127.0.0.1/am/virgin-drupal", $html);
   return $html;
 }
 
