@@ -769,6 +769,7 @@ function phpbb2drupal_migrate() {
   if (variable_get('phpbb2drupal_import_pm',0)) { 
     $PHPBB2DRUPAL_FUNCTIONS['pm'] = 'Import Private Messages';
   }
+  $PHPBB2DRUPAL_FUNCTIONS['url'] = 'Transform URLs';
   /*
   $new = array('cleanup' => 'Clean up');
   $PHPBB2DRUPAL_FUNCTIONS = array_merge( $PHPBB2DRUPAL_FUNCTIONS, $new);
@@ -840,6 +841,14 @@ function phpbb2drupal_migrate_submit($form_id, $form_values) {
       if(!variable_get('phpbb2drupal_import_pm_successful', 0)) {
         $_SESSION['phpbb2drupal_selected'] = 'pm';
       } else {
+        $_SESSION['phpbb2drupal_selected'] = 'url';
+      }
+      break;
+    case 'url':
+      phpbb2drupal_replace_url();
+      if(!variable_get('phpbb2drupal_replace_url_successful', 0)) {
+        $_SESSION['phpbb2drupal_selected'] = 'url';
+      } else {
         drupal_set_message('Congratulations.  Import Finished');
         drupal_set_message('Please visit the ' . l('Post migration configuration', 'admin/phpbb2drupal/postconfiguration'). ' page');
         unset($_SESSION['phpbb2drupal_selected']);
@@ -879,6 +888,7 @@ function phpbb2drupal_import_pm() {
       $pm->privmsgs_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->privmsgs_text);
       $pm->privmsgs_text = _phpbb2drupal_strip_bbcode($pm->privmsgs_text);
       $pm->privmsgs_text = _phpbb2drupal_text_encode($pm->privmsgs_text);
+      $pm->privmsgs_text = _phpbb2drupal_replace_links($pm->privmsgs_text);
       $pm->privmsgs_subject = _phpbb2drupal_text_encode($pm->privmsgs_subject);
       
       $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del, format )
@@ -1576,8 +1586,10 @@ function phpbb2drupal_import_posts() {
 
       db_set_active('default');
       $uid = db_result(db_query("SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d", $post->poster_id));
-      $nid = db_result(db_query("SELECT nid FROM {phpbb2drupal_temp_topic} WHERE topic_id = %d", $post->topic_id));
       $pid = db_result(db_query("SELECT MAX(pid) FROM {comments} WHERE nid = %d", $nid));
+      // get the node ID. The title may be useful further down if the comment doesn't have its own title.
+      $node = (db_fetch_object(db_query("SELECT n.nid, n.title FROM {phpbb2drupal_temp_topic} ptt LEFT JOIN {node_revisions} AS n ON ptt.nid = n.nid  WHERE topic_id = %d", $post->topic_id)));
+      $nid = $node->nid;
 
       $pid = (is_null($pid)) ? 0 : $pid;
 
@@ -1606,6 +1618,11 @@ function phpbb2drupal_import_posts() {
         'hostname' => $hostname,
         'timestamp' => $post->post_time
       );
+
+      // if the title field is empty, use the node title as default.
+      if (empty($comment['subject'])) {
+        $comment['subject'] = $node->title;
+      }
 
       db_set_active('default');
       $cid = phpbb2drupal_comment_save($comment);
@@ -1695,6 +1712,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
     variable_del('phpbb2drupal_import_user_successful');
     variable_del('phpbb2drupal_import_user_started');
     variable_del('phpbb2drupal_import_category_successful');
+    variable_del('phpbb2drupal_replace_url_successful');
     variable_del('phpbb2drupal_import_category_started');
     variable_del('phpbb2drupal_import_topic_successful');
     variable_del('phpbb2drupal_import_topic_started');
@@ -1893,4 +1911,63 @@ function _phpbb2drupal_text_encode ($text) {
   $text = mb_convert_encoding($text, variable_get('phpbb2drupal_encoding_drupal', 'utf-8'), variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'));
   return $text;
   
+}
+
+// grep replace functions.
+function _phpbb2drupal_replace_links_topic($matches) {
+  //print_r ($matches);
+  $result = db_result(db_query('SELECT nid FROM {phpbb2drupal_temp_topic} WHERE topic_id = %d', $matches[1]));
+  $link = 'node/'. $result  . $matches[2];
+  return $link;
+}
+function _phpbb2drupal_replace_links_post($matches) {
+  //print_r ($matches);
+  $result = db_fetch_object(db_query('SELECT c.cid, c.nid FROM {phpbb2drupal_temp_post} p JOIN {comments} c ON c.cid = p.cid WHERE post_id = %d', $matches[1]));
+  $link = 'node/'. $result->nid . '#comment-' . $result->cid . $matches[3];
+  return $link;
+}
+function _phpbb2drupal_replace_links_forum($matches) {
+  //print_r ($matches);
+  $result = db_fetch_object(db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $matches[1]));
+  $link = 'forum/'. $result->tid . $matches[2] ;
+  return $link;
+}
+
+
+// function replace all types of links.
+function _phpbb2drupal_replace_links($html) {
+  $html = preg_replace_callback("{forum/viewtopic.php\?p=(\d+)#(\d+)[^\"|'|>|<|\s]*([\"|'|>|<|\s|\\|&quot;])}i", "_phpbb2drupal_replace_links_post", $html);
+  $html = preg_replace_callback("{forum/viewtopic.php\?t=(\d+)[^\"|'|>|<|\s]*([\"|'|>|<|\s|\\|&quot;])}i", "_phpbb2drupal_replace_links_topic", $html);
+  $html = preg_replace_callback("{forum/viewforum.php\?f=(\d+)[^\"|'|>|<|\s]*([\"|'|>|<|\s|\\|&quot;])}i", "_phpbb2drupal_replace_links_forum", $html);
+  $html = preg_replace("{forum/index.php[^\"|'|>|\s]*([\"|'|<|>|\s|\\|&quot;])}i", "forum$1", $html);
+  $html = preg_replace("{Post generated using Mail2Forum \(<a href=\"http://www.mail2forum.com\">http://www.mail2forum.com</a>\)}i", "", $html);
+  // You can use the line below to test locally the url's when you are testing:
+  //$html = preg_replace("{www.reuniting.info}i", "127.0.0.1/drupal", $html);
+  $html = preg_replace("{www.reuniting.info}i", "127.0.0.1/am/virgin-drupal", $html);
+  return $html;
+}
+
+
+// Replace URLs to old phpBB forum to new Drupal forum
+function phpbb2drupal_replace_url() {
+  db_set_active('default');
+  
+  // transform nodes:
+  // As the topics have just been imported, there is only one vid for each nid,
+  // so the query works as it is.
+  $result = db_query('SELECT ptt.nid, n.body, n.teaser FROM {phpbb2drupal_temp_topic} AS ptt LEFT JOIN {node_revisions} AS n ON ptt.nid = n.nid');
+  while ($node = db_fetch_object($result)) {
+    $node->body = _phpbb2drupal_replace_links($node->body);
+    $node->teaser = _phpbb2drupal_replace_links($node->teaser);
+    db_query('UPDATE {node_revisions} SET body= "%s", teaser = "%s" WHERE nid = %d', $node->body, $node->teaser, $node->nid);
+  }
+
+  // transform comments:
+  $result = db_query('SELECT c.cid, c.comment FROM {phpbb2drupal_temp_post} AS p LEFT JOIN {comments} AS c ON p.cid = c.cid');
+  while ($comment = db_fetch_object($result)) {
+    $comment->comment = _phpbb2drupal_replace_links($comment->comment);
+    db_query('UPDATE {comments} SET comment= "%s" WHERE cid = %d', $comment->comment, $comment->cid);
+  }
+
+  variable_set('phpbb2drupal_replace_url_successful', '1');
 }

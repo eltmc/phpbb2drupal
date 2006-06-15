@@ -1,0 +1,89 @@
+<?php
+/****************************************************
+ * phpbb_redirect module: redirects links incoming from old phpBB forum to new Drupal forum.
+ *
+****************************************************/
+
+/****************************************************
+ *
+ * Implementation of hook_help()
+ *
+****************************************************/
+function phpbb_redirect_help( $section='') {
+  $output = '';
+  switch ($section) {
+    case "admin/modules#description":
+      $output = t("Redirects links to your old phpBB installation to the new Drupal forum.");
+      break;
+  }
+  return $output;
+}
+
+
+/****************************************************
+ *
+ * Implementation of hook_menu()
+ *
+****************************************************/
+function phpbb_redirect_menu($may_cache) {
+  global $user;
+  $items = array();
+
+  if (!$may_cache) {
+    $items[] = array(
+      'path' => 'forum/viewtopic.php',
+      'title' => 'phpBB to Drupal',
+      'access' => user_access('access content'),
+      'callback' => 'phpbb_redirect_viewtopic', 
+      'type'=> MENU_CALLBACK
+    );
+    $items[] = array(
+      'path' => 'forum/viewforum.php',
+      'title' => 'phpBB to Drupal',
+      'access' => user_access('access content'),
+      'callback' => 'phpbb_redirect_viewforum', 
+      'type'=> MENU_CALLBACK
+    );
+  }
+
+return $items;
+}
+
+function phpbb_redirect_viewtopic() {
+  if(isset($_GET['t']) && is_numeric($_GET['t'])) {
+    $topic_id = $_GET['t'];
+
+    $nid = db_result(db_query("SELECT nid  FROM {phpbb2drupal_temp_topic}  WHERE topic_id = %d", $topic_id));
+
+    header('HTTP/1.1 301 Moved Permanently');
+    drupal_goto("node/$nid");
+
+  } 
+  elseif(isset($_GET['p'])) {
+    $post = explode("#", $_GET['p']);
+    if(is_numeric($post[0])) {
+        $post_id = $post[0];
+    } else {
+		drupal_goto("/");
+    }
+    
+    $cid = db_result(db_query("SELECT cid FROM {phpbb2drupal_temp_post}  WHERE post_id = %d", $post_id));
+
+    $nid = db_result(db_query("SELECT nid  FROM {comments} WHERE cid = %d", $cid));
+
+    header('HTTP/1.1 301 Moved Permanently');
+    drupal_goto("node/".$nid, NULL, "comment-$cid");
+  } 
+}
+
+function phpbb_redirect_viewforum() {
+  if(isset($_GET['f']) && is_numeric($_GET['f'])) {
+    $forum_id = $_GET['f'];
+
+    $tid = db_result(db_query("SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d", $forum_id));
+
+    header('HTTP/1.1 301 Moved Permanently');
+    drupal_goto("forum/$tid");    
+  }
+}
+
