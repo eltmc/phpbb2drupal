@@ -226,7 +226,8 @@ function phpbb2drupal_settings() {
     $output = '<span class="marker">';
     $ready_for_migration = 0;
   }
-  $output .='<p>The migration will modify and even destroy some data. You must test this module on a copy of your data first, several times if necessary. Only use this module on your live data when you are familiar with the procedure and you\'re confident everything will run smoothly.</p>';
+  $output .='<p>The migration will modify and even destroy some data. You must test this module on a copy of your data first, several times if necessary. Only use this module on your live data when you are familiar with the procedure and you\'re confident everything will run smoothly.</p>
+  <p>Also, you should make a full backup of your database just prior to permorming the migration on the live data. It is better to turn off both the phpBB board and the Drupal site during the migration.</p>';
   if (!variable_get('phpbb2drupal_tested', 0)) {
     $output .= '</span>';
   }
@@ -316,6 +317,8 @@ function phpbb2drupal_settings() {
       $form['bbcode']['#collapsed']= FALSE;
       $output .= '<p class="marker">You need to  '.$link_input_format_enable.'. '.$link_input_format_configure.'</p>';
     }
+    $link_input_format_configure_bbcode = l ('all four BBcode configure options should be disabled','admin/filters/'.$input_format.'/configure');
+    $output .= '<p>For best results, '.$link_input_format_configure_bbcode.'.</p>';
     
   } else {
     if ($result7['result'] == 0) {
@@ -644,6 +647,17 @@ function phpbb2drupal_settings() {
         $output .= "The private message module is not enabled. You can <a href='http://drupal.org/project/privatemsg' target='_blank'>go to the module Home Page to download it</a>. $link. ";
         $output .= "</p>";
       }
+      $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
+      $tables = array($pre.'privmsgs', $pre.'privmsgs_text');
+      $result = _phpbb2drupal_check_tables ($tables, 'phpbb', 0);
+      $output .= $result['html'];
+      if ($result['result'] != 1) {
+        $ready_for_migration = 0;
+        $form['pm']['#collapsed']= FALSE;
+        $output .= "<p class='marker'>";
+        $output .= "Couldn't find the phpBB privatemsg tables.";
+        $output .= "</p>";
+      }
 
       //private messages tables.
       $result = _phpbb2drupal_check_tables (array('privatemsg', 'privatemsg_folder', 'privatemsg_archive'));
@@ -916,8 +930,6 @@ function phpbb2drupal_import_users() {
   if(variable_get('phpbb2drupal_import_user_started', 0) == 0) {
     // create temporary tables
     db_set_active('default');
-    //db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_user}');
-    //db_query("CREATE TABLE {phpbb2drupal_temp_user} ( user_id mediumint(8) DEFAULT '0' NOT NULL, uid INTEGER UNSIGNED DEFAULT '0' NOT NULL, KEY user_id (user_id))");
 
     // create profile fields for icq, aim, msn...etc
     db_query("INSERT INTO {profile_fields} (title, name, explanation, category, page, type, weight, required, register, visibility, options) VALUES ('YIM','user_yim','','Contact','','textfield',0,0,1,2,''),('AIM','user_aim','','Contact','','textfield',0,0,1,2,''),('MSN','user_msnm','','Contact','','textfield',0,0,1,2,''),('icq','user_icq','','Contact','','textfield',0,0,1,2,''),('Website','user_website','','Contact','','url',0,0,1,2,''),('Location','user_from','','Personal','','textfield',0,0,1,2,''),('Occupation','user_occ','','Personal','','textfield',0,0,1,2,''),('Interests','user_interests','','Personal','','textfield',0,0,1,2,'')");
@@ -1940,7 +1952,6 @@ function _phpbb2drupal_replace_links($html) {
   $html = preg_replace_callback("{forum/viewtopic.php\?t=(\d+)[^\"|'|>|<|\s]*([\"|'|>|<|\s|\\|&quot;])}i", "_phpbb2drupal_replace_links_topic", $html);
   $html = preg_replace_callback("{forum/viewforum.php\?f=(\d+)[^\"|'|>|<|\s]*([\"|'|>|<|\s|\\|&quot;])}i", "_phpbb2drupal_replace_links_forum", $html);
   $html = preg_replace("{forum/index.php[^\"|'|>|\s]*([\"|'|<|>|\s|\\|&quot;])}i", "forum$1", $html);
-  $html = preg_replace("{Post generated using Mail2Forum \(<a href=\"http://www.mail2forum.com\">http://www.mail2forum.com</a>\)}i", "", $html);
   // You can use the line below to test locally the url's when you are testing:
   //$html = preg_replace("{www.reuniting.info}i", "127.0.0.1/drupal", $html);
   return $html;
