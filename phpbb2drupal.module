@@ -1769,6 +1769,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
     variable_del('phpbb2drupal_time_limit');
     variable_del('phpbb2drupal_import_spammers');
     variable_del('phpbb2drupal_import_attachments');
+    variable_del('phpbb2drupal_import_polls'); 
     variable_del('phpbb2drupal_import_pm');
     variable_del('phpbb2drupal_import_poll_started');
     variable_del('phpbb2drupal_import_poll_successful');
