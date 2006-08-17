@@ -1,6 +1,6 @@
 <?php
 /****************************************************
- *
+ * $Id$
  *
 ****************************************************/
 
@@ -472,11 +472,41 @@ function phpbb2drupal_settings() {
     '#default_value' => variable_get('phpbb2drupal_import_spammers', 1),
     '#description' => '',
   );
+ 
+  //Polls
+  $form['polls'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Polls import',
+    '#collapsible' => 'TRUE',
+    '#collapsed' => 'TRUE',
+  );
+  $form['polls']['phpbb2drupal_import_polls'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Import polls?'),
+    '#return_value' => 1,
+    '#default_value' => variable_get('phpbb2drupal_import_polls', 0),
+    '#description' => '',
+  );
+  if (variable_get('phpbb2drupal_import_polls', 0) == 1) {
+    //poll modules
+    $result = _phpbb2drupal_check_module('poll');
+    $output .= $result['html'];
+    if ($result['result'] != 1) {
+      $ready_for_migration = 0;
+      $form['polls']['#collapsed'] = FALSE;
+      $output .= "<span class='marker'>";
+      $output .= t('Please enable the poll module.') ;
+      $output .= "</span>";
+    }
+    $form['polls']['info'] = array('#value' => $output);
+  }
   
+ 
   //Attachements
+  $output ='';
   $form['attachements'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Attachements',
+    '#title' => 'Attachements import',
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
@@ -1882,6 +1912,9 @@ function phpbb2drupal_comment_save($edit) {
 
 // function for inserting polls into drupal
 function phpbb2_drupal_poll_insert($node) {
+  if (!variable_get('phpbb2drupal_import_polls', 0)) {
+    return 1;
+  }
     if (!user_access('administer nodes')) {
         // Make sure all votes are 0 initially
         foreach ($node->choice as $i => $choice) {
