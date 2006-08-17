@@ -1344,7 +1344,6 @@ function phpbb2drupal_import_topics() {
 
 /**
  * Imports phpBB polls into drupal
- * @TODO change to new poll structure
  */
 function phpbb2drupal_import_polls() {
   $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
@@ -1404,20 +1403,6 @@ function phpbb2drupal_import_polls() {
     } else {
         drupal_set_message("Could not find vote_results details of poll: $poll->vote_id");    
         continue;
-    }
-
-    // get voter information
-    $query = db_query('SELECT vote_user_id FROM %svote_voters WHERE vote_id = %d ORDER BY vote_id', $pre, $poll->vote_id);
-
-    if(db_num_rows($query)) {
-      $polled = '';
-      db_set_active('phpbb');
-      while($result = db_fetch_object($query)) {
-        db_set_active('default');
-        $uid = db_result(db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d', $result->vote_user_id));
-        $polled = $polled . ' ' . "_" . $uid . "_";
-        db_set_active('phpbb');
-      }
     }
 
     db_set_active('default');
@@ -1494,11 +1479,26 @@ function phpbb2drupal_import_polls() {
       drupal_set_message("Failed importing $topic->topic_id");
     }
 
+
+    // get voter information
+    db_set_active('phpbb');
+    $query = db_query('SELECT vote_user_id FROM %svote_voters WHERE vote_id = %d ORDER BY vote_id', $pre, $poll->vote_id);
+
     // manually update the poll table to store the uid of those who voted
-    db_query("UPDATE {poll} SET polled = '%s' WHERE nid = %d", $polled, $node->nid);
+    if(db_num_rows($query)) {
+      db_set_active('phpbb');
+      while($result = db_fetch_object($query)) {
+        db_set_active('default');
+        $uid = db_result(db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d', $result->vote_user_id));
+        $result = db_query('INSERT INTO {poll_votes} (nid, uid, hostname) VALUES (%d, %d, "")', $node->nid, $uid);
+        db_set_active('phpbb');
+      }
+    }
 
     db_set_active('default');
     db_query('INSERT INTO {phpbb2drupal_temp_topic} (topic_id, post_id, nid) VALUES (%d, %d, %d)', $topic->topic_id, $topic->post_id, $node->nid);
+    phpbb2_drupal_poll_insert($node);
+
 
     db_set_active('phpbb');
   }
@@ -1890,7 +1890,7 @@ function phpbb2_drupal_poll_insert($node) {
         $node->active = 1;
     }
 
-    db_query("INSERT INTO {poll} (nid, runtime, polled, active) VALUES (%d, %d, '', %d)", $node->nid, $node->runtime, $node->active);
+    db_query("INSERT INTO {poll} (nid, runtime, active) VALUES (%d, %d, %d)", $node->nid, $node->runtime, $node->active);
 
     foreach ($node->choice as $choice) {
         if ($choice['chtext'] != '') {
