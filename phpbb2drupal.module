@@ -426,6 +426,8 @@ function phpbb2drupal_settings() {
     $output .= "</span>";
   }
   $form['phpbb2']['result'] = array('#value' => $output);
+
+
   
   // Misc.	
   $form['misc'] = array (
@@ -437,6 +439,13 @@ function phpbb2drupal_settings() {
 
   // Time limit 
   $output = '';
+  //Registration date format
+  $form['misc']['phpbb2drupal_regdate_us_english'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'If you find out that the registration date for ALL your users is over 36 years ago, maybe your DB stores the registration date in the English US format (like: "Sep 11, 2001") instead as a linux timestamp (like: "1152568884"). If so, check this box.',
+    '#default_value' => variable_get('phpbb2drupal_regdate_us_english', 0),
+    '#return_value' => 1,
+  );
   $form['misc']['phpbb2drupal_time_limit'] = array(
     '#type' => 'textfield',
     '#title' => t('Time limit'),
@@ -1033,13 +1042,19 @@ function phpbb2drupal_import_users() {
     $signature = preg_replace("/:$post->bbcode_uid/", '', $user->user_sig);
     $signature = _phpbb2drupal_strip_bbcode ($signature);
     $signature = _phpbb2drupal_text_encode($signature);
+    if (variable_get('phpbb2drupal_regdate_us_english', 0)) {
+      $user_regdate = strtotime($user->user_regdate);
+    }
+    else {
+      $user_regdate = $user->user_regdate;
+    }
 
     $data = array(
       'name' => $user->username,
       'pass' => $user->user_password,
       'mail' => $user->user_email,
       'signature' => $signature,
-      'created' => $user->user_regdate,
+      'created' => $user_regdate,
       'status' => $user->user_active,
       'timezone' => $user->user_timezone, 
       'picture' => $user->user_avatar,
@@ -1761,6 +1776,7 @@ $pre = variable_get('phpbb2drupal_table_prefix','phpbb_');
     variable_del('phpbb2drupal_import_post_successful');
     variable_del('phpbb2drupal_import_post_started');
     variable_del('phpbb2drupal_ready');
+    variable_del('phpbb2drupal_regdate_us_english');
     variable_del('phpbb2drupal_input_format');
     variable_del('phpbb2drupal_db_url');
     variable_del('phpbb2drupal_tested');
