@@ -1352,7 +1352,7 @@ function phpbb2drupal_import_topics() {
         while($file = db_fetch_object($files)) {
           db_set_active('default');
           $fid = db_next_id('{files}_fid');
-          db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize, list) VALUES (%d, %d, '%s', '%s', '%s', %d, %d)", $fid, $node->nid, $file->real_filename, "$file_path/$file->physical_filename", $file->mimetype, $file->filesize, 1);
+          db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, $node->nid, $file->real_filename, "$file_path/$file->physical_filename", $file->mimetype, $file->filesize);
           db_set_active('phpbb');
         }
       }
@@ -1687,7 +1687,7 @@ function phpbb2drupal_import_posts() {
           while($file = db_fetch_object($files)) {
             db_set_active('default');
             $fid = db_next_id('{files}_fid');
-            db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize, list) VALUES (%d, %d, '%s', '%s', '%s', %d, %d)", $fid, 0, $file->real_filename, "$file_path/$file->physical_filename", $file->mimetype, $file->filesize, 1);
+            db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, 0, $file->real_filename, "$file_path/$file->physical_filename", $file->mimetype, $file->filesize);
             db_query('INSERT INTO {comment_files} (cid, fid) VALUES (%d, %d)', $cid, $fid);
             db_set_active('phpbb');
           }        
