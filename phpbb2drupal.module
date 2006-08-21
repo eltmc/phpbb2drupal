@@ -771,7 +771,6 @@ function _phpbb2drupal_check_module($module) {
 function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefix=1) {
   _phpbb2drupal_db_connect() ;
   db_set_active($db);
-  global $db_url;
 
   $out['html'] = '<ul>';
   $out['result']= 1;
@@ -779,7 +778,7 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
     if ($prefix) {
       $table = db_prefix_tables('{'.$table.'}');
     }  
-    if (substr($db_url['default'], 0, 5) == 'pgsql') {
+    if ($GLOBALS['db_type'] == 'pgsql') {
       $query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%s'";
     }
     else {
