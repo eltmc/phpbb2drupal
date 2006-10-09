@@ -9,14 +9,35 @@ function phpbb2drupal_install() {
       db_query("CREATE TABLE {phpbb2drupal_temp_post} (post_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, cid int(10) DEFAULT '0' NOT NULL, KEY post_id (post_id))");
       break;
     case 'pgsql':
-      //This query needs to be updated.
-      echo "<a href='http://drupal.org/node/64877'>See this issue about postgresql</a>";
-      db_query("CREATE TABLE {phpbb2drupal_temp_user} ( user_id SERIAL NOT NULL, uid INTEGER  DEFAULT '0' NOT NULL, KEY (user_id))");
-      db_query("");
-      db_query("CREATE TABLE {phpbb2drupal_temp_forum} ( forum_id smallint  DEFAULT '0' NOT NULL, tid integer  DEFAULT '0' NOT NULL, KEY (forum_id))");
-      db_query("CREATE TABLE {phpbb2drupal_temp_topic} ( topic_id mediumint DEFAULT '0' NOT NULL, post_id  mediumint(  DEFAULT '0' NOT NULL, nid integer  DEFAULT '0' NOT NULL, KEY (topic_id))");
-      db_query("CREATE TABLE {phpbb2drupal_temp_post} (post_id mediumint  DEFAULT '0' NOT NULL, cid integer DEFAULT '0' NOT NULL, KEY  (post_id))");
-      db_query("");
+      db_query("CREATE TABLE ".
+      "phpbb2drupal_temp_user ".
+      "( ".
+      "user_id INTEGER NOT NULL CONSTRAINT pk_phpbb2drupal_temp_user PRIMARY KEY, ".
+      "uid INTEGER  DEFAULT 0 NOT NULL ".
+      ") ");
+      
+      db_query("CREATE TABLE ".
+      "phpbb2drupal_temp_forum ".
+      "( ".
+      "forum_id smallint DEFAULT 0 NOT NULL CONSTRAINT pk_phpbb2drupal_temp_forum PRIMARY KEY, ".
+      "tid integer DEFAULT 0 NOT NULL ".
+      ") ");
+      
+      db_query("CREATE TABLE ".
+      "phpbb2drupal_temp_topic ".
+      "( ".
+      "topic_id bigint DEFAULT 0 NOT NULL CONSTRAINT pk_phpbb2drupal_temp_topic PRIMARY KEY, ".
+      "post_id  bigint DEFAULT 0 NOT NULL, ".
+      "nid bigint DEFAULT 0 NOT NULL ".
+      ") ");
+      
+      db_query("CREATE TABLE ".
+      "phpbb2drupal_temp_post ".
+      "( ".
+      "post_id integer DEFAULT 0 NOT NULL CONSTRAINT pk_phpbb2drupal_temp_post PRIMARY KEY, ".
+      "cid integer DEFAULT 0 NOT NULL ".
+      ") ");
+     
       break;
   }
 }
