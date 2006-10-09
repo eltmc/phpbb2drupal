@@ -10,31 +10,31 @@ function phpbb2drupal_install() {
       break;
     case 'pgsql':
       db_query("CREATE TABLE ".
-      "phpbb2drupal_temp_user ".
+      "{phpbb2drupal_temp_user} ".
       "( ".
-      "user_id INTEGER NOT NULL CONSTRAINT pk_phpbb2drupal_temp_user PRIMARY KEY, ".
+      "user_id INTEGER NOT NULL CONSTRAINT pk_{phpbb2drupal_temp_user} PRIMARY KEY, ".
       "uid INTEGER  DEFAULT 0 NOT NULL ".
       ") ");
       
       db_query("CREATE TABLE ".
-      "phpbb2drupal_temp_forum ".
+      "{phpbb2drupal_temp_forum} ".
       "( ".
-      "forum_id smallint DEFAULT 0 NOT NULL CONSTRAINT pk_phpbb2drupal_temp_forum PRIMARY KEY, ".
+      "forum_id smallint DEFAULT 0 NOT NULL CONSTRAINT pk_{phpbb2drupal_temp_forum} PRIMARY KEY, ".
       "tid integer DEFAULT 0 NOT NULL ".
       ") ");
       
       db_query("CREATE TABLE ".
-      "phpbb2drupal_temp_topic ".
+      "{phpbb2drupal_temp_topic} ".
       "( ".
-      "topic_id bigint DEFAULT 0 NOT NULL CONSTRAINT pk_phpbb2drupal_temp_topic PRIMARY KEY, ".
+      "topic_id bigint DEFAULT 0 NOT NULL CONSTRAINT pk_{phpbb2drupal_temp_topic} PRIMARY KEY, ".
       "post_id  bigint DEFAULT 0 NOT NULL, ".
       "nid bigint DEFAULT 0 NOT NULL ".
       ") ");
       
       db_query("CREATE TABLE ".
-      "phpbb2drupal_temp_post ".
+      "{phpbb2drupal_temp_post} ".
       "( ".
-      "post_id integer DEFAULT 0 NOT NULL CONSTRAINT pk_phpbb2drupal_temp_post PRIMARY KEY, ".
+      "post_id integer DEFAULT 0 NOT NULL CONSTRAINT pk_{phpbb2drupal_temp_post} PRIMARY KEY, ".
       "cid integer DEFAULT 0 NOT NULL ".
       ") ");
      
