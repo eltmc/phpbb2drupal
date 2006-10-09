@@ -311,7 +311,7 @@ function phpbb2drupal_settings() {
         You first need to ' .$link;
       $output .= '</span></p>';
     }
-    $sql ='SELECT * FROM {filters} WHERE module = "bbcode" AND format = %d';
+    $sql ='SELECT * FROM {filters} WHERE module = \'bbcode\' AND format = %d';
     $result = db_query ($sql, $input_format);
     if (!db_num_rows($result)) {
       $form['bbcode']['#collapsed']= FALSE;
@@ -927,9 +927,13 @@ function phpbb2drupal_import_pm() {
   if(variable_get('phpbb2drupal_import_pm_successful', 0) == 1) return;
   db_set_active('phpbb');
   $query = "SELECT p.privmsgs_id, p.privmsgs_from_userid, p.privmsgs_to_userid, p.privmsgs_subject,pt.privmsgs_text, pt.privmsgs_bbcode_uid ,p.privmsgs_date,
-      IF(p.privmsgs_type = 1 OR p.privmsgs_type = 5, 1, 0) AS newmsg,  p.privmsgs_ip,0,0,0
+      CASE WHEN p.privmsgs_type = 1 THEN 1
+      WHEN p.privmsgs_type = 5 THEN 1
+      ELSE 0
+      END as newmsg,
+      p.privmsgs_ip,0,0,0
       FROM %sprivmsgs p
-      LEFT JOIN (%sprivmsgs_text pt) ON p.privmsgs_id=pt.privmsgs_text_id";
+      LEFT JOIN %sprivmsgs_text AS pt ON p.privmsgs_id=pt.privmsgs_text_id";
   $messages = db_query($query, $pre, $pre);
   
   db_set_active('default');
@@ -951,7 +955,7 @@ function phpbb2drupal_import_pm() {
       
       $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del, format )
           VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 , %d)"; 
-      $result = db_query ($query, $pm->privmsgs_id, $from, $to, $pm->privmsgs_subject, $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, $pm->privmsgs_ip, $format);
+      $result = db_query ($query, $pm->privmsgs_id, $from, $to, substr($pm->privmsgs_subject,0,64), $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, substr($pm->privmsgs_ip,0,255), $format);
     }
   }
   $out =" <p>Private Message Import successful</p>";
@@ -976,7 +980,28 @@ function phpbb2drupal_import_users() {
     db_set_active('default');
 
     // create profile fields for icq, aim, msn...etc
-    db_query("INSERT INTO {profile_fields} (title, name, explanation, category, page, type, weight, required, register, visibility, options) VALUES ('YIM','user_yim','','Contact','','textfield',0,0,1,2,''),('AIM','user_aim','','Contact','','textfield',0,0,1,2,''),('MSN','user_msnm','','Contact','','textfield',0,0,1,2,''),('icq','user_icq','','Contact','','textfield',0,0,1,2,''),('Website','user_website','','Contact','','url',0,0,1,2,''),('Location','user_from','','Personal','','textfield',0,0,1,2,''),('Occupation','user_occ','','Personal','','textfield',0,0,1,2,''),('Interests','user_interests','','Personal','','textfield',0,0,1,2,'')");
+    $querybase = "INSERT INTO {profile_fields} (title, name, explanation, category, page, type, weight, required, register, visibility, options) VALUES ";
+
+    $query = $querybase . "('YIM','user_yim','','Contact','','textfield',0,0,1,2,'')";
+    db_query($query);
+
+    $query = $querybase . "('AIM','user_aim','','Contact','','textfield',0,0,1,2,'')";
+    db_query($query);
+    
+    $query = $querybase . "('icq','user_icq','','Contact','','textfield',0,0,1,2,'')";
+    db_query($query);
+    
+    $query = $querybase . "('Website','user_website','','Contact','','url',0,0,1,2,'')";
+    db_query($query);
+
+    $query = $querybase . "('Location','user_from','','Personal','','textfield',0,0,1,2,'')";
+    db_query($query);
+
+    $query = $querybase . "('Occupation','user_occ','','Personal','','textfield',0,0,1,2,'')";
+    db_query($query);
+
+    $query = $querybase . "('Interests','user_interests','','Personal','','textfield',0,0,1,2,'')";
+    db_query($query);
 
     variable_set('phpbb2drupal_import_user_started', 1);
   }
@@ -1055,15 +1080,15 @@ function phpbb2drupal_import_users() {
     }
 
     $data = array(
-      'name' => $user->username,
-      'pass' => $user->user_password,
-      'mail' => $user->user_email,
-      'signature' => $signature,
+      'name' => substr($user->username,0,60),
+      'pass' => substr($user->user_password,0,32),
+      'mail' => substr($user->user_email,0,64),
+      'signature' => substr($signature,0,255),
       'created' => $user_regdate,
       'status' => $user->user_active,
       'timezone' => $user->user_timezone, 
       'picture' => $user->user_avatar,
-      'init' => $user->user_email,
+      'init' => substr($user->user_email,0,64),
       'roles' => array(0 => 2),                       # Authenticated User
       'user_website' => $user->user_website,
       'user_from' => $user->user_from,
@@ -1372,7 +1397,7 @@ function phpbb2drupal_import_topics() {
         while($file = db_fetch_object($files)) {
           db_set_active('default');
           $fid = db_next_id('{files}_fid');
-          db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, $node->nid, $file->real_filename, "$file_path/$file->physical_filename", $file->mimetype, $file->filesize);
+          db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, $node->nid, substr($file->real_filename0,255), substr("$file_path/$file->physical_filename",0,255), substr($file->mimetype,0,255), $file->filesize);
           db_set_active('phpbb');
         }
       }
@@ -1540,7 +1565,7 @@ function phpbb2drupal_import_polls() {
       while($result = db_fetch_object($query)) {
         db_set_active('default');
         $uid = db_result(db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d', $result->vote_user_id));
-        $result = db_query('INSERT INTO {poll_votes} (nid, uid, hostname) VALUES (%d, %d, "")', $node->nid, $uid);
+        $result = db_query('INSERT INTO {poll_votes} (nid, uid, hostname) VALUES (%d, %d, \'NA\')', $node->nid, $uid);
         db_set_active('phpbb');
       }
     }
@@ -1707,7 +1732,7 @@ function phpbb2drupal_import_posts() {
           while($file = db_fetch_object($files)) {
             db_set_active('default');
             $fid = db_next_id('{files}_fid');
-            db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, 0, $file->real_filename, "$file_path/$file->physical_filename", $file->mimetype, $file->filesize);
+            db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, 0, substr($file->real_filename,0,255), substr("$file_path/$file->physical_filename",0,255), substr($file->mimetype,0,255), $file->filesize);
             db_query('INSERT INTO {comment_files} (cid, fid) VALUES (%d, %d)', $cid, $fid);
             db_set_active('phpbb');
           }        
@@ -1819,7 +1844,7 @@ function phpbb2drupal_user_save($phpBB_user, $category = array()) {
     $user = user_save($user, array('created' => $phpBB_user['created']));
     // Update the password: just import the md5() hash straight into Drupal without
     // passing through the Drupal function user_save() which would re-hash the hash.
-    $result = db_query('UPDATE {users} SET pass = "%s" WHERE uid = %d', $phpBB_user['pass'], $user->uid);
+    $result = db_query('UPDATE {users} SET pass = \'%s\' WHERE uid = %d', $phpBB_user['pass'], $user->uid);
   }
   $phpBB_user['uid'] = $user->uid;
 
@@ -1925,7 +1950,7 @@ function phpbb2drupal_comment_save($edit) {
     $score = 0;                         // 0 default value, comments get higher score depending on the author's roles
     $users = serialize(array(0 => 1));  // default value for everybody!!
 
-    db_query("INSERT INTO {comments} (cid, nid, pid, uid, subject, comment, format, hostname, timestamp, status, score, users, thread, name, mail, homepage) VALUES (%d, %d, %d, %d, '%s', '%s', %d, '%s', %d, %d, %d, '%s', '%s', '%s', '%s', '%s')", $edit['cid'], $edit['nid'], $edit['pid'], $edit['uid'], $edit['subject'], $edit['comment'], $format, $edit['hostname'], $edit['timestamp'], $status, $score, $users, $thread, $edit['name'], $edit['mail'], $edit['homepage']);
+    db_query("INSERT INTO {comments} (cid, nid, pid, uid, subject, comment, format, hostname, timestamp, status, score, users, thread, name, mail, homepage) VALUES (%d, %d, %d, %d, '%s', '%s', %d, '%s', %d, %d, %d, '%s', '%s', '%s', '%s', '%s')", $edit['cid'], $edit['nid'], $edit['pid'], $edit['uid'], substr($edit['subject'],0,64), $edit['comment'], $format, substr($edit['hostname'],0,128), $edit['timestamp'], $status, $score, $users, substr($thread,0,255), substr($edit['name'],0,60), substr($edit['mail'],0,64), substr($edit['homepage'],0,255));
 
     _comment_update_node_statistics($edit['nid']);
 
@@ -1949,7 +1974,7 @@ function phpbb2_drupal_poll_insert($node) {
 
     foreach ($node->choice as $choice) {
         if ($choice['chtext'] != '') {
-            db_query("INSERT INTO {poll_choices} (nid, chtext, chvotes, chorder) VALUES (%d, '%s', %d, %d)", $node->nid, $choice['chtext'], $choice['chvotes'], $i++);
+            db_query("INSERT INTO {poll_choices} (nid, chtext, chvotes, chorder) VALUES (%d, '%s', %d, %d)", $node->nid, substr($choice['chtext'],0,128), $choice['chvotes'], $i++);
         }
     }
 } 
@@ -2024,14 +2049,14 @@ function phpbb2drupal_replace_url() {
   while ($node = db_fetch_object($result)) {
     $node->body = _phpbb2drupal_replace_links($node->body);
     $node->teaser = _phpbb2drupal_replace_links($node->teaser);
-    db_query('UPDATE {node_revisions} SET body= "%s", teaser = "%s" WHERE nid = %d', $node->body, $node->teaser, $node->nid);
+    db_query('UPDATE {node_revisions} SET body= \'%s\', teaser = \'%s\' WHERE nid = %d', $node->body, $node->teaser, $node->nid);
   }
 
   // transform comments:
   $result = db_query('SELECT c.cid, c.comment FROM {phpbb2drupal_temp_post} AS p LEFT JOIN {comments} AS c ON p.cid = c.cid');
   while ($comment = db_fetch_object($result)) {
     $comment->comment = _phpbb2drupal_replace_links($comment->comment);
-    db_query('UPDATE {comments} SET comment= "%s" WHERE cid = %d', $comment->comment, $comment->cid);
+    db_query('UPDATE {comments} SET comment= \'%s\' WHERE cid = %d', $comment->comment, $comment->cid);
   }
 
   variable_set('phpbb2drupal_replace_url_successful', '1');
