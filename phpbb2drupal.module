@@ -16,35 +16,35 @@ function phpbb2drupal_menu($may_cache) {
   if (!$may_cache) {
     $items[] = array(
       'path' => 'admin/phpbb2drupal',
-      'title' => 'phpBB to Drupal',
+      'title' => t('phpBB to Drupal'),
       'access' => user_access('migrate phpBB'),
       'callback' => 'phpbb2drupal_main', 
       'type'=> MENU_NORMAL_ITEM
     );
     $items[] = array(
       'path' => 'admin/phpbb2drupal/postconfiguration',
-      'title' => 'Post Migration Configuration',
+      'title' => t('Post Migration Configuration'),
       'access' => user_access('migrate phpBB'),
       'callback' => 'phpbb2drupal_postconfiguration', 
       'type'=> MENU_NORMAL_ITEM
     );
     $items[] = array(
       'path' => 'admin/phpbb2drupal/cleanup',
-      'title' => 'Cleanup',
+      'title' => t('Cleanup'),
       'access' => user_access('migrate phpBB'),
       'callback' => 'phpbb2drupal_cleanup', 
       'type'=> MENU_CALLBACK
     );
     $items[] = array(
       'path' => 'admin/phpbb2drupal/migrate',
-      'title' => 'Execute Migration',
+      'title' => t('Execute Migration'),
       'access' => user_access('migrate phpBB'),
       'callback' => 'phpbb2drupal_migrate', 
       'type'=> MENU_CALLBACK
     );
     $items[] = array(
       'path' => 'admin/phpbb2drupal/reset',
-      'title' => 'Reset phpBB2 database URL',
+      'title' => t('Reset phpBB2 database URL'),
       'access' => user_access('migrate phpBB'),
       'callback' => 'phpbb2drupal_reset', 
       'type'=> MENU_CALLBACK
@@ -86,8 +86,8 @@ function phpbb2drupal_reset() {
   global $db_url;
   variable_set ("phpbb2drupal_db_url", $db_url);
   variable_set ("phpbb2drupal_ready", 0);
-  $link = l("go back to the configuration page", "admin/settings/phpbb2drupal");
-  return "<p>The phpBB2 database URL has been reset. You may now $link.</p>";
+  return '<p>'. t('The phpBB2 database URL has been reset. You may now <a href="%configlink">go back to the configuration page</a>.',
+      array('%configlink' => url('admin/settings/phpbb2drupal'))) .'</p>';
 }
 
 /****************************************************
@@ -96,7 +96,7 @@ function phpbb2drupal_reset() {
  *
 ****************************************************/
 function phpbb2drupal_cleanup() {
-  return phpbb2drupal_import_cleanup() . '<p>Drupal database cleaned.</p>';
+  return phpbb2drupal_import_cleanup() . '<p>'. t('Drupal database cleaned.') .'</p>';
 }
 
 /****************************************************
@@ -108,28 +108,28 @@ function phpbb2drupal_postconfiguration() {
   $output ='';
 
   // Private forums.
-  $output .='<h2>Private forums</h2>';
-  $output .='<p>Setup the private forums as explained in the <a href="http://drupal.org/node/58969" target="_blank">documentation</a></p>';
+  $output .= '<h2>'. t('Private forums') .'</h2>';
+  $output .= '<p>'. t('Setup the private forums as explained in the <a href="http://drupal.org/node/58969" target="_blank">documentation</a>') .'</p>';
 
   // Redirection from old URL:
-  $output .='<h2>Redirection from phpBB2 forum URL to new Drupal forum URL</h2>';
-  $output .='<p>Enable the phpbb_redirect.module. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum. (note that currently the module assumes that the phpbb forum was located in the forum/ subdirectory of your Drupal installation).';
+  $output .= '<h2>'. t('Redirection from phpBB2 forum URL to new Drupal forum URL') .'</h2>';
+  $output .= '<p>'. t('Enable the phpbb_redirect.module. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum. (note that currently the module assumes that the phpbb forum was located in the forum/ subdirectory of your Drupal installation).') .'</p>';
 
   // BBcode
   $bbcode = variable_get('phpbb2drupal_bbcode', 0);
   if ($bbcode) {
-    $output .='<h2>Remove BBcode module</h2>
-      <p>The bbcode has been cleaned from the posts. You shouldn\'t need the bbcode module anymore. You can disable it.';
+    $output .= '<h2>'. t('Remove BBcode module') .'</h2>';
+    $output .= '<p>'. t("The bbcode has been cleaned from the posts. You shouldn't need the bbcode module anymore. You can disable it.") .'</p>';
   } else {
-    $output .='<h2>Configure BBcode module</h2>';
-    $output .='<p>Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode.module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.';
+    $output .= '<h2>'. t('Configure BBcode module') .'</h2>';
+    $output .= '<p>'. t('Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode.module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.') .'</p>';
   }
 
   //Avatars
-  $output .='<h2>Avatars</h2>';
-  $output .='<p>Manually copy the avatars from the phpbb2/images/avatars/ directory to the drupal/files/pictures/ directory.</p>
+  $output .= '<h2>'. t('Avatars') .'</h2>';
+  $output .= t('<p>Manually copy the avatars from the phpbb2/images/avatars/ directory to the drupal/files/pictures/ directory.</p>
     <p>Also, in admin > settings > users, you need to enable picture support. </p>
-    <p>Finally, in admin > themes > configure, you need to allow "User Picture in posts/comments".</p>';
+    <p>Finally, in admin > themes > configure, you need to allow "User Picture in posts/comments".</p>');
   $output .='';
   return $output;
 }
@@ -143,27 +143,27 @@ function phpbb2drupal_main() {
   $output ='';
 
   $output .='<ol><li>';
-  $output .= "You may want to <a href='http://drupal.org/node/58199' target='_blank'>check the documentation</a> before starting.";
+  $output .= t('You may want to <a href="http://drupal.org/node/58199" target="_blank">check the documentation</a> before starting.');
   $output .='</li>';
   $output .='<li>';
-  $output .=l("Configure the migration", "admin/settings/phpbb2drupal");
+  $output .=l(t('Configure the migration'), 'admin/settings/phpbb2drupal');
   $output .='</li>';
   $output .='<li>';
-  $output .=l("Execute the migration", "admin/phpbb2drupal/migrate");
+  $output .=l(t('Execute the migration'), 'admin/phpbb2drupal/migrate');
   $output .='</li>';
   $output .='<li>';
-  $output .=l("Post migration configuration", "admin/phpbb2drupal/postconfiguration");
+  $output .=l(t('Post migration configuration'), 'admin/phpbb2drupal/postconfiguration');
   $output .='</li>';
   $output .='<li>';
-  $output .=l("Cleanup", "admin/phpbb2drupal/cleanup");
-  $output .=' (Accessing this link will delete all the saved phpbb2drupal settings and temporary tables: click only when you\'re done with all the above.)</li>';
-  $output .='<li>If your data migration has proceeded smoothly, please post a "thank you" note in <a href="" target="_blank">this forum topic at drupal.org</a>.';
+  $output .= t('<a href="%cleanuplink">Cleanup</a> (Accessing this link will delete all the saved phpbb2drupal settings and temporary tables: click only when you\'re done with all the above.)', array('%cleanuplink' => url('admin/phpbb2drupal/cleanup')));
+  $output .= '</li>';
+  $output .= '<li>'. t('If your data migration has proceeded smoothly, please post a "thank you" note in <a href="" target="_blank">this forum topic at drupal.org</a>.');
   $output .='</li>';
   $output .='</ol><br />';
 
   // process will die() if the link to the phpBB2 database is wrong:
-  $link = l("Click here to reset the database url", "admin/phpbb2drupal/reset");
-  $output .='<p>If the phpBB2 data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. '. $link. ".</p>" ;
+  $output .='<p>'. t('If the phpBB2 data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. <a href="%reseturl">Click here to reset the database url</a>.',
+      array('%reseturl' => url('admin/phpbb2drupal/reset'))) .'</p>';
 
   $output .='';
   $output .='';
@@ -215,7 +215,7 @@ function phpbb2drupal_settings() {
   // Checking that the migration has been tested on a copy first.
   $form['test'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Test on copy first',
+    '#title' => t('Test on copy first'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
@@ -226,8 +226,8 @@ function phpbb2drupal_settings() {
     $output = '<span class="marker">';
     $ready_for_migration = 0;
   }
-  $output .='<p>The migration will modify and even destroy some data. You must test this module on a copy of your data first, several times if necessary. Only use this module on your live data when you are familiar with the procedure and you\'re confident everything will run smoothly.</p>
-  <p>Also, you should make a full backup of your database just prior to permorming the migration on the live data. It is better to turn off both the phpBB board and the Drupal site during the migration.</p>';
+  $output .= t('<p>The migration will modify and even destroy some data. You must test this module on a copy of your data first, several times if necessary. Only use this module on your live data when you are familiar with the procedure and you\'re confident everything will run smoothly.</p>
+  <p>Also, you should make a full backup of your database just prior to permorming the migration on the live data. It is better to turn off both the phpBB board and the Drupal site during the migration.</p>');
   if (!variable_get('phpbb2drupal_tested', 0)) {
     $output .= '</span>';
   }
@@ -245,27 +245,24 @@ function phpbb2drupal_settings() {
   // Input format settings
   $form['input'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Input Format settings',
+    '#title' => t('Input Format settings'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
-  $link = l('input format', 'admin/filters');
-  $output = '<p>Select which '.$link.' should the imported messages be set:</p>';
+  $output = '<p>'. t('Select which <a href="%link">input format</a> should the imported messages be set:', array('%link' => url('admin/filters'))) .'</p>';
   $form['input']['intro'] = array('#value' => $output);
   $output = '';
 
-  $input_formats = array (0 => 'not set yet');
+  $input_formats = array (0 => t('not set yet'));
   $sql = 'SELECT format, name FROM {filter_formats}';
   $result = db_query($sql);
   while ($format = db_fetch_array($result)) {
     $input_formats[$format['format']]= $format['name'];
   }
   $input_format = variable_get('phpbb2drupal_input_format', 0);
-  $link_input_format_enable = l ('enable bbcode in the selected input format','admin/filters/'.$input_format);
-  $link_input_format_configure = l ('THEN click on configure to see bbcode options','admin/filters/'.$input_format.'/configure');
   $form['input']['phpbb2drupal_input_format'] = array(
     '#type' => 'radios',
-    '#title' => 'Input format',
+    '#title' => t('Input format'),
     '#default_value' => $input_format,
     '#options' => $input_formats,
   );
@@ -273,23 +270,23 @@ function phpbb2drupal_settings() {
     $ready_for_migration = 0;
     $form['input']['#collapsed']= FALSE;
   }
-  $output .='<p><em>This setting will be applied to all posts and private messages.</em></p>';
+  $output .= '<p><em>'. t('This setting will be applied to all posts and private messages.') .'</em></p>';
   $form['input']['result'] = array('#value' => $output);
 
 
   // BBcode settings
   $form['bbcode'] = array (
     '#type' => 'fieldset',
-    '#title' => 'BBcode settings',
+    '#title' => t('BBcode settings'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
-  $output = '';
-  $output ='<p>pbpBB2 posts are often formatted in BBcode. During the import process, BBcode can be handled in two diffent ways:</p>
+
+  $output = t('<p>pbpBB2 posts are often formatted in BBcode. During the import process, BBcode can be handled in two diffent ways:</p>
     <ul><li>You can leave the BBcode as is, and use the <a href="http://drupal.org/project/bbcode" target="_blank">bbcode module</a> after the migration to filter the imported posts. In this case, the module is not required during the migration but you will need to install it and configure it later.</li>
     <li>You can decide to have the BBcode filtered now and replaced by plain HTML. The BBcode module will be required during the migration process, but you can disable it later.</li>    </ul>
     <p>Which one do you choose?</p>
-    <p>Also, make sure to choose the proper input filter, for it will affect how the post is displayed. For example, if you choose to strip the bbcode altogether and use HTML instead, some HTML tags will be stripped by the "filtered HTML" input format, unless you add those tags in the list of allowed tags. Using "Full HTML" is recommanded for the imported posts when doing away with bbcode.</p>';
+    <p>Also, make sure to choose the proper input filter, for it will affect how the post is displayed. For example, if you choose to strip the bbcode altogether and use HTML instead, some HTML tags will be stripped by the "filtered HTML" input format, unless you add those tags in the list of allowed tags. Using "Full HTML" is recommanded for the imported posts when doing away with bbcode.</p>');
   $form['bbcode']['intro'] = array('#value' => $output);
   $form['bbcode']['phpbb2drupal_bbcode'] = array(
     '#type' => 'radios',
@@ -301,36 +298,34 @@ function phpbb2drupal_settings() {
   $output = '';
   $result7 = _phpbb2drupal_check_module('bbcode');
   $output .= $result7['html'];
+  $link_input_format_enable = url('admin/filters/'.$input_format);
+  $link_input_format_configure = url('admin/filters/'.$input_format.'/configure');
   if (variable_get('phpbb2drupal_bbcode', 0)) { 
     if ($result7['result'] == 0) {
       $ready_for_migration = 0;
       $form['bbcode']['#collapsed']= FALSE;
       $output .= '<p><span class="marker">';
-      $link = l('enable the bbcode module', 'admin/modules');
-      $output .= '<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is required to transform BBcode into HTML. 
-        You first need to ' .$link;
+      $output .= t('<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is required to transform BBcode into HTML. 
+        You first need to <a href="%adminmodules">enable the bbcode module</a>', array('%adminmodules' => url('admin/modules')));
       $output .= '</span></p>';
     }
     $sql ='SELECT * FROM {filters} WHERE module = \'bbcode\' AND format = %d';
     $result = db_query ($sql, $input_format);
     if (!db_num_rows($result)) {
       $form['bbcode']['#collapsed']= FALSE;
-      $output .= '<p class="marker">You need to  '.$link_input_format_enable.'. '.$link_input_format_configure.'</p>';
+      $output .= '<p class="marker">'. t('You need to <a href="%formatenable">enable bbcode in the selected input format</a> <a href="%formatconfigure">THEN click on configure to see bbcode options</a>', array('%formatenable' => $link_input_format_enable, '%formatconfigure' => $link_input_format_configure)) .'</p>';
     }
-    $link_input_format_configure_bbcode = l ('all four BBcode configure options should be disabled','admin/filters/'.$input_format.'/configure');
-    $output .= '<p>For best results, '.$link_input_format_configure_bbcode.'.</p>';
+    $output .= '<p>'. t('For best results, <a href="%bbcodeconfig">all four BBcode configure options should be disabled</a>.', array('%bbcodeconfig' => url('admin/filters/'. $input_format .'/configure'))) .'</p>';
     
   } else {
     if ($result7['result'] == 0) {
       $form['bbcode']['#collapsed']= FALSE;
-      $link = l('enable the bbcode module', 'admin/modules');
-      $output .= '<p><a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is only recommanded. You may '.$link.' after having installed it.</p>';
+      $output .= '<p>'. t('<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is only recommanded. You may <a href="%adminmodules">enable the bbcode module</a> after having installed it.', array('%adminmodules' => url('admin/modules'))) .'</p>';
     }
-    $output .= '<p>Don\'t forget to '.$link_input_format_enable.' (admin > input formats > configure) and enable bbcode for the format selected for the imported posts.
-      '.$link_input_format_configure.'.</p>
-      <p>You may want to enable it for other input formats, too.</p>';
+    $output .= t('<p>Don\'t forget to <a href="%formatenable">enable bbcode in the selected input format</a> (admin > input formats > configure) and enable bbcode for the format selected for the imported posts.  <a href="%formatconfigure">Then click on configure to see bbcode options</a></p>
+      <p>You may want to enable it for other input formats, too.</p>', array('%formatenable' => $link_input_format_enable, '%formatconfigure' => $link_input_format_configure));
   }
-  $output .='<p><em>This setting will be applied to all posts, private messages and the users\' signature.</em></p>';
+  $output .= '<p><em>'. t('This setting will be applied to all posts, private messages and the users\' signature.') .'</em></p>';
   $form['bbcode']['result'] = array('#value' => $output);
 
   
@@ -338,7 +333,7 @@ function phpbb2drupal_settings() {
   // Drupal Modules settings
   $form['modules'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Drupal modules',
+    '#title' => t('Drupal modules'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
@@ -361,8 +356,7 @@ function phpbb2drupal_settings() {
     $ready_for_migration = 0;
     $form['modules']['#collapsed']= FALSE;
     $output .= '<p class="marker">';
-    $link = l('Go to the admin/module page to enable them', 'admin/modules');
-    $output .= "Some of the modules are not enabled. $link. ";
+    $output .= t('Some of the modules are not enabled. <a href="%adminmodules">Got to the admin/modules page to enable them</a>', array('%adminmodules' => url('admin/modules')));
     $output .= '</p>';
   }
   $form['modules']['result'] = array('#value' => $output);
@@ -371,7 +365,7 @@ function phpbb2drupal_settings() {
   // Where is phpbb2?
   $form['phpbb2'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Location of phpBB2 data',
+    '#title' => t('Location of phpBB2 data'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
@@ -385,7 +379,7 @@ function phpbb2drupal_settings() {
   if (variable_get('phpbb2drupal_same_db', 1) != 1) {
     $url = variable_get('phpbb2drupal_db_url', $db_url);
     if ( $url == $db_url) {
-      $output = '<p class="marker">set the address of the phpBB database according to the following format: <br /><pre>mysql://phpbb_username:phpbb_password@localhost/phpbb_database</pre></p>';
+      $output = '<p class="marker">'. t('Set the address of the phpBB database according to the following format: <br /><pre>mysql://phpbb_username:phpbb_password@localhost/phpbb_database</pre>') .'</p>';
       $ready_for_migration = 0;
       $form['phpbb2']['#collapsed']= FALSE;
     }
@@ -399,8 +393,8 @@ function phpbb2drupal_settings() {
       '#description' => '',
     );
   }
-    $output = '<p>Note that due to a limitation within Drupal core, we cannot import messages from one database type to another database type. E.g, we cannot import phpBB for a myqsl DB, to a postgresql DB. You need to import the data into the same type of database first (import all the phpBB data, as is, from mysql to postgresql.</p>
-<p>If both phpBB and Drupal are on postgresql, see <a href="http://drupal.org/node/64877">this issue</a>.</p>';
+    $output = t('<p>Note that due to a limitation within Drupal core, we cannot import messages from one database type to another database type. E.g, we cannot import phpBB for a myqsl DB, to a postgresql DB. You need to import the data into the same type of database first (import all the phpBB data, as is, from mysql to postgresql.</p>
+<p>If both phpBB and Drupal are on postgresql, see <a href="http://drupal.org/node/64877">this issue</a>.</p>');
   $form['phpbb2']['note'] = array('#value' => $output);
   
   // phpBB2 table prefix
@@ -421,8 +415,8 @@ function phpbb2drupal_settings() {
   if ($result['result'] != 1) {
     $ready_for_migration = 0;
     $form['phpbb2']['#collapsed']= FALSE;
-    $output .= "<span class='marker'>";
-    $output .= "Some tables couldn't be found. Please correct the errors so that the phpBB2 tables can be accessed.";
+    $output .= '<span class="marker">';
+    $output .= t("Some tables couldn't be found. Please correct the errors so that the phpBB2 tables can be accessed.");
     $output .= "</span>";
   }
   $form['phpbb2']['result'] = array('#value' => $output);
@@ -432,7 +426,7 @@ function phpbb2drupal_settings() {
   // Misc.	
   $form['misc'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Misc. settings',
+    '#title' => t('Misc. settings'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
@@ -442,9 +436,10 @@ function phpbb2drupal_settings() {
   //Registration date format
   $form['misc']['phpbb2drupal_regdate_us_english'] = array(
     '#type' => 'checkbox',
-    '#title' => 'If you find out that the registration date for ALL your users is over 36 years ago, maybe your DB stores the registration date in the English US format (like: "Sep 11, 2001") instead as a linux timestamp (like: "1152568884"). If so, check this box.',
+    '#title' => t('Convert Registration Date'),
     '#default_value' => variable_get('phpbb2drupal_regdate_us_english', 0),
     '#return_value' => 1,
+    '#description' => t('If you find out that the registration date for ALL your users is over 36 years ago, maybe your DB stores the registration date in the English US format (like: "Sep 11, 2001") instead as a linux timestamp (like: "1152568884"). If so, check this box.'),
   );
   $form['misc']['phpbb2drupal_time_limit'] = array(
     '#type' => 'textfield',
@@ -454,19 +449,21 @@ function phpbb2drupal_settings() {
     '#maxlength' => 10,
     '#description' => t('How long, in seconds, will the migration take?'),
   );
-  $form['misc']['info'] = array('#value' => '<p>1200 = 20 minutes should be enough for most boards. It worked well for a board with 300,000 rows. Beware: if your site is cohosted and safe-mode is on, then this value will have no effect.</p>');
+  $form['misc']['info'] = array(
+    '#value' => '<p>'. t('1200 = 20 minutes should be enough for most boards. It worked well for a board with 300,000 rows. Beware: if your site is cohosted and safe-mode is on, then this value will have no effect.') .'</p>',
+  );
   
   // USERS settings
   $form['users'] = array (
     '#type' => 'fieldset',
-    '#title' => 'User import',
+    '#title' => t('User import'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
   // User to map admin user too
   $drupal_admin = user_load(array('uid' => 1));
   $form['users']['phpbb2drupal_admin_user'] = array(
-    '#title' => 'User to map phpBB admin',
+    '#title' => t('User to map phpBB admin'),
     '#type' => 'textfield',
     '#autocomplete_path' => 'user/autocomplete',
     '#default_value' => variable_get('phpbb2drupal_admin_user', $drupal_admin->name ),
@@ -485,7 +482,7 @@ function phpbb2drupal_settings() {
   //Polls
   $form['polls'] = array(
     '#type' => 'fieldset',
-    '#title' => 'Polls import',
+    '#title' => t('Polls import'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
@@ -515,7 +512,7 @@ function phpbb2drupal_settings() {
   $output ='';
   $form['attachements'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Attachements import',
+    '#title' => t('Attachements import'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
@@ -535,8 +532,7 @@ function phpbb2drupal_settings() {
         $ready_for_migration = 0;
         $form['attachements']['#collapsed']= FALSE;
         $output .= "<span class='marker'>";
-        $link = l('After having installed it, go to the admin/module page to enable it', 'admin/modules');
-        $output .= "The comment_upload.module is not enabled. You can <a href='http://drupal.org/node/37197' target='_blank'>go to the module Home Page to download it</a>. $link. ";
+        $output .= t('The comment_upload.module is not enabled. You can <a href="http://drupal.org/node/37197" target="_blank">go to the module Home Page to download it</a>. <a href="%adminmodules">After having installed it, go to the admin/module page to enable it</a>', array('%adminmodules' => url('admin/modules')));
         $output .= "</span>";
       }
 
@@ -547,8 +543,8 @@ function phpbb2drupal_settings() {
       if ($result['result'] != 1) {
         $ready_for_migration = 0;
         $form['attachements']['#collapsed']= FALSE;
-        $output .= "<p class='marker'>";
-        $output .= "The comment_files table couldn't be found. Please make sure you have properly installed the comment_upload.mysql on your Drupal data base.";
+        $output .= '<p class="marker">';
+        $output .= t("The comment_files table couldn't be found. Please make sure you have properly installed the comment_upload.mysql on your Drupal database.");
         $output .= "</p>";
       }
       $form['attachements']['info'] = array('#value' => $output);
@@ -569,7 +565,7 @@ function phpbb2drupal_settings() {
    $ready_for_migration = 0;
    $form['encoding']['#collapsed']= FALSE;
    $output .= "<p class='marker'>";
-   $output .= "The php mbstring module is not installed on this server: the posts' encoding cannot be changed during the migration.";
+   $output .= t("The php mbstring module is not installed on this server: the posts' encoding cannot be changed during the migration.");
    $output .= "</p>";
  }
 
@@ -634,25 +630,25 @@ function phpbb2drupal_settings() {
   
   $form['encoding']['phpbb2drupal_encode'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Change encoding of text strings during the import',
+    '#title' => t('Change encoding of text strings during the import'),
     '#default_value' => variable_get('phpbb2drupal_encode', '1'),
   );
 
-  $output .= '<p>This setting is useful when the phpBB2 encoding is not the same as the Drupal encoding. <strong>You server must have the <em>php mbstring module</em> installed.</strong></p>';
+  $output .= '<p>'. t('This setting is useful when the phpBB2 encoding is not the same as the Drupal encoding. <strong>You server must have the <em>php mbstring module</em> installed.</strong>') .'</p>';
   $form['encoding']['info'] = array(
     '#value' => $output 
   );
   
   $form['encoding']['phpbb2drupal_encoding_phpbb'] = array(
     '#type' => 'select',
-    '#title' => 'phpBB2 encoding',
+    '#title' => t('phpBB2 encoding'),
     '#default_value' => variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'),
     '#options' => $encodings,
   );
 
   $form['encoding']['phpbb2drupal_encoding_drupal'] = array(
     '#type' => 'select',
-    '#title' => 'Drupal encoding',
+    '#title' => t('Drupal encoding'),
     '#default_value' => variable_get('phpbb2drupal_encoding_drupal', 'utf-8'),
     '#options' => $encodings,
   );
@@ -661,7 +657,7 @@ function phpbb2drupal_settings() {
   $output = '';
   $form['pm'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Private Messages',
+    '#title' => t('Private Messages'),
     '#collapsible' => 'TRUE',
     '#collapsed' => 'TRUE',
   );
@@ -675,15 +671,14 @@ function phpbb2drupal_settings() {
   if (variable_get('phpbb2drupal_import_pm', 0) == 1) {
 
      // Private messages module
-      $output = '<p>If you want to use the private message module, make sure to configure it properly (admin > settings> private messages) and allow user to view their own private messages (admin > access control).</p>';
+      $output = '<p>'. t('If you want to use the private message module, make sure to configure it properly (admin > settings> private messages) and allow user to view their own private messages (admin > access control).') .'</p>';
       $result = _phpbb2drupal_check_module('privatemsg');
       $output .= $result['html'];
       if ($result['result'] != 1) {
         $ready_for_migration = 0;
         $form['pm']['#collapsed']= FALSE;
-        $output .= "<p class='marker'>";
-        $link = l('After having installed it, go to the admin/module page to enable it', 'admin/modules');
-        $output .= "The private message module is not enabled. You can <a href='http://drupal.org/project/privatemsg' target='_blank'>go to the module Home Page to download it</a>. $link. ";
+        $output .= '<p class="marker">';
+        $output .= t('The private message module is not enabled. You can <a href="http://drupal.org/project/privatemsg" target="_blank">go to the module Home Page to download it</a>. <a href="%adminmodules">After having installed it, go to the admin/module page to enable it</a>.', array('%adminmodules' => url('admin/modules')));
         $output .= "</p>";
       }
       $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
@@ -693,8 +688,8 @@ function phpbb2drupal_settings() {
       if ($result['result'] != 1) {
         $ready_for_migration = 0;
         $form['pm']['#collapsed']= FALSE;
-        $output .= "<p class='marker'>";
-        $output .= "Couldn't find the phpBB privatemsg tables.";
+        $output .= '<p class="marker">';
+        $output .= t("Couldn't find the phpBB privatemsg tables.");
         $output .= "</p>";
       }
 
@@ -704,8 +699,8 @@ function phpbb2drupal_settings() {
       if ($result['result'] != 1) {
         $ready_for_migration = 0;
         $form['pm']['#collapsed']= FALSE;
-        $output .= "<p class='marker'>";
-        $output .= "Some tables couldn't be found. Please make sure you have properly installed the privatemsg.mysql on your Drupal data base.";
+        $output .= '<p class="marker">';
+        $output .= t("Some tables couldn't be found. Please make sure you have properly installed the privatemsg.mysql on your Drupal data base.");
         $output .= "</p>";
       }
       $form['pm']['info'] = array('#value' => $output);
@@ -723,11 +718,9 @@ function phpbb2drupal_settings() {
   variable_set ('phpbb2drupal_ready', $ready_for_migration);
   if ($ready_for_migration) {
     $form['migration']['#collapsed']= FALSE;
-    $link = l("you can now proceed with the migration", "admin/phpbb2drupal/migrate");
-    $output .="<p>Check again all the settings above, and if everything is ok, $link</p>";
-    
+    $output .= '<p>'. t('Check again all the settings above, and if everything is ok, <a href="%migratelink">you can now proceed with the migration</a>', array('%migratelink' => url('admin/phpbb2drupal/migrate'))) .'</p>';
   } else {
-    $output = '<p class="marker">You are not ready for the migration yet. Check the settings above.</p>';
+    $output = '<p class="marker">'. t('You are not ready for the migration yet. Check the settings above.') .'</p>';
   }
   
   $form['migration']['info'] = array('#value'=>$output);
@@ -752,9 +745,9 @@ function _phpbb2drupal_check_module($module) {
   $result = db_num_rows($result);
   $out['result'] = $result;
   if ($result == 1 ) {
-    $out['html'] .= "<li>Module ".$module." is enabled. OK!</li>";
+    $out['html'] .= '<li>'. t('Module %module is enabled. OK!', array('%module' => $module)) .'</li>';
   } else {
-    $out['html'] .= "<li><span class='marker'>Module ".$module." is disabled</span>.</li>";
+    $out['html'] .= '<li><span class="marker">'. t('Module %module is disabled.', array('%module' => $module)) .'</span></li>';
   }
   $out['html'] .= "</ul>";
   return $out;
@@ -787,10 +780,10 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
     $result = db_query ($query, $table);
     $result = db_num_rows ($result);
     if ($result) {
-      $out['html'] .= "<li>Table ".$table.": OK!</li>";
+      $out['html'] .= '<li>'. t('Table %table: OK!', array('%table' => $table)) .'</li>';
     }
     else {
-      $out['html'] .= "<li><span class='marker'>Table <strong>".$table."</strong> does not exist!</span></li>";
+      $out['html'] .= '<li><span class="marker">'. t('Table <strong>%table</strong> does not exist!', array('%table' => $table)) .'</span></li>';
       $out['result']= 0;
     }
   }
@@ -803,8 +796,7 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
 
 function phpbb2drupal_migrate() {
   if (!variable_get ('phpbb2drupal_ready', 0)) {
-    $link = l('complete the setup first', 'admin/settings/phpbb2drupal');
-    return "<p>You cannot migrate the data now. Please $link.";
+    return '<p>'. t('You cannot migrate the data now. Please <a href="%settings">complete the setup first</a>', array('%settings' => url('admin/settings/phpbb2drupal'))) .'</p>';
   }
 
   _phpbb2drupal_db_connect() ;
@@ -817,17 +809,17 @@ function phpbb2drupal_migrate() {
   }
   
   $PHPBB2DRUPAL_FUNCTIONS = array(
-    'users' => 'Import Users',
-    'categories' => 'Import Categories',
-    'topics' => 'Import Topics',
-    'polls' => 'Import Polls',
-    'posts' => 'Import Posts'
+    'users' => t('Import Users'),
+    'categories' => t('Import Categories'),
+    'topics' => t('Import Topics'),
+    'polls' => t('Import Polls'),
+    'posts' => t('Import Posts'),
   );
 
   if (variable_get('phpbb2drupal_import_pm',0)) { 
-    $PHPBB2DRUPAL_FUNCTIONS['pm'] = 'Import Private Messages';
+    $PHPBB2DRUPAL_FUNCTIONS['pm'] = t('Import Private Messages');
   }
-  $PHPBB2DRUPAL_FUNCTIONS['url'] = 'Transform URLs';
+  $PHPBB2DRUPAL_FUNCTIONS['url'] = t('Transform URLs');
   /*
   $new = array('cleanup' => 'Clean up');
   $PHPBB2DRUPAL_FUNCTIONS = array_merge( $PHPBB2DRUPAL_FUNCTIONS, $new);
@@ -835,13 +827,13 @@ function phpbb2drupal_migrate() {
 
   $form['import'] = array(
     '#type' => 'select',
-    '#title' => 'Next import to perform',
+    '#title' => t('Next import to perform'),
     '#default_value' => $_SESSION['phpbb2drupal_selected'],
     '#options' => $PHPBB2DRUPAL_FUNCTIONS,
   );
   $form[] = array(
     '#type' => 'submit',
-    '#value' => 'Import',
+    '#value' => t('Import'),
   );
   return drupal_get_form('phpbb2drupal_migrate', $form);
 }
@@ -958,9 +950,8 @@ function phpbb2drupal_import_pm() {
       $result = db_query ($query, $pm->privmsgs_id, $from, $to, substr($pm->privmsgs_subject,0,64), $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, substr($pm->privmsgs_ip,0,255), $format);
     }
   }
-  $out =" <p>Private Message Import successful</p>";
   variable_set('phpbb2drupal_import_pm_successful', 1);
-  return $out; 
+  return '<p>'. t('Private Message Import successful') .'</p>';
 }
 
 /**
@@ -971,7 +962,7 @@ function phpbb2drupal_import_users() {
   // check if the user database has been successfully imported
   db_set_active('default');
   if(variable_get('phpbb2drupal_import_user_successful', 0)) {
-    drupal_set_message('users already imported successfully');
+    drupal_set_message(t('Users already imported successfully'));
     return;
   }  
 
@@ -1020,8 +1011,8 @@ function phpbb2drupal_import_users() {
   $user_count = db_num_rows($user_ids);
 
   if(!$user_count) {
-      drupal_set_message('There were no users found: Aborting script', 'error');
-      return "There were no users found: Aborting script.";
+      drupal_set_message(t('There were no users found: Aborting script'), 'error');
+      return t('There were no users found: Aborting script.');
   }
 
   drupal_set_message(t("Found %user_count users: Beginning Import", array('%user_count' => $user_count + 1)));
@@ -1121,7 +1112,7 @@ function phpbb2drupal_import_users() {
   variable_set('phpbb2drupal_import_user_successful', '1');
 
   $count = db_result(db_query("SELECT COUNT(*) FROM {phpbb2drupal_temp_user}"));
-  drupal_set_message("Successfully Imported $count Users");
+  drupal_set_message(t('Successfully Imported %count Users', array('%count' => $count)));
 }
 
 /**
@@ -1135,7 +1126,7 @@ function phpbb2drupal_import_categories() {
   // check if the forum database has been successfully imported
   db_set_active('default');
   if(variable_get('phpbb2drupal_import_category_successful', 0)) {
-    drupal_set_message('categories already imported successfully');
+    drupal_set_message(t('Categories already imported successfully'));
     return;
   }    
 
@@ -1150,13 +1141,13 @@ function phpbb2drupal_import_categories() {
   // Retrieve the vocabulary vid named "Forum"
   $forum_vid = _forum_get_vid();
 
-  drupal_set_message("Forum vid: $forum_vid");
+  drupal_set_message(t('Forum vid: %forum_vid', array('%forum_vid', $forum_vid)));
 
   // Get Categories/Forums from PHPBB
   db_set_active('phpbb');
   $category_results = db_query('SELECT * FROM %scategories ORDER BY cat_order', $pre);
   $cat_count = db_num_rows($category_results);
-  drupal_set_message("Found $cat_count categories: Beginning Import");
+  drupal_set_message(t('Found %cat_count categories: Beginning Import', array('%cat_count' => $cat_count)));
   
   $forum_count = 0;
 
@@ -1174,7 +1165,7 @@ function phpbb2drupal_import_categories() {
     $phpbb2_categories[$cat_id] = array_merge($category_result, array('forums' => $phpbb2_forums));
   }
 
-  drupal_set_message("Found $forum_count forums: Beginning Import");
+  drupal_set_message(t('Found %forum_count forums: Beginning Import', array('%forum_count' => $forum_count)));
 
   // Insert the Containers / Forum into Drupal
   db_set_active('default');
@@ -1230,7 +1221,7 @@ function phpbb2drupal_import_categories() {
   variable_set('phpbb2drupal_import_category_successful', '1');
 
   $count = db_result(db_query('SELECT COUNT(*) FROM {phpbb2drupal_temp_forum}'));
-  drupal_set_message("Successfully Imported $count forums");
+  drupal_set_message(t('Successfully Imported %count forums.', array('%count' => $count)));
 }
 
 /**
@@ -1246,7 +1237,7 @@ function phpbb2drupal_import_topics() {
   // check if the post database has been successfully imported
   db_set_active('default');
   if(variable_get('phpbb2drupal_import_topic_successful', 0)) {
-    drupal_set_message('Topics already imported successfully');
+    drupal_set_message(t('Topics already imported successfully'));
     return;
   }    
 
@@ -1264,7 +1255,7 @@ function phpbb2drupal_import_topics() {
 
   $topic_count = db_num_rows($topic_ids);
 
-  drupal_set_message("About to import $topic_count topics");
+  drupal_set_message(t('Found %topic_count topics: Beginning Import', array('%topic_count' => $topic_count)));
 
   // Import the topics into drupal
   $counter = 0;
@@ -1301,7 +1292,7 @@ function phpbb2drupal_import_topics() {
     if(db_num_rows($query)) {
         $topic = db_fetch_object($query);
     } else {
-      drupal_set_message("Could not find post details of topic: $result->topic_id");    
+      drupal_set_message(t('Could not find post details of topic: %topic_id', array('%topic_id' => $result->topic_id)));    
       continue;
     }
     
@@ -1376,7 +1367,7 @@ function phpbb2drupal_import_topics() {
     taxonomy_node_save($node->nid, array($tid));
 
     if(!$node->nid) {
-      drupal_set_message("Failed importing $topic->topic_id");
+      drupal_set_message(t('Failed importing %topic_id', array('%topic_id' => $topic->topic_id)));
     }
 
     // Handle attachments
@@ -1414,7 +1405,7 @@ function phpbb2drupal_import_topics() {
   variable_set('phpbb2drupal_import_topic_successful', '1');
 
   $count = db_result(db_query('SELECT COUNT(*) FROM {phpbb2drupal_temp_topic}'));
-  drupal_set_message("Successfully Imported $count topics");
+  drupal_set_message(t('Successfully Imported %count topics', array('%count' => $count)));
 }
 
 /**
@@ -1427,7 +1418,7 @@ function phpbb2drupal_import_polls() {
 
   // check if the poll database has been successfully imported
   if(variable_get('phpbb2drupal_import_polls_successful', 0)) {
-    drupal_set_message('Polls already imported successfully');
+    drupal_set_message(t('Polls already imported successfully'));
     return;
   }    
 
@@ -1439,7 +1430,7 @@ function phpbb2drupal_import_polls() {
   db_set_active('phpbb');
   $topics = db_query('SELECT * FROM %stopics t WHERE topic_vote = 1 ORDER BY topic_id', $pre);
   $topic_count = db_num_rows($topics);
-  drupal_set_message("About to import $topic_count polls");
+  drupal_set_message(t('Found %poll_count polls: Beginning Import', array('%poll_count' => $topic_count)));
 
   // insert into polls
   while($topic = db_fetch_object($topics)) {
@@ -1448,7 +1439,7 @@ function phpbb2drupal_import_polls() {
     db_set_active('default');
     $count = db_result(db_query("SELECT count(*) FROM {phpbb2drupal_temp_topic} WHERE topic_id = %d", $topic->topic_id));
     if($count > 0) {
-      drupal_set_message("Poll $result->topic_id has already been imported");    
+      drupal_set_message(t('Poll %topic_id has already been imported', array('%topic_id' => $result->topic_id)));    
       db_set_active('phpbb');
       continue;
     } 
@@ -1460,7 +1451,7 @@ function phpbb2drupal_import_polls() {
     if(db_num_rows($query)) {
       $poll = db_fetch_object($query);
     } else {
-      drupal_set_message("Could not find details of poll: $topic->topic_id");    
+      drupal_set_message(t('Could not find details of poll: %topic_id', array('%topic_id' => $topic->topic_id)));    
       continue;
     }
 
@@ -1476,7 +1467,7 @@ function phpbb2drupal_import_polls() {
         );
       }
     } else {
-        drupal_set_message("Could not find vote_results details of poll: $poll->vote_id");    
+        drupal_set_message(t('Could not find vote_results details of poll: %vote_id', array('%vote_id' => $poll->vote_id)));    
         continue;
     }
 
@@ -1582,7 +1573,7 @@ function phpbb2drupal_import_polls() {
   // set the topic import successful flag in the variable table
   variable_set('phpbb2drupal_import_poll_successful', '1');
 
-  drupal_set_message('Successfully imported polls');
+  drupal_set_message(t('Successfully imported polls'));
 }
 
 /**
@@ -1597,7 +1588,7 @@ function phpbb2drupal_import_posts() {
   db_set_active('default');
   // check if the post database has been successfully imported
   if(variable_get('phpbb2drupal_import_post_successful', 0)) {
-    drupal_set_message('Posts already imported successfully');
+    drupal_set_message(t('Posts already imported successfully'));
     return;
   }    
 
@@ -1621,7 +1612,7 @@ function phpbb2drupal_import_posts() {
     ORDER BY topic_id', $pre);
 
   $topic_count = db_num_rows($topic_ids);
-  drupal_set_message("Importing comments of $topic_count topics");
+  drupal_set_message(t('Found %post_count posts: Beginning Import', array('%post_count' => $topic_count)));
 
   $errors = 0;
   $loops = 0;
@@ -1657,7 +1648,7 @@ function phpbb2drupal_import_posts() {
         $post = db_fetch_object($query);
       } else {
         $errors++;
-        drupal_set_message("Couldn't find post text for $result->post_id");
+        drupal_set_message(t("Couldn't find post text for %post_id", array('%post_id' => $result->post_id)));
         continue;
       }
 
@@ -1666,7 +1657,7 @@ function phpbb2drupal_import_posts() {
       $count = db_result(db_query("SELECT COUNT(*) FROM {phpbb2drupal_temp_post} WHERE post_id = %d", $post->post_id));
       if($count > 0) {
         $errors++;
-        drupal_set_message("Post $post->post_id was already inserted");
+        drupal_set_message(t('Post %post_id was already inserted', array('%post_id' => $post->post_id)));
         db_set_active('phpbb');
         continue;
       }
@@ -1716,7 +1707,7 @@ function phpbb2drupal_import_posts() {
 
       if(!$cid) {
         $errors++;
-        drupal_set_message("Failed importing $post->post_id");
+        drupal_set_message(t('Failed importing %post_id', array('%post_id' => $post->post_id)));
       }
             
       // Handle attachments
@@ -1749,9 +1740,9 @@ function phpbb2drupal_import_posts() {
   // set the post import successful flag in the variable table
   db_set_active('default');
   variable_set('phpbb2drupal_import_post_successful', '1');
-  drupal_set_message("Successfully Imported $imported posts");
-  drupal_set_message("The were $loops loops executed");
-  drupal_set_message("There $errors errors while importing posts");
+  drupal_set_message(t('Successfully Imported %imported posts', array('%imported' => $imported)));
+  drupal_set_message(t('"The were %loops loops executed', array('%loops' => $loops)));
+  drupal_set_message(t('There %errors errors while importing posts', array('%errors' => $errors)));
 }
 
 /**
