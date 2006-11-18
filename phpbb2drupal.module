@@ -947,7 +947,7 @@ function phpbb2drupal_import_pm() {
       
       $query = "INSERT INTO {privatemsg} ( id, author, recipient,subject,message,timestamp,newmsg,hostname,folder,author_del,recipient_del, format )
           VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 , %d)"; 
-      $result = db_query ($query, $pm->privmsgs_id, $from, $to, substr($pm->privmsgs_subject,0,64), $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, substr($pm->privmsgs_ip,0,255), $format);
+      $result = db_query ($query, db_next_id('{privatemsg}_id'), $from, $to, substr($pm->privmsgs_subject,0,64), $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, substr($pm->privmsgs_ip,0,255), $format);
     }
   }
   variable_set('phpbb2drupal_import_pm_successful', 1);
