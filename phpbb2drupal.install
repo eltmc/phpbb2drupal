@@ -3,42 +3,62 @@ function phpbb2drupal_install() {
   switch($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
-      db_query("CREATE TABLE {phpbb2drupal_temp_user} ( user_id mediumint(8) DEFAULT '0' NOT NULL, uid INTEGER UNSIGNED DEFAULT '0' NOT NULL, KEY user_id (user_id))");
-      db_query("CREATE TABLE {phpbb2drupal_temp_forum} ( forum_id smallint(5) UNSIGNED DEFAULT '0' NOT NULL, tid integer UNSIGNED DEFAULT '0' NOT NULL, KEY forum_id (forum_id))");
-      db_query("CREATE TABLE {phpbb2drupal_temp_topic} ( topic_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, post_id  mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, nid integer UNSIGNED DEFAULT '0' NOT NULL, KEY topic_id (topic_id))");
-      db_query("CREATE TABLE {phpbb2drupal_temp_post} (post_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, cid int(10) DEFAULT '0' NOT NULL, KEY post_id (post_id))");
+      db_query("CREATE TABLE {phpbb2drupal_temp_user} (
+        user_id mediumint(8) DEFAULT '0' NOT NULL,
+        uid INTEGER UNSIGNED DEFAULT '0' NOT NULL,
+        PRIMARY KEY user_id (user_id)
+      ) TYPE=MyISAM /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      db_query("CREATE TABLE {phpbb2drupal_temp_forum} (
+        forum_id smallint(5) UNSIGNED DEFAULT '0' NOT NULL,
+        tid integer UNSIGNED DEFAULT '0' NOT NULL,
+        PRIMARY KEY forum_id (forum_id)
+      ) TYPE=MyISAM /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      db_query("CREATE TABLE {phpbb2drupal_temp_topic} (
+        topic_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL,
+        post_id  mediumint(8) UNSIGNED DEFAULT '0' NOT NULL,
+        nid integer UNSIGNED DEFAULT '0' NOT NULL,
+        PRIMARY KEY topic_id (topic_id)
+      ) TYPE=MyISAM /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      db_query("CREATE TABLE {phpbb2drupal_temp_post} (
+        post_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, 
+        cid int(10) DEFAULT '0' NOT NULL,
+        PRIMARY KEY post_id (post_id)
+      ) TYPE=MyISAM /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
       break;
     case 'pgsql':
-      db_query("CREATE TABLE ".
-      "{phpbb2drupal_temp_user} ".
-      "( ".
-      "user_id INTEGER NOT NULL CONSTRAINT pk_{phpbb2drupal_temp_user} PRIMARY KEY, ".
-      "uid INTEGER  DEFAULT 0 NOT NULL ".
-      ") ");
+      db_query("CREATE TABLE {phpbb2drupal_temp_user} (
+        user_id INTEGER NOT NULL,
+        uid INTEGER DEFAULT '0' NOT NULL,
+        PRIMARY KEY (user_id)
+      )");
       
-      db_query("CREATE TABLE ".
-      "{phpbb2drupal_temp_forum} ".
-      "( ".
-      "forum_id smallint DEFAULT 0 NOT NULL CONSTRAINT pk_{phpbb2drupal_temp_forum} PRIMARY KEY, ".
-      "tid integer DEFAULT 0 NOT NULL ".
-      ") ");
+      db_query("CREATE TABLE {phpbb2drupal_temp_forum} (
+        forum_id smallint DEFAULT '0' NOT NULL,
+        tid integer DEFAULT '0' NOT NULL,
+        PRIMARY KEY (forum_id)
+      )");
       
-      db_query("CREATE TABLE ".
-      "{phpbb2drupal_temp_topic} ".
-      "( ".
-      "topic_id bigint DEFAULT 0 NOT NULL CONSTRAINT pk_{phpbb2drupal_temp_topic} PRIMARY KEY, ".
-      "post_id  bigint DEFAULT 0 NOT NULL, ".
-      "nid bigint DEFAULT 0 NOT NULL ".
-      ") ");
+      db_query("CREATE TABLE {phpbb2drupal_temp_topic} (
+        topic_id bigint DEFAULT '0' NOT NULL,
+        post_id  bigint DEFAULT '0' NOT NULL,
+        nid bigint DEFAULT '0' NOT NULL,
+        PRIMARY KEY (topic_id)
+      )");
       
-      db_query("CREATE TABLE ".
-      "{phpbb2drupal_temp_post} ".
-      "( ".
-      "post_id integer DEFAULT 0 NOT NULL CONSTRAINT pk_{phpbb2drupal_temp_post} PRIMARY KEY, ".
-      "cid integer DEFAULT 0 NOT NULL ".
-      ") ");
+      db_query("CREATE TABLE {phpbb2drupal_temp_post} (
+        post_id integer DEFAULT '0' NOT NULL,
+        cid integer DEFAULT '0' NOT NULL,
+        PRIMARY KEY (post_id)
+      )");
      
       break;
   }
 }
-?>
+
+function phpbb2drupal_update_1() {
+  _system_update_utf8(array('phpbb2drupal_temp_user', 'phpbb2drupal_temp_forum', 'phpbb2drupal_temp_topic', 'phpbb2drupal_temp_post'));
+}
