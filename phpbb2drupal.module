@@ -1049,9 +1049,13 @@ function phpbb2drupal_import_users() {
     $signature = _phpbb2drupal_text_encode($signature);
     if (variable_get('phpbb2drupal_regdate_us_english', 0)) {
       $user_regdate = strtotime($user->user_regdate);
+      $user_lastvisit = strtotime($user->user_lastvisit);
+      $user_session_time = strtotime($user->user_session_time);
     }
     else {
       $user_regdate = $user->user_regdate;
+      $user_lastvisit = $user->user_lastvisit;
+      $user_session_time = $user->user_session_time;
     }
 
     $data = array(
@@ -1060,6 +1064,8 @@ function phpbb2drupal_import_users() {
       'mail' => substr($user->user_email, 0, 64),
       'signature' => substr($signature, 0, 255),
       'created' => $user_regdate,
+      'access' => $user_session_time,
+      'login' => $user_lastvisit,
       'status' => $user->user_active,
       'timezone' => $user->user_timezone, 
       'picture' => $user->user_avatar,
