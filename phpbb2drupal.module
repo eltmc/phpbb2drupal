@@ -1129,7 +1129,7 @@ function phpbb2drupal_import_categories() {
   // Retrieve the vocabulary vid named "Forum"
   $forum_vid = _forum_get_vid();
 
-  drupal_set_message(t('Forum vid: %forum_vid', array('%forum_vid', $forum_vid)));
+  drupal_set_message(t('Forum vid: %forum_vid', array('%forum_vid' => $forum_vid)));
 
   // Get Categories/Forums from PHPBB
   db_set_active('phpbb');
