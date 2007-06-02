@@ -489,13 +489,13 @@ function phpbb2drupal_settings() {
  
   //Attachements
   $output ='';
-  $form['attachements'] = array(
+  $form['attachments'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Attachements import'),
+    '#title' => t('Attachments import'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  $form['attachements']['phpbb2drupal_import_attachments'] = array(
+  $form['attachments']['phpbb2drupal_import_attachments'] = array(
     '#type' => 'checkbox',
     '#title' => t('Import attachments?'),
     '#return_value' => 1,
@@ -508,7 +508,7 @@ function phpbb2drupal_settings() {
     $output .= $result['html'];
     if ($result['result'] != 1) {
       $ready_for_migration = 0;
-      $form['attachements']['#collapsed']= FALSE;
+      $form['attachments']['#collapsed']= FALSE;
       $output .= '<span class="marker">';
       $output .= t('The comment_upload.module is not enabled. You can <a href="http://drupal.org/node/37197" target="_blank">go to the module Home Page to download it</a>. <a href="%adminmodules">After having installed it, go to the admin/module page to enable it</a>', array('%adminmodules' => url('admin/modules')));
       $output .= '</span>';
@@ -520,12 +520,12 @@ function phpbb2drupal_settings() {
     $output .= $result['html'];
     if ($result['result'] != 1) {
       $ready_for_migration = 0;
-      $form['attachements']['#collapsed']= FALSE;
+      $form['attachments']['#collapsed']= FALSE;
       $output .= '<p class="marker">';
       $output .= t("The comment_files table couldn't be found. Please make sure you have properly installed the comment_upload.mysql on your Drupal database.");
       $output .= '</p>';
     }
-    $form['attachements']['info'] = array('#value' => $output);
+    $form['attachments']['info'] = array('#value' => $output);
     $output = '';
   }
   
