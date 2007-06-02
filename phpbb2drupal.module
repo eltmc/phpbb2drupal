@@ -46,6 +46,13 @@ function phpbb2drupal_menu($may_cache) {
       'callback' => 'phpbb2drupal_reset', 
       'type'=> MENU_CALLBACK,
     );
+    $items[] = array(
+      'path' => 'admin/settings/phpbb2drupal',
+      'title' => t('phpBB2Drupal Settings'),
+      'access' => user_access('migrate phpBB'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('phpbb2drupal_admin_settings'),
+   );
   }
   return $items;
 }
@@ -55,19 +62,6 @@ function phpbb2drupal_menu($may_cache) {
  */
 function phpbb2drupal_perm() {
   return array('migrate phpBB');
-}
-
-/**
- * Implementation of hook_help()
- */
-function phpbb2drupal_help($section = '') {
-  $output = '';
-  switch ($section) {
-    case 'admin/modules#description':
-      $output = t('Migrate your phpBB data into a Drupal forum.');
-      break;
-  }
-  return $output;
 }
 
 /**
@@ -180,7 +174,7 @@ function _phpbb2drupal_db_connect($test= 0) {
 /**
  * Callback admin/phpbb2drupal/configure
  */
-function phpbb2drupal_settings() {
+function phpbb2drupal_admin_settings() {
   global $conf ;
   global $db_url;
   $stage = variable_get('phpbb2drupal_config_stage', 0); 
@@ -688,7 +682,7 @@ function phpbb2drupal_settings() {
   }
   
   $form['migration']['info'] = array('#value' => $output);
-  return $form; 
+  return system_settings_form($form); 
 }
 
 
@@ -761,6 +755,12 @@ function phpbb2drupal_migrate() {
     return '<p>'. t('You cannot migrate the data now. Please <a href="%settings">complete the setup first</a>', array('%settings' => url('admin/settings/phpbb2drupal'))) .'</p>';
   }
 
+  $output = 'Phpbb 2 Drupal Migration Form';
+  $output .= drupal_get_form('phpbb2drupal_migrate_form');
+  return $output;
+}
+
+function phpbb2drupal_migrate_form() {
   _phpbb2drupal_db_connect() ;
   // Causes problems with form api redirect
   //ini_set('display_errors', TRUE);
@@ -797,10 +797,10 @@ function phpbb2drupal_migrate() {
     '#type' => 'submit',
     '#value' => t('Import'),
   );
-  return drupal_get_form('phpbb2drupal_migrate', $form);
+  return $form;
 }
 
-function phpbb2drupal_migrate_submit($form_id, $form_values) {
+function phpbb2drupal_migrate_form_submit($form_id, $form_values) {
 
   switch ($form_values['import']) {
     case 'users':
