@@ -513,20 +513,6 @@ function phpbb2drupal_settings() {
       $output .= t('The comment_upload.module is not enabled. You can <a href="http://drupal.org/node/37197" target="_blank">go to the module Home Page to download it</a>. <a href="%adminmodules">After having installed it, go to the admin/module page to enable it</a>', array('%adminmodules' => url('admin/modules')));
       $output .= '</span>';
     }
-
-
-    //comment_files tables.
-    $result = _phpbb2drupal_check_tables(array('comment_files'));
-    $output .= $result['html'];
-    if ($result['result'] != 1) {
-      $ready_for_migration = 0;
-      $form['attachments']['#collapsed']= FALSE;
-      $output .= '<p class="marker">';
-      $output .= t("The comment_files table couldn't be found. Please make sure you have properly installed the comment_upload.mysql on your Drupal database.");
-      $output .= '</p>';
-    }
-    $form['attachments']['info'] = array('#value' => $output);
-    $output = '';
   }
   
   // Encoding
