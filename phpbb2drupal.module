@@ -1963,6 +1963,7 @@ function _phpbb2drupal_strip_bbcode($text) {
  * function to properly encode strings.
  */
 function _phpbb2drupal_text_encode($text) {
+  $text = html_entity_decode($text, ENT_QUOTES);
   if (!variable_get('phpbb2drupal_encode', 0)) {
     return $text;
   }
