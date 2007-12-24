@@ -71,8 +71,8 @@ function phpbb2drupal_reset() {
   global $db_url;
   variable_set('phpbb2drupal_db_url', $db_url);
   variable_set('phpbb2drupal_ready', 0);
-  return '<p>'. t('The phpBB2 database URL has been reset. You may now <a href="%configlink">go back to the configuration page</a>.',
-      array('%configlink' => url('admin/settings/phpbb2drupal'))) .'</p>';
+  return '<p>'. t('The phpBB2 database URL has been reset. You may now <a href="@configlink">go back to the configuration page</a>.',
+      array('@configlink' => url('admin/settings/phpbb2drupal'))) .'</p>';
 }
 
 /**
@@ -131,15 +131,15 @@ function phpbb2drupal_main() {
   $output .= l(t('Post migration configuration'), 'admin/phpbb2drupal/postconfiguration');
   $output .= '</li>';
   $output .= '<li>';
-  $output .= t('<a href="%cleanuplink">Cleanup</a> (Accessing this link will delete all the saved phpbb2drupal settings and temporary tables: click only when you\'re done with all the above.)', array('%cleanuplink' => url('admin/phpbb2drupal/cleanup')));
+  $output .= t('<a href="@cleanuplink">Cleanup</a> (Accessing this link will delete all the saved phpbb2drupal settings and temporary tables: click only when you\'re done with all the above.)', array('@cleanuplink' => url('admin/phpbb2drupal/cleanup')));
   $output .= '</li>';
   $output .= '<li>'. t('If your data migration has proceeded smoothly, please post a "thank you" note in <a href="" target="_blank">this forum topic at drupal.org</a>.');
   $output .= '</li>';
   $output .= '</ol>';
 
   // process will die() if the link to the phpBB2 database is wrong:
-  $output .= '<p>'. t('If the phpBB2 data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. <a href="%reseturl">Click here to reset the database url</a>.',
-      array('%reseturl' => url('admin/phpbb2drupal/reset'))) .'</p>';
+  $output .= '<p>'. t('If the phpBB2 data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. <a href="@reseturl">Click here to reset the database url</a>.',
+      array('@reseturl' => url('admin/phpbb2drupal/reset'))) .'</p>';
 
   return $output;
 }
@@ -220,7 +220,7 @@ function phpbb2drupal_admin_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  $output = '<p>'. t('Select which <a href="%link">input format</a> should the imported messages be set:', array('%link' => url('admin/filters'))) .'</p>';
+  $output = '<p>'. t('Select which <a href="@link">input format</a> should the imported messages be set:', array('@link' => url('admin/filters'))) .'</p>';
   $form['input']['intro'] = array('#value' => $output);
   $output = '';
 
@@ -277,25 +277,25 @@ function phpbb2drupal_admin_settings() {
       $form['bbcode']['#collapsed']= FALSE;
       $output .= '<p><span class="marker">';
       $output .= t('<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is required to transform BBcode into HTML. 
-        You first need to <a href="%adminmodules">enable the bbcode module</a>', array('%adminmodules' => url('admin/modules')));
+        You first need to <a href="@adminmodules">enable the bbcode module</a>', array('@adminmodules' => url('admin/modules')));
       $output .= '</span></p>';
     }
     $sql = 'SELECT * FROM {filters} WHERE module = \'bbcode\' AND format = %d';
     $result = db_query($sql, $input_format);
     if (!db_num_rows($result)) {
       $form['bbcode']['#collapsed']= FALSE;
-      $output .= '<p class="marker">'. t('You need to <a href="%formatenable">enable bbcode in the selected input format</a> <a href="%formatconfigure">THEN click on configure to see bbcode options</a>', array('%formatenable' => $link_input_format_enable, '%formatconfigure' => $link_input_format_configure)) .'</p>';
+      $output .= '<p class="marker">'. t('You need to <a href="@formatenable">enable bbcode in the selected input format</a> <a href="@formatconfigure">THEN click on configure to see bbcode options</a>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure)) .'</p>';
     }
-    $output .= '<p>'. t('For best results, <a href="%bbcodeconfig">all four BBcode configure options should be disabled</a>.', array('%bbcodeconfig' => url('admin/filters/'. $input_format .'/configure'))) .'</p>';
+    $output .= '<p>'. t('For best results, <a href="@bbcodeconfig">all four BBcode configure options should be disabled</a>.', array('@bbcodeconfig' => url('admin/filters/'. $input_format .'/configure'))) .'</p>';
     
   }
   else {
     if ($result7['result'] == 0) {
       $form['bbcode']['#collapsed']= FALSE;
-      $output .= '<p>'. t('<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is only recommanded. You may <a href="%adminmodules">enable the bbcode module</a> after having installed it.', array('%adminmodules' => url('admin/modules'))) .'</p>';
+      $output .= '<p>'. t('<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is only recommanded. You may <a href="@adminmodules">enable the bbcode module</a> after having installed it.', array('@adminmodules' => url('admin/modules'))) .'</p>';
     }
-    $output .= t('<p>Don\'t forget to <a href="%formatenable">enable bbcode in the selected input format</a> (admin > input formats > configure) and enable bbcode for the format selected for the imported posts.  <a href="%formatconfigure">Then click on configure to see bbcode options</a></p>
-      <p>You may want to enable it for other input formats, too.</p>', array('%formatenable' => $link_input_format_enable, '%formatconfigure' => $link_input_format_configure));
+    $output .= t('<p>Don\'t forget to <a href="@formatenable">enable bbcode in the selected input format</a> (admin > input formats > configure) and enable bbcode for the format selected for the imported posts.  <a href="@formatconfigure">Then click on configure to see bbcode options</a></p>
+      <p>You may want to enable it for other input formats, too.</p>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure));
   }
   $output .= '<p><em>'. t('This setting will be applied to all posts, private messages and the users\' signature.') .'</em></p>';
   $form['bbcode']['result'] = array('#value' => $output);
@@ -328,7 +328,7 @@ function phpbb2drupal_admin_settings() {
     $ready_for_migration = 0;
     $form['modules']['#collapsed']= FALSE;
     $output .= '<p class="marker">';
-    $output .= t('Some of the modules are not enabled. <a href="%adminmodules">Got to the admin/modules page to enable them</a>', array('%adminmodules' => url('admin/modules')));
+    $output .= t('Some of the modules are not enabled. <a href="@adminmodules">Got to the admin/modules page to enable them</a>', array('@adminmodules' => url('admin/modules')));
     $output .= '</p>';
   }
   $form['modules']['result'] = array('#value' => $output);
@@ -504,7 +504,7 @@ function phpbb2drupal_admin_settings() {
       $ready_for_migration = 0;
       $form['attachments']['#collapsed']= FALSE;
       $output .= '<span class="marker">';
-      $output .= t('The comment_upload.module is not enabled. You can <a href="http://drupal.org/node/37197" target="_blank">go to the module Home Page to download it</a>. <a href="%adminmodules">After having installed it, go to the admin/module page to enable it</a>', array('%adminmodules' => url('admin/modules')));
+      $output .= t('The comment_upload.module is not enabled. You can <a href="http://drupal.org/node/37197" target="_blank">go to the module Home Page to download it</a>. <a href="@adminmodules">After having installed it, go to the admin/module page to enable it</a>', array('@adminmodules' => url('admin/modules')));
       $output .= '</span>';
     }
   }
@@ -516,15 +516,6 @@ function phpbb2drupal_admin_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-
- //DEBUG http://php.net/extension_loaded 
- if (!extension_loaded('mbstring') && variable_get('phpbb2drupal_encode', '1')) {
-   $ready_for_migration = 0;
-   $form['encoding']['#collapsed']= FALSE;
-   $output .= '<p class="marker">';
-   $output .= t("The php mbstring module is not installed on this server: the posts' encoding cannot be changed during the migration.");
-   $output .= '</p>';
- }
 
   $encodings = array(
     'utf-8' => 'utf-8',
@@ -581,6 +572,7 @@ function phpbb2drupal_admin_settings() {
     'ISO-2022-KR' => 'ISO-2022-KR',
     'Windows-1251 (CP1251)' => 'Windows-1251 (CP1251)',
     'Windows-1252 (CP1252)' => 'Windows-1252 (CP1252)',
+	'Windows-1256 (CP1256)' => 'Windows-1256 (CP1256)',
     'CP866 (IBM866)' => 'CP866 (IBM866)',
     'KOI8-R' => 'KOI8-R',
    );
@@ -591,7 +583,7 @@ function phpbb2drupal_admin_settings() {
     '#default_value' => variable_get('phpbb2drupal_encode', '1'),
   );
 
-  $output .= '<p>'. t('This setting is useful when the phpBB2 encoding is not the same as the Drupal encoding. <strong>You server must have the <em>php mbstring module</em> installed.</strong>') .'</p>';
+  $output .= '<p>'. t('This setting is useful when the phpBB2 encoding is not the same as the Drupal encoding.) .'</p>';
   $form['encoding']['info'] = array(
     '#value' => $output 
   );
@@ -635,7 +627,7 @@ function phpbb2drupal_admin_settings() {
         $ready_for_migration = 0;
         $form['pm']['#collapsed']= FALSE;
         $output .= '<p class="marker">';
-        $output .= t('The private message module is not enabled. You can <a href="http://drupal.org/project/privatemsg" target="_blank">go to the module Home Page to download it</a>. <a href="%adminmodules">After having installed it, go to the admin/module page to enable it</a>.', array('%adminmodules' => url('admin/modules')));
+        $output .= t('The private message module is not enabled. You can <a href="http://drupal.org/project/privatemsg" target="_blank">go to the module Home Page to download it</a>. <a href="@adminmodules">After having installed it, go to the admin/module page to enable it</a>.', array('@adminmodules' => url('admin/modules')));
         $output .= '</p>';
       }
       $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
@@ -675,7 +667,7 @@ function phpbb2drupal_admin_settings() {
   variable_set('phpbb2drupal_ready', $ready_for_migration);
   if ($ready_for_migration) {
     $form['migration']['#collapsed']= FALSE;
-    $output .= '<p>'. t('Check again all the settings above, and if everything is ok, <a href="%migratelink">you can now proceed with the migration</a>', array('%migratelink' => url('admin/phpbb2drupal/migrate'))) .'</p>';
+    $output .= '<p>'. t('Check again all the settings above, and if everything is ok, <a href="@migratelink">you can now proceed with the migration</a>', array('@migratelink' => url('admin/phpbb2drupal/migrate'))) .'</p>';
   }
   else {
     $output = '<p class="marker">'. t('You are not ready for the migration yet. Check the settings above.') .'</p>';
@@ -752,7 +744,7 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
 
 function phpbb2drupal_migrate() {
   if (!variable_get('phpbb2drupal_ready', 0)) {
-    return '<p>'. t('You cannot migrate the data now. Please <a href="%settings">complete the setup first</a>', array('%settings' => url('admin/settings/phpbb2drupal'))) .'</p>';
+    return '<p>'. t('You cannot migrate the data now. Please <a href="@settings">complete the setup first</a>', array('@settings' => url('admin/settings/phpbb2drupal'))) .'</p>';
   }
 
   $output = 'Phpbb 2 Drupal Migration Form';
@@ -921,7 +913,7 @@ function phpbb2drupal_import_pm() {
     }
   }
   variable_set('phpbb2drupal_import_pm_successful', 1);
-  return '<p>'. t('Private Message Import successful') .'</p>';
+  drupal_set_message(t('Private Message Import successful'));
 }
 
 /**
@@ -1953,7 +1945,7 @@ function _phpbb2drupal_text_encode($text) {
   if (!variable_get('phpbb2drupal_encode', 0)) {
     return $text;
   }
-  $text = mb_convert_encoding($text, variable_get('phpbb2drupal_encoding_drupal', 'utf-8'), variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'));
+  $text = iconv(variable_get('phpbb2drupal_encoding_drupal', 'utf-8'), variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'), $text);
   return $text;
   
 }
