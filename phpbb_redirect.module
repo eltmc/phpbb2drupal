@@ -1,17 +1,18 @@
 <?php
+// $Id$
 /****************************************************
  * phpbb_redirect module: redirects links incoming from old phpBB forum to new Drupal forum.
  *
-****************************************************/
+ ****************************************************/
 
 /****************************************************
  *
  * Implementation of hook_help()
  *
-****************************************************/
-function phpbb_redirect_help( $section='') {
+ ****************************************************/
+function phpbb_redirect_help($path, $arg) {
   $output = '';
-  switch ($section) {
+  switch ($path) {
     case 'admin/modules#description':
       $output = t('Redirects links to your old phpBB installation to the new Drupal forum.');
       break;
@@ -24,24 +25,22 @@ function phpbb_redirect_help( $section='') {
  *
  * Implementation of hook_menu()
  *
-****************************************************/
+ ****************************************************/
 function phpbb_redirect_menu($may_cache) {
   $items = array();
 
   if (!$may_cache) {
-    $items[] = array(
-      'path' => 'forum/viewtopic.php',
+    $items['forum/viewtopic.php'] = array(
       'title' => 'phpBB to Drupal',
       'access' => user_access('access content'),
       'callback' => 'phpbb_redirect_viewtopic', 
-      'type'=> MENU_CALLBACK
+      'type' => MENU_CALLBACK
     );
-    $items[] = array(
-      'path' => 'forum/viewforum.php',
+    $items['forum/viewforum.php'] = array(
       'title' => 'phpBB to Drupal',
       'access' => user_access('access content'),
       'callback' => 'phpbb_redirect_viewforum', 
-      'type'=> MENU_CALLBACK
+      'type' => MENU_CALLBACK
     );
   }
 

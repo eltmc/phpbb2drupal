@@ -1,8 +1,5 @@
 <?php
-/****************************************************
- * $Id$
- *
-****************************************************/
+// $Id$
 
 /**
  * Implementation of hook_menu()
@@ -11,48 +8,48 @@ function phpbb2drupal_menu($may_cache) {
   $items = array();
 
   if (!$may_cache) {
-    $items[] = array(
-      'path' => 'admin/phpbb2drupal',
-      'title' => t('phpBB to Drupal'),
-      'access' => user_access('migrate phpBB'),
+    $items['admin/phpbb2drupal'] = array(
+      'title' => 'phpBB to Drupal',
+      'access callback' => 'user_access',
+      'access arguments' => array('migrate phpBB'),
       'callback' => 'phpbb2drupal_main', 
-      'type'=> MENU_NORMAL_ITEM,
+      'type' => MENU_NORMAL_ITEM,
     );
-    $items[] = array(
-      'path' => 'admin/phpbb2drupal/postconfiguration',
-      'title' => t('Post Migration Configuration'),
-      'access' => user_access('migrate phpBB'),
+    $items['admin/phpbb2drupal/postconfiguration'] = array(
+      'title' => 'Post Migration Configuration',
+      'access callback' => 'user_access',
+      'access arguments' => array('migrate phpBB'),
       'callback' => 'phpbb2drupal_postconfiguration', 
-      'type'=> MENU_NORMAL_ITEM,
+      'type' => MENU_NORMAL_ITEM,
     );
-    $items[] = array(
-      'path' => 'admin/phpbb2drupal/cleanup',
-      'title' => t('Cleanup'),
-      'access' => user_access('migrate phpBB'),
+    $items['admin/phpbb2drupal/cleanup'] = array(
+      'title' => 'Cleanup',
+      'access callback' => 'user_access',
+      'access arguments' => array('migrate phpBB'),
       'callback' => 'phpbb2drupal_cleanup', 
-      'type'=> MENU_CALLBACK,
+      'type' => MENU_CALLBACK,
     );
-    $items[] = array(
-      'path' => 'admin/phpbb2drupal/migrate',
-      'title' => t('Execute Migration'),
-      'access' => user_access('migrate phpBB'),
+    $items['admin/phpbb2drupal/migrate'] = array(
+      'title' => 'Execute Migration',
+      'access callback' => 'user_access',
+      'access arguments' => array('migrate phpBB'),
       'callback' => 'phpbb2drupal_migrate', 
-      'type'=> MENU_CALLBACK,
+      'type' => MENU_CALLBACK,
     );
-    $items[] = array(
-      'path' => 'admin/phpbb2drupal/reset',
-      'title' => t('Reset phpBB2 database URL'),
-      'access' => user_access('migrate phpBB'),
+    $items['admin/phpbb2drupal/reset'] = array(
+      'title' => 'Reset phpBB2 database URL',
+      'access callback' => 'user_access',
+      'access arguments' => array('migrate phpBB'),
       'callback' => 'phpbb2drupal_reset', 
-      'type'=> MENU_CALLBACK,
+      'type' => MENU_CALLBACK,
     );
-    $items[] = array(
-      'path' => 'admin/settings/phpbb2drupal',
-      'title' => t('phpBB2Drupal Settings'),
-      'access' => user_access('migrate phpBB'),
+    $items['admin/settings/phpbb2drupal'] = array(
+      'title' => 'phpBB2Drupal Settings',
+      'access callback' => 'user_access',
+      'access arguments' => array('migrate phpBB'),
       'callback' => 'drupal_get_form',
       'callback arguments' => array('phpbb2drupal_admin_settings'),
-   );
+    );
   }
   return $items;
 }
@@ -79,7 +76,7 @@ function phpbb2drupal_reset() {
  * Callback admin/phpbb2drupal/cleanup
  */
 function phpbb2drupal_cleanup() {
-  return phpbb2drupal_import_cleanup() . '<p>'. t('Drupal database cleaned.') .'</p>';
+  return phpbb2drupal_import_cleanup() .'<p>'. t('Drupal database cleaned.') .'</p>';
 }
 
 /**
@@ -269,8 +266,8 @@ function phpbb2drupal_admin_settings() {
   $output = '';
   $result7 = _phpbb2drupal_check_module('bbcode');
   $output .= $result7['html'];
-  $link_input_format_enable = url('admin/filters/'.$input_format);
-  $link_input_format_configure = url('admin/filters/'.$input_format.'/configure');
+  $link_input_format_enable = url('admin/filters/'. $input_format);
+  $link_input_format_configure = url('admin/filters/'. $input_format .'/configure');
   if (variable_get('phpbb2drupal_bbcode', 0)) { 
     if ($result7['result'] == 0) {
       $ready_for_migration = 0;
@@ -381,7 +378,7 @@ function phpbb2drupal_admin_settings() {
     '#description' => t('What prefix is used for your phpBB2 tables?'),
   );
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-  $tables = array($pre.'categories', $pre.'forums', $pre.'posts', $pre.'posts_text', $pre.'topics', $pre.'users');
+  $tables = array($pre .'categories', $pre .'forums', $pre .'posts', $pre .'posts_text', $pre .'topics', $pre .'users');
   $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
   $output .= $result['html'];
   
@@ -572,10 +569,10 @@ function phpbb2drupal_admin_settings() {
     'ISO-2022-KR' => 'ISO-2022-KR',
     'Windows-1251 (CP1251)' => 'Windows-1251 (CP1251)',
     'Windows-1252 (CP1252)' => 'Windows-1252 (CP1252)',
-	'Windows-1256 (CP1256)' => 'Windows-1256 (CP1256)',
+    'Windows-1256 (CP1256)' => 'Windows-1256 (CP1256)',
     'CP866 (IBM866)' => 'CP866 (IBM866)',
     'KOI8-R' => 'KOI8-R',
-   );
+    );
   
   $form['encoding']['phpbb2drupal_encode'] = array(
     '#type' => 'checkbox',
@@ -638,7 +635,7 @@ function phpbb2drupal_admin_settings() {
         $ready_for_migration = 0;
         $form['pm']['#collapsed']= FALSE;
         $output .= '<p class="marker">';
-        $output .= t("Couldn't find the phpBB privatemsg tables.");
+        $output .= t('Couldn't find the phpBB privatemsg tables.');
         $output .= '</p>';
       }
 
@@ -717,7 +714,7 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
   $out['result']= 1;
   foreach ($tables as $table) {
     if ($prefix) {
-      $table = db_prefix_tables('{'.$table.'}');
+      $table = db_prefix_tables('{'. $table .'}');
     }  
     if ($GLOBALS['db_type'] == 'pgsql') {
       $query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%s'";
@@ -792,9 +789,9 @@ function phpbb2drupal_migrate_form() {
   return $form;
 }
 
-function phpbb2drupal_migrate_form_submit($form_id, $form_values) {
+function phpbb2drupal_migrate_form_submit($form, $form_state) {
 
-  switch ($form_values['import']) {
+  switch ($form_state['values']['import']) {
     case 'users':
       phpbb2drupal_import_users();
       if (!variable_get('phpbb2drupal_import_user_successful', 0)) {
@@ -861,7 +858,7 @@ function phpbb2drupal_migrate_form_submit($form_id, $form_values) {
       }
       else {
         drupal_set_message('Congratulations.  Import Finished');
-        drupal_set_message('Please visit the ' . l('Post migration configuration', 'admin/phpbb2drupal/postconfiguration'). ' page');
+        drupal_set_message('Please visit the '. l('Post migration configuration', 'admin/phpbb2drupal/postconfiguration').' page');
         unset($_SESSION['phpbb2drupal_selected']);
       }
       break;
@@ -909,7 +906,7 @@ function phpbb2drupal_import_pm() {
       
       $query = "INSERT INTO {privatemsg} ( id, author, recipient, subject, message, timestamp, newmsg, hostname, folder, author_del, recipient_del, format )
           VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 , %d)"; 
-      $result = db_query ($query, db_next_id('{privatemsg}_id'), $from, $to, substr($pm->privmsgs_subject, 0, 64), $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, substr($pm->privmsgs_ip, 0, 255), $format);
+      $result = db_query($query, db_next_id('{privatemsg}_id'), $from, $to, substr($pm->privmsgs_subject, 0, 64), $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, substr($pm->privmsgs_ip, 0, 255), $format);
     }
   }
   variable_set('phpbb2drupal_import_pm_successful', 1);
@@ -935,25 +932,25 @@ function phpbb2drupal_import_users() {
     // create profile fields for icq, aim, msn...etc
     $querybase = 'INSERT INTO {profile_fields} (title, name, explanation, category, page, type, weight, required, register, visibility, options) VALUES ';
 
-    $query = $querybase . "('YIM', 'user_yim', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
+    $query = $querybase ."('YIM', 'user_yim', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
     db_query($query);
 
-    $query = $querybase . "('AIM', 'user_aim', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
+    $query = $querybase ."('AIM', 'user_aim', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
     db_query($query);
     
-    $query = $querybase . "('icq', 'user_icq', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
+    $query = $querybase ."('icq', 'user_icq', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
     db_query($query);
     
-    $query = $querybase . "('Website', 'user_website', '', 'Contact', '', 'url', 0, 0, 1, 2, '')";
+    $query = $querybase ."('Website', 'user_website', '', 'Contact', '', 'url', 0, 0, 1, 2, '')";
     db_query($query);
 
-    $query = $querybase . "('Location', 'user_from', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
+    $query = $querybase ."('Location', 'user_from', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
     db_query($query);
 
-    $query = $querybase . "('Occupation', 'user_occ', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
+    $query = $querybase ."('Occupation', 'user_occ', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
     db_query($query);
 
-    $query = $querybase . "('Interests', 'user_interests', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
+    $query = $querybase ."('Interests', 'user_interests', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
     db_query($query);
 
     variable_set('phpbb2drupal_import_user_started', 1);
@@ -1250,7 +1247,7 @@ function phpbb2drupal_import_topics() {
       INNER JOIN %sposts p ON t.topic_id = p.topic_id
       INNER JOIN %sposts_text pt ON p.post_id = pt.post_id                            
       WHERE p.post_id = t.topic_first_post_id
-      AND t.topic_id = %d',$pre, $pre, $pre, $result->topic_id);
+      AND t.topic_id = %d', $pre, $pre, $pre, $result->topic_id);
       
     // check if the topic is a valid topic.  if not, continue on
     if (db_num_rows($query)) {
@@ -1801,7 +1798,7 @@ function phpbb2drupal_import_cleanup() {
 function phpbb2drupal_user_save($phpBB_user, $category = array()) {
 
   if (!($user = user_load(array('name' => $phpBB_user['name'])))) {
-    $account = new StdClass();
+    $account = new stdClass();
     $account->uid = FALSE; 
     $user = user_save($account, $phpBB_user);
     //Drupal overrides the phpBB user registration date when creating a Drupal account. 
@@ -1844,7 +1841,7 @@ function phpbb2drupal_comment_save($edit) {
 
     // Strip the "/" from the end of the thread.
     $max = rtrim($max, '/');
-    $thread = int2vancode(vancode2int($max)+1) . '/';
+    $thread = int2vancode(vancode2int($max)+1) .'/';
 
   }
   else {
@@ -1862,7 +1859,7 @@ function phpbb2drupal_comment_save($edit) {
 
     if ($max == '') {
       // First child of this parent.
-      $thread = $parent->thread .'.'.int2vancode(1).'/';
+      $thread = $parent->thread .'.'. int2vancode(1) .'/';
     }
     else {
       // Strip the "/" at the end of the thread.
@@ -1874,7 +1871,7 @@ function phpbb2drupal_comment_save($edit) {
       $last = $parts[$parent_depth];
 
       // Finally, build the thread field for this new comment.
-      $thread = $parent->thread .'.'.int2vancode(vancode2int($last) + 1) .'/';
+      $thread = $parent->thread .'.'. int2vancode(vancode2int($last) + 1) .'/';
     } 
   }
 
@@ -1922,7 +1919,7 @@ function phpbb2_drupal_poll_insert($node) {
  */
 function phpbb2drupal_decode_ip($int_ip) {
   $hexipbang = explode('.', chunk_split($int_ip, 2, '.'));
-  return hexdec($hexipbang[0]). '.' . hexdec($hexipbang[1]) . '.' . hexdec($hexipbang[2]) . '.' . hexdec($hexipbang[3]);
+  return hexdec($hexipbang[0]) .'.'. hexdec($hexipbang[1]) .'.'. hexdec($hexipbang[2]) .'.'. hexdec($hexipbang[3]);
 }
 
 /**
@@ -1961,7 +1958,7 @@ function _phpbb2drupal_replace_links_topic($matches) {
 function _phpbb2drupal_replace_links_post($matches) {
   //print_r($matches);
   $result = db_fetch_object(db_query('SELECT c.cid, c.nid FROM {phpbb2drupal_temp_post} p JOIN {comments} c ON c.cid = p.cid WHERE post_id = %d', $matches[1]));
-  $link = 'node/'. $result->nid . '#comment-' . $result->cid . $matches[3];
+  $link = 'node/'. $result->nid .'#comment-'. $result->cid . $matches[3];
   return $link;
 }
 

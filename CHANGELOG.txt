@@ -1,3 +1,7 @@
+24 Dec. 2007: Initial update for Drupal 6.
+              1) Added a phpbb_redirect.info file.
+              2) Update phpbb2drupal to the new schema api.
+              3) Update the modules using coder module to point out area needed to fix. There are still some code issues, but nothing critical.
 23 May  2006: Created phpbb2drupal.install to cater for postgresql. 
 21 May  2006: 1) added option to change bbcode to html.
               2) In settings page, updated the form to use collapsible fieldsets for each sections.
