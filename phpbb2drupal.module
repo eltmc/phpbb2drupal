@@ -12,42 +12,42 @@ function phpbb2drupal_menu($may_cache) {
       'title' => 'phpBB to Drupal',
       'access callback' => 'user_access',
       'access arguments' => array('migrate phpBB'),
-      'callback' => 'phpbb2drupal_main', 
+      'page callback' => 'phpbb2drupal_main', 
       'type' => MENU_NORMAL_ITEM,
     );
     $items['admin/phpbb2drupal/postconfiguration'] = array(
       'title' => 'Post Migration Configuration',
       'access callback' => 'user_access',
       'access arguments' => array('migrate phpBB'),
-      'callback' => 'phpbb2drupal_postconfiguration', 
+      'page callback' => 'phpbb2drupal_postconfiguration', 
       'type' => MENU_NORMAL_ITEM,
     );
     $items['admin/phpbb2drupal/cleanup'] = array(
       'title' => 'Cleanup',
       'access callback' => 'user_access',
       'access arguments' => array('migrate phpBB'),
-      'callback' => 'phpbb2drupal_cleanup', 
+      'page callback' => 'phpbb2drupal_cleanup', 
       'type' => MENU_CALLBACK,
     );
     $items['admin/phpbb2drupal/migrate'] = array(
       'title' => 'Execute Migration',
       'access callback' => 'user_access',
       'access arguments' => array('migrate phpBB'),
-      'callback' => 'phpbb2drupal_migrate', 
+      'page callback' => 'phpbb2drupal_migrate', 
       'type' => MENU_CALLBACK,
     );
     $items['admin/phpbb2drupal/reset'] = array(
       'title' => 'Reset phpBB2 database URL',
       'access callback' => 'user_access',
       'access arguments' => array('migrate phpBB'),
-      'callback' => 'phpbb2drupal_reset', 
+      'page callback' => 'phpbb2drupal_reset', 
       'type' => MENU_CALLBACK,
     );
     $items['admin/settings/phpbb2drupal'] = array(
       'title' => 'phpBB2Drupal Settings',
       'access callback' => 'user_access',
       'access arguments' => array('migrate phpBB'),
-      'callback' => 'drupal_get_form',
+      'page callback' => 'drupal_get_form',
       'callback arguments' => array('phpbb2drupal_admin_settings'),
     );
   }
