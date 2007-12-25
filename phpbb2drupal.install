@@ -36,8 +36,3 @@ function phpbb2drupal_install() {
   // Create my tables.
   drupal_install_schema('phpbb2drupal');
 }
-
-function phpbb2drupal_uninstall() {
-  // Drop my tables.
-  drupal_uninstall_schema('phpbb2drupal');
-}
