@@ -48,7 +48,7 @@ function phpbb2drupal_menu($may_cache) {
       'access callback' => 'user_access',
       'access arguments' => array('migrate phpBB'),
       'page callback' => 'drupal_get_form',
-      'callback arguments' => array('phpbb2drupal_admin_settings'),
+      'page arguments' => array('phpbb2drupal_admin_settings'),
     );
   }
   return $items;
