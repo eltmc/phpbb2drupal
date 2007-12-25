@@ -580,7 +580,7 @@ function phpbb2drupal_admin_settings() {
     '#default_value' => variable_get('phpbb2drupal_encode', '1'),
   );
 
-  $output .= '<p>'. t('This setting is useful when the phpBB2 encoding is not the same as the Drupal encoding.) .'</p>';
+  $output .= '<p>'. t('This setting is useful when the phpBB2 encoding is not the same as the Drupal encoding.') .'</p>';
   $form['encoding']['info'] = array(
     '#value' => $output 
   );
@@ -635,7 +635,7 @@ function phpbb2drupal_admin_settings() {
         $ready_for_migration = 0;
         $form['pm']['#collapsed']= FALSE;
         $output .= '<p class="marker">';
-        $output .= t('Couldn't find the phpBB privatemsg tables.');
+        $output .= t("Couldn't find the phpBB privatemsg tables.");
         $output .= '</p>';
       }
 
