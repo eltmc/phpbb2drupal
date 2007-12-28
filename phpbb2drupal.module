@@ -207,13 +207,6 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
     if ($prefix) {
       $table = db_prefix_tables('{'. $table .'}');
     }  
-//	if ($GLOBALS['db_type'] == 'pgsql') {
-//      $query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%s'";
-//    }
-//    else {
-//      $query = "SHOW TABLES LIKE '%s'";
-//    }
-//    $result = db_query($query, $table);
     $result = db_table_exists($table);
     if ($result) {
       $out['html'] .= '<li>'. t('Table %table: OK!', array('%table' => $table)) .'</li>';
@@ -456,9 +449,9 @@ function phpbb2drupal_import_users() {
 
   // Insert the users into drupal
   db_set_active('phpbb');
-  $user_ids = db_query('SELECT user_id FROM %susers WHERE user_id > 2 ORDER BY user_id', $pre);
+  $user_ids = db_query('SELECT COUNT(user_id) FROM %susers WHERE user_id > 2 ORDER BY user_id', $pre);
 
-  $user_count = db_num_rows($user_ids);
+  $user_count = db_result($user_ids);
 
   if (!$user_count) {
       drupal_set_message(t('There were no users found: Aborting script'), 'error');
@@ -599,8 +592,8 @@ function phpbb2drupal_import_categories() {
 
   // Get Categories/Forums from PHPBB
   db_set_active('phpbb');
-  $category_results = db_query('SELECT * FROM %scategories ORDER BY cat_order', $pre);
-  $cat_count = db_num_rows($category_results);
+  $category_results = db_query('SELECT COUNT(*) FROM %scategories ORDER BY cat_order', $pre);
+  $cat_count = db_result($category_results);
   drupal_set_message(t('Found %cat_count categories: Beginning Import', array('%cat_count' => $cat_count)));
   
   $forum_count = 0;
@@ -608,8 +601,8 @@ function phpbb2drupal_import_categories() {
   while ($category_result = db_fetch_array($category_results)) {
 
     $cat_id = $category_result['cat_id'];
-    $forums_results = db_query('SELECT * FROM %sforums WHERE cat_id = %d', $pre, $cat_id);
-    $forum_count += db_num_rows($forums_results);
+    $forums_results = db_query('SELECT COUNT(*) FROM %sforums WHERE cat_id = %d', $pre, $cat_id);
+    $forum_count += db_result($forums_results);
     $phpbb2_forums = array();  # reinitialize the temp var not to include it multiple times
     while ($forum_result = db_fetch_object($forums_results)) {
       //$phpbb2_categories[$category_result->cat_id]['forums'][] = $forums_result;
@@ -703,9 +696,9 @@ function phpbb2drupal_import_topics() {
   // Get All topics from PHPBB
   db_set_active('phpbb');
   // topic_status == 2, Moved topics are duplicates don't import
-  $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre);
+  $topic_ids = db_query('SELECT COUNT(topic_id) FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre);
 
-  $topic_count = db_num_rows($topic_ids);
+  $topic_count = db_result($topic_ids);
 
   drupal_set_message(t('Found %topic_count topics: Beginning Import', array('%topic_count' => $topic_count)));
 
@@ -733,7 +726,7 @@ function phpbb2drupal_import_topics() {
       ORDER BY p.post_id     
       LIMIT 1", $result->topic_id); /**/
 
-    $query = db_query('SELECT *
+    $query = db_query('SELECT COUNT(*)
       FROM %stopics t
       INNER JOIN %sposts p ON t.topic_id = p.topic_id
       INNER JOIN %sposts_text pt ON p.post_id = pt.post_id                            
@@ -741,7 +734,7 @@ function phpbb2drupal_import_topics() {
       AND t.topic_id = %d', $pre, $pre, $pre, $result->topic_id);
       
     // check if the topic is a valid topic.  if not, continue on
-    if (db_num_rows($query)) {
+    if (db_result($query)) {
         $topic = db_fetch_object($query);
     }
     else {
@@ -886,8 +879,8 @@ function phpbb2drupal_import_polls() {
 
   // Get all polls from PHPBB
   db_set_active('phpbb');
-  $topics = db_query('SELECT * FROM %stopics t WHERE topic_vote = 1 ORDER BY topic_id', $pre);
-  $topic_count = db_num_rows($topics);
+  $topics = db_query('SELECT COUNT(*) FROM %stopics t WHERE topic_vote = 1 ORDER BY topic_id', $pre);
+  $topic_count = db_result($topics);
   drupal_set_message(t('Found %poll_count polls: Beginning Import', array('%poll_count' => $topic_count)));
 
   // insert into polls
@@ -904,9 +897,9 @@ function phpbb2drupal_import_polls() {
 
     // get the polls 
     db_set_active('phpbb');
-    $query = db_query('SELECT * FROM %svote_desc vd WHERE topic_id = %d ORDER BY vote_id', $pre, $topic->topic_id); 
+    $query = db_query('SELECT COUNT(*) FROM %svote_desc vd WHERE topic_id = %d ORDER BY vote_id', $pre, $topic->topic_id); 
 
-    if (db_num_rows($query)) {
+    if (db_result($query)) {
       $poll = db_fetch_object($query);
     }
     else {
@@ -915,9 +908,9 @@ function phpbb2drupal_import_polls() {
     }
 
     // get vote results
-    $query = db_query('SELECT * FROM %svote_results WHERE vote_id = %d ORDER BY vote_option_id', $pre, $poll->vote_id);
+    $query = db_query('SELECT COUNT(*) FROM %svote_results WHERE vote_id = %d ORDER BY vote_option_id', $pre, $poll->vote_id);
 
-    if (db_num_rows($query)) {
+    if (db_result($query)) {
       $choice = array();
       while ($result = db_fetch_object($query)) {
         $choice[] = array(
@@ -1013,10 +1006,10 @@ function phpbb2drupal_import_polls() {
 
     // get voter information
     db_set_active('phpbb');
-    $query = db_query('SELECT vote_user_id FROM %svote_voters WHERE vote_id = %d ORDER BY vote_id', $pre, $poll->vote_id);
+    $query = db_query('SELECT COUNT(vote_user_id) FROM %svote_voters WHERE vote_id = %d ORDER BY vote_id', $pre, $poll->vote_id);
 
     // manually update the poll table to store the uid of those who voted
-    if (db_num_rows($query)) {
+    if (db_result($query)) {
       db_set_active('phpbb');
       while ($result = db_fetch_object($query)) {
         db_set_active('default');
@@ -1074,7 +1067,7 @@ function phpbb2drupal_import_posts() {
     WHERE topic_replies > 0
     ORDER BY topic_id', $pre);
 
-  $topic_count = db_num_rows($topic_ids);
+  $topic_count = db_result(db_query("SELECT COUNT(topic_id) FROM %stopics WHERE topic_replies > 0", $pre));
   drupal_set_message(t('Found %post_count posts: Beginning Import', array('%post_count' => $topic_count)));
 
   $errors = 0;
@@ -1104,11 +1097,11 @@ function phpbb2drupal_import_posts() {
 		$query = db_query("SELECT * FROM {posts} p INNER JOIN {posts_text} pt ON p.post_id = pt.post_id WHERE p.post_id = %d", $result->post_id);
       //*/
 
-      $query = db_query('SELECT * FROM %sposts p, %sposts_text pt WHERE p.post_id = pt.post_id AND p.post_id = %d',
+      $query = db_query('SELECT COUNT(*) FROM %sposts p, %sposts_text pt WHERE p.post_id = pt.post_id AND p.post_id = %d',
         $pre, $pre, $result->post_id);
 
       // make sure the post is valid
-      if (db_num_rows($query)) {
+      if (db_result($query)) {
         $post = db_fetch_object($query);
       }
       else {
@@ -1286,23 +1279,23 @@ function phpbb2drupal_import_cleanup() {
 /**
  * Helper Functions
  */
-function phpbb2drupal_user_save($phpBB_user, $category = array()) {
+function phpbb2drupal_user_save($phpbb_user, $category = array()) {
 
-  if (!($user = user_load(array('name' => $phpBB_user['name'])))) {
+  if (!($user = user_load(array('name' => $phpbb_user['name'])))) {
     $account = new stdClass();
     $account->uid = FALSE; 
-    $user = user_save($account, $phpBB_user);
+    $user = user_save($account, $phpbb_user);
     //Drupal overrides the phpBB user registration date when creating a Drupal account. 
     //so we need to update it here.
-    $user = user_save($user, array('created' => $phpBB_user['created']));
+    $user = user_save($user, array('created' => $phpbb_user['created']));
     // Update the password: just import the md5() hash straight into Drupal without
     // passing through the Drupal function user_save() which would re-hash the hash.
-    $result = db_query("UPDATE {users} SET pass = '%s' WHERE uid = %d", $phpBB_user['pass'], $user->uid);
+    $result = db_query("UPDATE {users} SET pass = '%s' WHERE uid = %d", $phpbb_user['pass'], $user->uid);
   }
-  $phpBB_user['uid'] = $user->uid;
+  $phpbb_user['uid'] = $user->uid;
 
   db_set_active('default');
-  phpbb2drupal_profile_save_profile($phpBB_user, $user, $category); // add user profile information
+  phpbb2drupal_profile_save_profile($phpbb_user, $user, $category); // add user profile information
 
   return $user;
 }
