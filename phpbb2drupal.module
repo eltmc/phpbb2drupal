@@ -449,9 +449,9 @@ function phpbb2drupal_import_users() {
 
   // Insert the users into drupal
   db_set_active('phpbb');
-  $user_ids = db_query('SELECT COUNT(user_id) FROM %susers WHERE user_id > 2 ORDER BY user_id', $pre);
+  $user_ids = db_query('SELECT user_id FROM %susers WHERE user_id > 2 ORDER BY user_id', $pre);
 
-  $user_count = db_result($user_ids);
+  $user_count = db_result(db_query('SELECT COUNT(user_id) FROM %susers WHERE user_id > 2 ORDER BY user_id', $pre));
 
   if (!$user_count) {
       drupal_set_message(t('There were no users found: Aborting script'), 'error');
@@ -585,15 +585,31 @@ function phpbb2drupal_import_categories() {
     variable_set('phpbb2drupal_import_category_started', 1);
   }
 
-  // Retrieve the vocabulary vid named "Forum"
-  $forum_vid = _forum_get_vid();
+  // Retrieve the vocabulary vid named "Forum". Borrow code from forum.install.
+  $vocabularies = taxonomy_get_vocabularies();
+  if (!isset($vocabularies[$vid])) {
+    $vocabulary = array(
+      'name' => t('Forums'),
+      'multiple' => 0,
+      'required' => 0,
+      'hierarchy' => 1,
+      'relations' => 0,
+      'module' => 'forum',
+      'weight' => -10,
+      'nodes' => array('forum' => 1),
+    );
+    taxonomy_save_vocabulary($vocabulary);
+
+    variable_set('forum_nav_vocabulary', $vocabulary['vid']);
+  }
+  $forum_vid = variable_get('forum_nav_vocabulary', 0);
 
   drupal_set_message(t('Forum vid: %forum_vid', array('%forum_vid' => $forum_vid)));
 
   // Get Categories/Forums from PHPBB
   db_set_active('phpbb');
-  $category_results = db_query('SELECT COUNT(*) FROM %scategories ORDER BY cat_order', $pre);
-  $cat_count = db_result($category_results);
+  $category_results = db_query('SELECT * FROM %scategories ORDER BY cat_order', $pre);
+  $cat_count = db_result(db_query('SELECT COUNT(*) FROM %scategories ORDER BY cat_order', $pre));
   drupal_set_message(t('Found %cat_count categories: Beginning Import', array('%cat_count' => $cat_count)));
   
   $forum_count = 0;
@@ -601,8 +617,8 @@ function phpbb2drupal_import_categories() {
   while ($category_result = db_fetch_array($category_results)) {
 
     $cat_id = $category_result['cat_id'];
-    $forums_results = db_query('SELECT COUNT(*) FROM %sforums WHERE cat_id = %d', $pre, $cat_id);
-    $forum_count += db_result($forums_results);
+    $forums_results = db_query('SELECT * FROM %sforums WHERE cat_id = %d', $pre, $cat_id);
+    $forum_count += db_result(db_query('SELECT * FROM %sforums WHERE cat_id = %d', $pre, $cat_id));
     $phpbb2_forums = array();  # reinitialize the temp var not to include it multiple times
     while ($forum_result = db_fetch_object($forums_results)) {
       //$phpbb2_categories[$category_result->cat_id]['forums'][] = $forums_result;
@@ -696,9 +712,9 @@ function phpbb2drupal_import_topics() {
   // Get All topics from PHPBB
   db_set_active('phpbb');
   // topic_status == 2, Moved topics are duplicates don't import
-  $topic_ids = db_query('SELECT COUNT(topic_id) FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre);
+  $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre);
 
-  $topic_count = db_result($topic_ids);
+  $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre));
 
   drupal_set_message(t('Found %topic_count topics: Beginning Import', array('%topic_count' => $topic_count)));
 
@@ -726,7 +742,7 @@ function phpbb2drupal_import_topics() {
       ORDER BY p.post_id     
       LIMIT 1", $result->topic_id); /**/
 
-    $query = db_query('SELECT COUNT(*)
+    $query = db_query('SELECT *
       FROM %stopics t
       INNER JOIN %sposts p ON t.topic_id = p.topic_id
       INNER JOIN %sposts_text pt ON p.post_id = pt.post_id                            
