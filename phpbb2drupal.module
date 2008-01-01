@@ -1426,15 +1426,8 @@ function _phpbb2drupal_strip_bbcode($text) {
  */
 function _phpbb2drupal_text_encode($text) {
   $text = html_entity_decode($text, ENT_QUOTES);
-  if (!variable_get('phpbb2drupal_encode', 0)) {
-    return $text;
-  }
-  if (!function_exists('iconv') && function_exists('libiconv')) {
-    function iconv($input_encoding, $output_encoding, $string) {
-      return libiconv($input_encoding, $output_encoding, $string);
-    }
-  }
-  $text = iconv(variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'), 'utf-8//TRANSLIT', $text);
+  $encoding = variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1');
+  $text drupal_convert_to_utf8($text, $encoding)
   return $text;
 }
 

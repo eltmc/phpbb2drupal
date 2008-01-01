@@ -349,8 +349,10 @@ function phpbb2drupal_admin_settings() {
 
   //check if the iconv function is available.
   if (variable_get('phpbb2drupal_encode', '1')) {
-    if (!function_exists('iconv') || !function_exists('libiconv')) {
-      $ready_for_migration = 0;
+    if (function_exists('iconv') || function_exists('mb_convert_encoding') || function_exists('recode_string')) {
+    } 
+    else {
+	$ready_for_migration = 0;
       $form['encoding']['#collapsed']= FALSE;
       $output .= '<p class="marker">';
       $output .= t("The php function iconv is not available on this server: the posts' encoding cannot be changed during the migration.");
