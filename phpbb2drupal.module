@@ -1059,14 +1059,6 @@ function phpbb2drupal_import_posts() {
 
   if (!variable_get('phpbb2drupal_import_post_started', 0)) {
     db_set_active('default');
-    //db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_post}');
-    /*db_query("CREATE TABLE {phpbb2drupal_temp_post} (
-                post_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL,
-                cid int(10) DEFAULT '0' NOT NULL,
-                KEY post_id (post_id))"  
-            );
-     */
-    db_set_active('default');
     variable_set('phpbb2drupal_import_post_started', 1);
   }
 
@@ -1102,10 +1094,6 @@ function phpbb2drupal_import_posts() {
       $loops++;
 
       db_set_active('phpbb');
-      /*
-		$query = db_query("SELECT * FROM {posts} p INNER JOIN {posts_text} pt ON p.post_id = pt.post_id WHERE p.post_id = %d", $result->post_id);
-      //*/
-
       $query = db_query('SELECT * FROM %sposts p, %sposts_text pt WHERE p.post_id = pt.post_id AND p.post_id = %d',
         $pre, $pre, $result->post_id);
 	  $querycount = db_query('SELECT COUNT(*) FROM %sposts p, %sposts_text pt WHERE p.post_id = pt.post_id AND p.post_id = %d',
@@ -1370,15 +1358,19 @@ function phpbb2drupal_comment_save($edit) {
     } 
   }
 
-  $edit['cid'] = db_next_id('{comments}_cid');
-
   $status = 0;                        // 1 - not published, 0 - published
   $format = variable_get('phpbb2drupal_input_format', 0);
   $score = 0;                         // 0 default value, comments get higher score depending on the author's roles
   $users = serialize(array(0 => 1));  // default value for everybody!!
+  
+  if ($edit['uid'] === $user->uid) { // '===' because we want to modify anonymous users too
+    $edit['name'] = $user->name;
+  }
+
 
   db_query("INSERT INTO {comments} (cid, nid, pid, uid, subject, comment, format, hostname, timestamp, status, score, users, thread, name, mail, homepage) VALUES (%d, %d, %d, %d, '%s', '%s', %d, '%s', %d, %d, %d, '%s', '%s', '%s', '%s', '%s')", $edit['cid'], $edit['nid'], $edit['pid'], $edit['uid'], substr($edit['subject'], 0, 64), $edit['comment'], $format, substr($edit['hostname'], 0, 128), $edit['timestamp'], $status, $score, $users, substr($thread, 0, 255), substr($edit['name'], 0, 60), substr($edit['mail'], 0, 64), substr($edit['homepage'], 0, 255));
-
+  db_query("INSERT INTO {comments} (nid, pid, uid, subject, comment, format, hostname, timestamp, status, thread, name) VALUES (%d, %d, %d, '%s', '%s', %d, '%s', %d, %d, '%s', '%s')", $edit['nid'], $edit['pid'], $edit['uid'], $edit['subject'], $edit['comment'], $edit['format'], ip_address(), $edit['timestamp'], $edit['status'], $thread, $edit['name']);
+  $edit['cid'] = db_last_insert_id('comments', 'cid');
   _comment_update_node_statistics($edit['nid']);
 
   return $edit['cid'];
