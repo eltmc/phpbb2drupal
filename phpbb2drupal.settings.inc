@@ -514,6 +514,7 @@ function phpbb2drupal_admin_settings() {
     $output = '<p class="marker">'. t('You are not ready for the migration yet. Check the settings above.') .'</p>';
   }
   
-  return system_settings_form($form); 
   $form['migration']['info'] = array('#value' => $output);
+  return system_settings_form($form); 
+  
 }
