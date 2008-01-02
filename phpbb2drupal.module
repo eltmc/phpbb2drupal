@@ -822,7 +822,7 @@ function phpbb2drupal_import_topics() {
 
     db_set_active('default');
     node_save($node);
-    taxonomy_node_save($node->nid, array($tid));
+    taxonomy_node_save($node, array($tid));
 
     if (!$node->nid) {
       drupal_set_message(t('Failed importing %topic_id', array('%topic_id' => $topic->topic_id)));
@@ -1006,7 +1006,7 @@ function phpbb2drupal_import_polls() {
     
     db_set_active('default');
     node_save($node);
-    taxonomy_node_save($node->nid, array($tid));
+    taxonomy_node_save($node, array($tid));
 
     if (!$node->nid) {
       drupal_set_message(t('Failed importing %topic_id', array('%topic_id' => $topic->topic_id)));
