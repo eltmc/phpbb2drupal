@@ -110,9 +110,9 @@ function phpbb2drupal_admin_settings() {
         You first need to <a href="@adminmodules">enable the bbcode module</a>', array('@adminmodules' => url('admin/modules')));
       $output .= '</span></p>';
     }
-    $sql = 'SELECT * FROM {filters} WHERE module = \'bbcode\' AND format = %d';
+    $sql = 'SELECT COUNT(*) FROM {filters} WHERE module = \'bbcode\' AND format = %d';
     $result = db_query($sql, $input_format);
-    if (!db_num_rows($result)) {
+    if (!db_result($result)) {
       $form['bbcode']['#collapsed']= FALSE;
       $output .= '<p class="marker">'. t('You need to <a href="@formatenable">enable bbcode in the selected input format</a> <a href="@formatconfigure">THEN click on configure to see bbcode options</a>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure)) .'</p>';
     }
@@ -352,7 +352,7 @@ function phpbb2drupal_admin_settings() {
     if (function_exists('iconv') || function_exists('mb_convert_encoding') || function_exists('recode_string')) {
     } 
     else {
-	$ready_for_migration = 0;
+      $ready_for_migration = 0;
       $form['encoding']['#collapsed']= FALSE;
       $output .= '<p class="marker">';
       $output .= t("The php function iconv is not available on this server: the posts' encoding cannot be changed during the migration.");

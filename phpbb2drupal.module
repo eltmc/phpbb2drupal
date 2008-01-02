@@ -4,54 +4,52 @@
 /**
  * Implementation of hook_menu()
  */
-function phpbb2drupal_menu($may_cache) {
+function phpbb2drupal_menu() {
   $items = array();
 
-  if (!$may_cache) {
-    $items['admin/phpbb2drupal'] = array(
-      'title' => 'phpBB to Drupal',
-      'access callback' => 'user_access',
-      'access arguments' => array('migrate phpBB'),
-      'page callback' => 'phpbb2drupal_main', 
-      'type' => MENU_NORMAL_ITEM,
-    );
-    $items['admin/phpbb2drupal/postconfiguration'] = array(
-      'title' => 'Post Migration Configuration',
-      'access callback' => 'user_access',
-      'access arguments' => array('migrate phpBB'),
-      'page callback' => 'phpbb2drupal_postconfiguration', 
-      'type' => MENU_NORMAL_ITEM,
-    );
-    $items['admin/phpbb2drupal/cleanup'] = array(
-      'title' => 'Cleanup',
-      'access callback' => 'user_access',
-      'access arguments' => array('migrate phpBB'),
-      'page callback' => 'phpbb2drupal_cleanup', 
-      'type' => MENU_CALLBACK,
-    );
-    $items['admin/phpbb2drupal/migrate'] = array(
-      'title' => 'Execute Migration',
-      'access callback' => 'user_access',
-      'access arguments' => array('migrate phpBB'),
-      'page callback' => 'phpbb2drupal_migrate', 
-      'type' => MENU_CALLBACK,
-    );
-    $items['admin/phpbb2drupal/reset'] = array(
-      'title' => 'Reset phpBB2 database URL',
-      'access callback' => 'user_access',
-      'access arguments' => array('migrate phpBB'),
-      'page callback' => 'phpbb2drupal_reset', 
-      'type' => MENU_CALLBACK,
-    );
-    $items['admin/settings/phpbb2drupal'] = array(
-      'title' => 'phpBB2Drupal Settings',
-      'access callback' => 'user_access',
-      'access arguments' => array('migrate phpBB'),
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('phpbb2drupal_admin_settings'),
-      'file' => 'phpbb2drupal.settings.inc',
-    );
-  }
+  $items['admin/phpbb2drupal'] = array(
+    'title' => 'phpBB to Drupal',
+    'access callback' => 'user_access',
+    'access arguments' => array('migrate phpBB'),
+    'page callback' => 'phpbb2drupal_main', 
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/phpbb2drupal/postconfiguration'] = array(
+    'title' => 'Post Migration Configuration',
+    'access callback' => 'user_access',
+    'access arguments' => array('migrate phpBB'),
+    'page callback' => 'phpbb2drupal_postconfiguration', 
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/phpbb2drupal/cleanup'] = array(
+    'title' => 'Cleanup',
+    'access callback' => 'user_access',
+    'access arguments' => array('migrate phpBB'),
+    'page callback' => 'phpbb2drupal_cleanup', 
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/phpbb2drupal/migrate'] = array(
+    'title' => 'Execute Migration',
+    'access callback' => 'user_access',
+    'access arguments' => array('migrate phpBB'),
+    'page callback' => 'phpbb2drupal_migrate', 
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/phpbb2drupal/reset'] = array(
+    'title' => 'Reset phpBB2 database URL',
+    'access callback' => 'user_access',
+    'access arguments' => array('migrate phpBB'),
+    'page callback' => 'phpbb2drupal_reset', 
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/phpbb2drupal'] = array(
+    'title' => 'phpBB2Drupal Settings',
+    'access callback' => 'user_access',
+    'access arguments' => array('migrate phpBB'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('phpbb2drupal_admin_settings'),
+    'file' => 'phpbb2drupal.settings.inc',
+  );
   return $items;
 }
 
@@ -845,8 +843,8 @@ function phpbb2drupal_import_topics() {
 
         while ($file = db_fetch_object($files)) {
           db_set_active('default');
-          $fid = db_next_id('{files}_fid');
-          db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, $node->nid, substr($file->real_filename0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize);
+          db_query("INSERT INTO {files} (nid, filename, filepath, filemime, filesize) VALUES (%d, '%s', '%s', '%s', %d)", $node->nid, substr($file->real_filename0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize);
+          $fid = db_last_insert_id('files', 'fid');
           db_set_active('phpbb');
         }
       }
@@ -905,7 +903,7 @@ function phpbb2drupal_import_polls() {
     // get the polls 
     db_set_active('phpbb');
     $query = db_query('SELECT * FROM %svote_desc vd WHERE topic_id = %d ORDER BY vote_id', $pre, $topic->topic_id);
-	$querycount = db_query('SELECT COUNT(*) FROM %svote_desc vd WHERE topic_id = %d ORDER BY vote_id', $pre, $topic->topic_id);
+    $querycount = db_query('SELECT COUNT(*) FROM %svote_desc vd WHERE topic_id = %d ORDER BY vote_id', $pre, $topic->topic_id);
 
     if (db_result($querycount)) {
       $poll = db_fetch_object($query);
@@ -917,7 +915,7 @@ function phpbb2drupal_import_polls() {
 
     // get vote results
     $query = db_query('SELECT * FROM %svote_results WHERE vote_id = %d ORDER BY vote_option_id', $pre, $poll->vote_id);
-	$querycount = db_query('SELECT COUNT(*) FROM %svote_results WHERE vote_id = %d ORDER BY vote_option_id', $pre, $poll->vote_id);
+    $querycount = db_query('SELECT COUNT(*) FROM %svote_results WHERE vote_id = %d ORDER BY vote_option_id', $pre, $poll->vote_id);
 
     if (db_result($querycount)) {
       $choice = array();
@@ -1096,7 +1094,7 @@ function phpbb2drupal_import_posts() {
       db_set_active('phpbb');
       $query = db_query('SELECT * FROM %sposts p, %sposts_text pt WHERE p.post_id = pt.post_id AND p.post_id = %d',
         $pre, $pre, $result->post_id);
-	  $querycount = db_query('SELECT COUNT(*) FROM %sposts p, %sposts_text pt WHERE p.post_id = pt.post_id AND p.post_id = %d',
+      $querycount = db_query('SELECT COUNT(*) FROM %sposts p, %sposts_text pt WHERE p.post_id = pt.post_id AND p.post_id = %d',
         $pre, $pre, $result->post_id);
 
       // make sure the post is valid
@@ -1180,8 +1178,8 @@ function phpbb2drupal_import_posts() {
 
           while ($file = db_fetch_object($files)) {
             db_set_active('default');
-            $fid = db_next_id('{files}_fid');
-            db_query("INSERT INTO {files} (fid, nid, filename, filepath, filemime, filesize) VALUES (%d, %d, '%s', '%s', '%s', %d)", $fid, 0, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize);
+            db_query("INSERT INTO {files} (nid, filename, filepath, filemime, filesize) VALUES (%d, '%s', '%s', '%s', %d)", 0, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize);
+            $fid = db_last_insert_id('files', 'fid');
             db_query('INSERT INTO {comment_files} (cid, fid) VALUES (%d, %d)', $cid, $fid);
             db_set_active('phpbb');
           }        
@@ -1367,8 +1365,6 @@ function phpbb2drupal_comment_save($edit) {
     $edit['name'] = $user->name;
   }
 
-
-  db_query("INSERT INTO {comments} (cid, nid, pid, uid, subject, comment, format, hostname, timestamp, status, score, users, thread, name, mail, homepage) VALUES (%d, %d, %d, %d, '%s', '%s', %d, '%s', %d, %d, %d, '%s', '%s', '%s', '%s', '%s')", $edit['cid'], $edit['nid'], $edit['pid'], $edit['uid'], substr($edit['subject'], 0, 64), $edit['comment'], $format, substr($edit['hostname'], 0, 128), $edit['timestamp'], $status, $score, $users, substr($thread, 0, 255), substr($edit['name'], 0, 60), substr($edit['mail'], 0, 64), substr($edit['homepage'], 0, 255));
   db_query("INSERT INTO {comments} (nid, pid, uid, subject, comment, format, hostname, timestamp, status, thread, name) VALUES (%d, %d, %d, '%s', '%s', %d, '%s', %d, %d, '%s', '%s')", $edit['nid'], $edit['pid'], $edit['uid'], $edit['subject'], $edit['comment'], $edit['format'], ip_address(), $edit['timestamp'], $edit['status'], $thread, $edit['name']);
   $edit['cid'] = db_last_insert_id('comments', 'cid');
   _comment_update_node_statistics($edit['nid']);
