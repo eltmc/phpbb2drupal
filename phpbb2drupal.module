@@ -1422,7 +1422,11 @@ function _phpbb2drupal_strip_bbcode($text) {
  */
 function _phpbb2drupal_text_encode($text) {
   $text = html_entity_decode($text, ENT_QUOTES);
-  $encoding = variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1');
+  $encoding = strtolower(variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'));
+  //magic borrowed from phpbb3 recode to utf8 function ()includes/utf/utf_tools.php
+  if ($encoding == 'iso-8859-1') {
+    $encoding = 'cp1252';
+  }
   $text = drupal_convert_to_utf8($text, $encoding);
   return $text;
 }
