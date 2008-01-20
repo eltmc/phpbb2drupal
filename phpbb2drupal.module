@@ -584,7 +584,6 @@ function phpbb2drupal_import_categories() {
   }
 
   // Retrieve the vocabulary vid named "Forum".
-  forum_enable;
   $forum_vid = variable_get('forum_nav_vocabulary', 0);
 
   drupal_set_message(t('Forum vid: %forum_vid', array('%forum_vid' => $forum_vid)));
