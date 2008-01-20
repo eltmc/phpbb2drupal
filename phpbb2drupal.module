@@ -1421,13 +1421,23 @@ function _phpbb2drupal_strip_bbcode($text) {
  * function to properly encode strings.
  */
 function _phpbb2drupal_text_encode($text) {
-  $text = html_entity_decode($text, ENT_QUOTES);
   $encoding = strtolower(variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'));
+  $text = html_entity_decode($text, ENT_QUOTES);
   //magic borrowed from phpbb3 recode to utf8 function ()includes/utf/utf_tools.php
   if ($encoding == 'iso-8859-1') {
     $encoding = 'cp1252';
   }
-  $text = drupal_convert_to_utf8($text, $encoding);
+// Borrow from function drupal_convert_to_utf8 - there are some changes so cannot use that function.
+  else if (function_exists('iconv')) {
+    $text = @iconv($encoding, 'utf-8//TRANSLIT', $text);
+  }
+  else if (function_exists('mb_convert_encoding')) {
+    $text = @mb_convert_encoding($text, 'utf-8', $encoding);
+  }
+  else if (function_exists('recode_string')) {
+    $text = @recode_string($text .'..utf-8', $data);
+  }
+  $text = html_entity_decode($text, ENT_QUOTES, 'utf-8');
   return $text;
 }
 
