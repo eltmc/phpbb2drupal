@@ -397,8 +397,8 @@ function phpbb2drupal_import_pm() {
         'hostname' => substr($pm->privmsgs_ip, 0, 255),
         'format' => $format,
 //        'thread' => $thread,
-        'type' => $type,
-        'variables' => serialize($variables),
+//        'type' => $type,
+//        'variables' => serialize($variables),
       );
       $result = drupal_write_record('privatemsg', $message);
     }
