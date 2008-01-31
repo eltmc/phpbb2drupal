@@ -386,9 +386,21 @@ function phpbb2drupal_import_pm() {
       $pm->privmsgs_text = _phpbb2drupal_replace_links($pm->privmsgs_text);
       $pm->privmsgs_subject = _phpbb2drupal_text_encode($pm->privmsgs_subject);
       
-      $query = "INSERT INTO {privatemsg} ( id, author, recipient, subject, message, timestamp, newmsg, hostname, folder, author_del, recipient_del, format )
-          VALUES (%d, %d, %d, '%s', '%s', %d, %d, '%s', 0, 0, 0 , %d)"; 
-      $result = db_query($query, db_next_id('{privatemsg}_id'), $from, $to, substr($pm->privmsgs_subject, 0, 64), $pm->privmsgs_text, $pm->privmsgs_date, $pm->newmsg, substr($pm->privmsgs_ip, 0, 255), $format);
+	  // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061)
+      $message = array(
+        'author' => $from,
+        'recipient' => $to,
+        'subject' => substr($pm->privmsgs_subject, 0, 64),
+        'message' => $pm->privmsgs_text,
+        'timestamp' => $pm->privmsgs_date,
+        'newmsg' => 1,
+        'hostname' => substr($pm->privmsgs_ip, 0, 255),
+        'format' => $format,
+//        'thread' => $thread,
+        'type' => $type,
+        'variables' => serialize($variables),
+      );
+      $result = drupal_write_record('privatemsg', $message);
     }
   }
   variable_set('phpbb2drupal_import_pm_successful', 1);
