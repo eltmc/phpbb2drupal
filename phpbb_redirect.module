@@ -26,7 +26,7 @@ function phpbb_redirect_help($path, $arg) {
  * Implementation of hook_menu()
  *
  ****************************************************/
-function phpbb_redirect_menu($may_cache) {
+function phpbb_redirect_menu() {
   $items = array();
 
   if (!$may_cache) {
