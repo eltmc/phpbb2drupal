@@ -791,8 +791,11 @@ function phpbb2drupal_import_topics() {
     db_set_active('default');
     db_query('INSERT INTO {phpbb2drupal_temp_topic} (topic_id, post_id, nid) VALUES (%d, %d, %d)', $topic->topic_id, $topic->post_id, $node->nid);
 
+    //hack to keep the topics in correct order
+    db_query('UPDATE {node_comment_statistics} SET last_comment_timestamp = %d WHERE nid = %d', $node->created, $node->nid);
+
     db_set_active('phpbb');
-  }  // while ($result = db_fetch_object($topic_ids))
+  }
 
   db_set_active('default');
   // set the topic import successful flag in the variable table
@@ -966,6 +969,10 @@ function phpbb2drupal_import_polls() {
 
     db_set_active('default');
     db_query('INSERT INTO {phpbb2drupal_temp_topic} (topic_id, post_id, nid) VALUES (%d, %d, %d)', $topic->topic_id, $topic->post_id, $node->nid);
+    
+    //hack to keep the topics in correct order
+    db_query('UPDATE {node_comment_statistics} SET last_comment_timestamp = %d WHERE nid = %d', $node->created, $node->nid);
+
     phpbb2_drupal_poll_insert($node);
 
 
