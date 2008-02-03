@@ -311,7 +311,7 @@ function phpbb2drupal_admin_settings() {
   }
   
  
-  //Attachements
+  //Attachments
   $output ='';
   $form['attachments'] = array(
     '#type' => 'fieldset',
@@ -347,7 +347,7 @@ function phpbb2drupal_admin_settings() {
     '#collapsed' => TRUE,
   );
 
-  //check if the iconv function is available.
+  //check if the encoding functions are available.
   if (variable_get('phpbb2drupal_encode', '1')) {
     if (function_exists('iconv') || function_exists('mb_convert_encoding') || function_exists('recode_string')) {
     } 
@@ -437,68 +437,6 @@ function phpbb2drupal_admin_settings() {
     '#default_value' => variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'),
     '#options' => $encodings,
   );
-
-//  $form['encoding']['phpbb2drupal_encoding_drupal'] = array(
-//    '#type' => 'select',
-//    '#title' => t('Drupal encoding'),
-//    '#default_value' => variable_get('phpbb2drupal_encoding_drupal', 'utf-8'),
-//    '#options' => $encodings,
-//  );
-
-  // Private messages
-  $output = '';
-  $form['pm'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Private Messages'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $form['pm']['phpbb2drupal_import_pm'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Import private messages?'),
-    '#return_value' => 1,
-    '#default_value' => variable_get('phpbb2drupal_import_pm', 0),
-    '#description' => '',
-  );
-  if (variable_get('phpbb2drupal_import_pm', 0) == 1) {
-
-     // Private messages module
-      $output = '<p>'. t('If you want to use the private message module, make sure to configure it properly (admin > settings> private messages) and allow user to view their own private messages (admin > access control).') .'</p>';
-      $result = _phpbb2drupal_check_module('privatemsg');
-      $output .= $result['html'];
-      if ($result['result'] != 1) {
-        $ready_for_migration = 0;
-        $form['pm']['#collapsed']= FALSE;
-        $output .= '<p class="marker">';
-        $output .= t('The private message module is not enabled. You can <a href="http://drupal.org/project/privatemsg" target="_blank">go to the module Home Page to download it</a>. <a href="@adminmodules">After having installed it, go to the admin/module page to enable it</a>.', array('@adminmodules' => url('admin/modules')));
-        $output .= '</p>';
-      }
-      $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-      $tables = array($pre .'privmsgs', $pre .'privmsgs_text');
-      $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
-      $output .= $result['html'];
-      if ($result['result'] != 1) {
-        $ready_for_migration = 0;
-        $form['pm']['#collapsed']= FALSE;
-        $output .= '<p class="marker">';
-        $output .= t("Couldn't find the phpBB privatemsg tables.");
-        $output .= '</p>';
-      }
-
-      //private messages tables.
-      $result = _phpbb2drupal_check_tables(array('privatemsg', 'privatemsg_folder', 'privatemsg_archive'));
-      $output .= $result['html'];
-      if ($result['result'] != 1) {
-        $ready_for_migration = 0;
-        $form['pm']['#collapsed']= FALSE;
-        $output .= '<p class="marker">';
-        $output .= t("Some tables couldn't be found. Please make sure you have properly installed the privatemsg.mysql on your Drupal data base.");
-        $output .= '</p>';
-      }
-      $form['pm']['info'] = array('#value' => $output);
-
-  }
-  $output ='';
 
   // Are we ready for migration?
   $form['migration'] = array(

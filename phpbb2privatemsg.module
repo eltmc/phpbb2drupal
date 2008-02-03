@@ -1,0 +1,144 @@
+<?php
+// ; $Id$
+
+/**
+ * Implementation of hook_menu()
+ */
+function phpbb2privatemsg_menu() {
+  $items = array();
+
+  $items['admin/phpbb2privatemsg'] = array(
+    'title' => 'phpBB to Privatemsg',
+    'access callback' => 'user_access',
+    'access arguments' => array('migrate phpBB'),
+    'page callback' => 'phpbb2privatemsg_main', 
+  );
+  return $items;
+}
+
+/**
+ * Callback admin/phpbb2drupal
+ */
+function phpbb2privatemsg_main() {
+  $output = '<h2>';
+  $output .= t('Import Private Messages');
+  $output .= '</h2>';
+  $output .= '<p>';
+  $output .= t('This module imports private messages from phpBB to Drupal. It uses settings and data from the main phpbb2drupal module. Before importing Private Messages, you must:');
+  $output .= '</p>';
+  $output .= '<ol><li>';
+  $output .= l(t('Check import settings'), 'admin/settings/phpbb2drupal');
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= t('Import atleast user data from phpBB using the <a href="@phpbb2drupal">phpbb2drupal</a> module if you have not already done so', array('@phpbb2drupal' => url('admin/phpbb2drupal/execute')));
+  $output .= '</li>';
+  $output .= '<p>';
+  $output .= t('In cases where either recipients or senders of a message have NOT had their user data already imported into Drupal, the message will be lost.');
+  $output .= '</p>';
+
+  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
+  $tables = array($pre .'privmsgs', $pre .'privmsgs_text');
+  $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
+  $output .= $result['html'];
+	  
+  if (!variable_get('phpbb2drupal_ready', 0)) {
+    return '<p>'. t('the phpBB2Drupal settings. Please <a href="@settings">complete the setup first</a>', array('@settings' => url('admin/settings/phpbb2drupal'))) .'</p>';
+  }
+  elseif (variable_get('phpbb2privatemsg_import_successful', 0) == 1) { 
+    $output = 'Private Messages have already been imported.';
+  }elseif ($result['result'] != 1) {
+    $output .= '<p class="marker">';
+    $output .= t('Please use the correct database settings!');
+    $output .= '</p>';
+  }
+  else{
+    $output = 'phpBB 2 Privatemsg Migration Form';
+    $output .= drupal_get_form('phpbb2privatemsg_migrate_form');
+  }
+  return $output;
+}
+
+function phpbb2privatemsg_migrate_form() {
+  _phpbb2drupal_db_connect() ;
+  // Causes problems with form api redirect
+  //ini_set('display_errors', TRUE);
+
+  // Adjust how long you want the script to run...
+  if (!ini_get('safe_mode')) {
+    set_time_limit(variable_get('phpbb2drupal_time_limit', 0));
+  }
+
+  $form['import'] = array(
+    '#type' => 'hidden',
+    '#title' => t('Import Private Messages'),
+    '#options' => 'pm',
+  );
+  $form[] = array(
+    '#type' => 'submit',
+    '#value' => t('Import Private Messages'),
+  );
+  return $form;
+}
+
+function phpbb2privatemsg_migrate_form_submit($form, $form_state) {
+  if (isset($form_state['values']['import'])) {  
+      phpbb2privatemsg_import();
+  }
+}
+
+/**
+ * Private Message Import Functions
+ */
+function phpbb2privatemsg_import() {
+  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
+  $format = variable_get('phpbb2drupal_input_format', 0);
+  if (variable_get('phpbb2privatemsg_import_successful', 0) == 1) {
+    return;
+  }
+  db_set_active('phpbb');
+  $query = "SELECT p.privmsgs_id, p.privmsgs_from_userid, p.privmsgs_to_userid, p.privmsgs_subject, pt.privmsgs_text, pt.privmsgs_bbcode_uid, p.privmsgs_date,
+      CASE WHEN p.privmsgs_type = 1 THEN 1
+      WHEN p.privmsgs_type = 5 THEN 1
+      ELSE 0
+      END as newmsg,
+      p.privmsgs_ip, 0, 0, 0
+      FROM %sprivmsgs p
+      LEFT JOIN %sprivmsgs_text AS pt ON p.privmsgs_id = pt.privmsgs_text_id";
+  $messages = db_query($query, $pre, $pre);
+  
+  db_set_active('default');
+  while ($pm = db_fetch_object($messages)) {    
+    $query = 'SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d';
+    $from_result = db_query($query, $pm->privmsgs_from_userid);
+    $from = db_result($from_result);
+    $to_result = db_query($query, $pm->privmsgs_to_userid);
+    $to = db_result($to_result);
+    // don't import private messages from or to users who are not imported.
+    if ($from and $to) {
+      // remove the bbcode_uid from post_text
+      $pm->privmsgs_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->privmsgs_text);
+      $pm->privmsgs_text = _phpbb2drupal_strip_bbcode($pm->privmsgs_text);
+      $pm->privmsgs_text = _phpbb2drupal_text_encode($pm->privmsgs_text);
+      $pm->privmsgs_text = _phpbb2drupal_replace_links($pm->privmsgs_text);
+      $pm->privmsgs_subject = _phpbb2drupal_text_encode($pm->privmsgs_subject);
+      
+	  // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061)
+      $message = array(
+        'author' => $from,
+        'recipient' => $to,
+        'subject' => substr($pm->privmsgs_subject, 0, 64),
+        'message' => $pm->privmsgs_text,
+        'timestamp' => $pm->privmsgs_date,
+        'newmsg' => 1,
+        'hostname' => substr($pm->privmsgs_ip, 0, 255),
+        'format' => $format,
+//        'thread' => $thread,
+//        'type' => $type,
+//        'variables' => serialize($variables),
+      );
+      $result = drupal_write_record('privatemsg', $message);
+    }
+  }
+  variable_set('phpbb2privatemsg_import_successful', 1);
+  drupal_set_message(t('Private Message Import successful'));
+}

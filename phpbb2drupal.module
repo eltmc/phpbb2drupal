@@ -247,16 +247,8 @@ function phpbb2drupal_migrate_form() {
     'topics' => t('Import Topics'),
     'polls' => t('Import Polls'),
     'posts' => t('Import Posts'),
+	'url' => t('Transform URLs'),
   );
-
-  if (variable_get('phpbb2drupal_import_pm', 0)) { 
-    $PHPBB2DRUPAL_FUNCTIONS['pm'] = t('Import Private Messages');
-  }
-  $PHPBB2DRUPAL_FUNCTIONS['url'] = t('Transform URLs');
-  /*
-  $new = array('cleanup' => 'Clean up');
-  $PHPBB2DRUPAL_FUNCTIONS = array_merge( $PHPBB2DRUPAL_FUNCTIONS, $new);
-  */
 
   $form['import'] = array(
     '#type' => 'select',
@@ -320,19 +312,10 @@ function phpbb2drupal_migrate_form_submit($form, $form_state) {
         $_SESSION['phpbb2drupal_selected'] = 'posts';
       }
       else {
-        $_SESSION['phpbb2drupal_selected'] = 'pm';
-      }
-      break;
-
-    case 'pm':      
-      phpbb2drupal_import_pm();
-      if (!variable_get('phpbb2drupal_import_pm_successful', 0)) {
-        $_SESSION['phpbb2drupal_selected'] = 'pm';
-      }
-      else {
         $_SESSION['phpbb2drupal_selected'] = 'url';
       }
       break;
+
     case 'url':
       phpbb2drupal_replace_url();
       if (!variable_get('phpbb2drupal_replace_url_successful', 0)) {
@@ -348,63 +331,6 @@ function phpbb2drupal_migrate_form_submit($form, $form_state) {
       $_SESSION['phpbb2drupal_selected'] = 'users';
       break;
   }
-}
-
-/**
- * Private Message Import Functions
- */
-function phpbb2drupal_import_pm() {
-  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-  $format = variable_get('phpbb2drupal_input_format', 0);
-  if (variable_get('phpbb2drupal_import_pm_successful', 0) == 1) {
-    return;
-  }
-  db_set_active('phpbb');
-  $query = "SELECT p.privmsgs_id, p.privmsgs_from_userid, p.privmsgs_to_userid, p.privmsgs_subject, pt.privmsgs_text, pt.privmsgs_bbcode_uid, p.privmsgs_date,
-      CASE WHEN p.privmsgs_type = 1 THEN 1
-      WHEN p.privmsgs_type = 5 THEN 1
-      ELSE 0
-      END as newmsg,
-      p.privmsgs_ip, 0, 0, 0
-      FROM %sprivmsgs p
-      LEFT JOIN %sprivmsgs_text AS pt ON p.privmsgs_id = pt.privmsgs_text_id";
-  $messages = db_query($query, $pre, $pre);
-  
-  db_set_active('default');
-  while ($pm = db_fetch_object($messages)) {    
-    $query = 'SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d';
-    $from_result = db_query($query, $pm->privmsgs_from_userid);
-    $from = db_result($from_result);
-    $to_result = db_query($query, $pm->privmsgs_to_userid);
-    $to = db_result($to_result);
-    // don't import private messages from or to users who are not imported.
-    if ($from and $to) {
-      // remove the bbcode_uid from post_text
-      $pm->privmsgs_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->privmsgs_text);
-      $pm->privmsgs_text = _phpbb2drupal_strip_bbcode($pm->privmsgs_text);
-      $pm->privmsgs_text = _phpbb2drupal_text_encode($pm->privmsgs_text);
-      $pm->privmsgs_text = _phpbb2drupal_replace_links($pm->privmsgs_text);
-      $pm->privmsgs_subject = _phpbb2drupal_text_encode($pm->privmsgs_subject);
-      
-	  // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061)
-      $message = array(
-        'author' => $from,
-        'recipient' => $to,
-        'subject' => substr($pm->privmsgs_subject, 0, 64),
-        'message' => $pm->privmsgs_text,
-        'timestamp' => $pm->privmsgs_date,
-        'newmsg' => 1,
-        'hostname' => substr($pm->privmsgs_ip, 0, 255),
-        'format' => $format,
-//        'thread' => $thread,
-//        'type' => $type,
-//        'variables' => serialize($variables),
-      );
-      $result = drupal_write_record('privatemsg', $message);
-    }
-  }
-  variable_set('phpbb2drupal_import_pm_successful', 1);
-  drupal_set_message(t('Private Message Import successful'));
 }
 
 /**
@@ -1247,12 +1173,6 @@ function phpbb2drupal_import_cleanup() {
     db_query("INSERT INTO {sequences} (name,id) VALUES ('files_fid', '%s')", $files_fid);
   }
   
-  // don't DROP: the data is used for redirects from old forum.
-  #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_user}");
-  #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_forum}");
-  #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_topic}");
-  #db_query("DROP TABLE IF EXISTS {phpbb2drupal_temp_post}");
-
   variable_del('phpbb2drupal_import_user_successful');
   variable_del('phpbb2drupal_import_user_started');
   variable_del('phpbb2drupal_import_category_successful');
@@ -1273,7 +1193,6 @@ function phpbb2drupal_import_cleanup() {
   variable_del('phpbb2drupal_import_spammers');
   variable_del('phpbb2drupal_import_attachments');
   variable_del('phpbb2drupal_import_polls'); 
-  variable_del('phpbb2drupal_import_pm');
   variable_del('phpbb2drupal_import_poll_started');
   variable_del('phpbb2drupal_import_poll_successful');
   variable_del('phpbb2drupal_import_pm_successful');
