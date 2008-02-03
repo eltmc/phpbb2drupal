@@ -29,20 +29,20 @@ function phpbb_redirect_help($path, $arg) {
 function phpbb_redirect_menu() {
   $items = array();
 
-  if (!$may_cache) {
-    $items['forum/viewtopic.php'] = array(
-      'title' => 'phpBB to Drupal',
-      'access' => user_access('access content'),
-      'callback' => 'phpbb_redirect_viewtopic', 
-      'type' => MENU_CALLBACK
-    );
-    $items['forum/viewforum.php'] = array(
-      'title' => 'phpBB to Drupal',
-      'access' => user_access('access content'),
-      'callback' => 'phpbb_redirect_viewforum', 
-      'type' => MENU_CALLBACK
-    );
-  }
+  $items['forum/viewtopic.php'] = array(
+    'title' => 'phpBB to Drupal',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'page callback' => 'phpbb_redirect_viewtopic', 
+    'type' => MENU_CALLBACK
+  );
+  $items['forum/viewforum.php'] = array(
+    'title' => 'phpBB to Drupal',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'page callback' => 'phpbb_redirect_viewforum', 
+    'type' => MENU_CALLBACK
+  );
 
   return $items;
 }
