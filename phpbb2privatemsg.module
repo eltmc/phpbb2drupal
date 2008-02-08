@@ -13,6 +13,13 @@ function phpbb2privatemsg_menu() {
     'access arguments' => array('migrate phpBB'),
     'page callback' => 'phpbb2privatemsg_main', 
   );
+    $items['admin/phpbb2privatemsg/cleanup'] = array(
+    'title' => 'Cleanup',
+    'access callback' => 'user_access',
+    'access arguments' => array('migrate phpBB'),
+    'page callback' => 'phpbb2privatemsg_cleanup', 
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
@@ -20,9 +27,6 @@ function phpbb2privatemsg_menu() {
  * Callback admin/phpbb2drupal
  */
 function phpbb2privatemsg_main() {
-  $output = '<h2>';
-  $output .= t('Import Private Messages');
-  $output .= '</h2>';
   $output .= '<p>';
   $output .= t('This module imports private messages from phpBB to Drupal. It uses settings and data from the main phpbb2drupal module. Before importing Private Messages, you must:');
   $output .= '</p>';
@@ -33,7 +37,7 @@ function phpbb2privatemsg_main() {
   $output .= t('Import atleast user data from phpBB using the <a href="@phpbb2drupal">phpbb2drupal</a> module if you have not already done so', array('@phpbb2drupal' => url('admin/phpbb2drupal/execute')));
   $output .= '</li>';
   $output .= '<p>';
-  $output .= t('In cases where either recipients or senders of a message have NOT had their user data already imported into Drupal, the message will be lost.');
+  $output .= t('In cases where either recipients or senders of a message have NOT had their user data already imported into Drupal, that message will be lost.');
   $output .= '</p>';
 
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
@@ -45,14 +49,13 @@ function phpbb2privatemsg_main() {
     return '<p>'. t('the phpBB2Drupal settings. Please <a href="@settings">complete the setup first</a>', array('@settings' => url('admin/settings/phpbb2drupal'))) .'</p>';
   }
   elseif (variable_get('phpbb2privatemsg_import_successful', 0) == 1) { 
-    $output = 'Private Messages have already been imported.';
+    $output = t('Private Messages have already been imported. You can now <a href="@cleanup">clean up</a> any variables set by this module and deactivate/uninstall it.', array('@cleanup' => url('admin/phpbb2privatemsg/cleanup')));
   }elseif ($result['result'] != 1) {
     $output .= '<p class="marker">';
     $output .= t('Please use the correct database settings!');
     $output .= '</p>';
   }
   else{
-    $output = 'phpBB 2 Privatemsg Migration Form';
     $output .= drupal_get_form('phpbb2privatemsg_migrate_form');
   }
   return $output;
@@ -129,7 +132,7 @@ function phpbb2privatemsg_import() {
         'subject' => substr($pm->privmsgs_subject, 0, 64),
         'message' => $pm->privmsgs_text,
         'timestamp' => $pm->privmsgs_date,
-        'newmsg' => 1,
+        'newmsg' => $pm->newmsg,
         'hostname' => substr($pm->privmsgs_ip, 0, 255),
         'format' => $format,
 //        'thread' => $thread,
@@ -141,4 +144,11 @@ function phpbb2privatemsg_import() {
   }
   variable_set('phpbb2privatemsg_import_successful', 1);
   drupal_set_message(t('Private Message Import successful'));
+}
+
+function phpbb2privatemsg_cleanup() {
+
+  variable_del('phpbb2privatemsg_import_successful');
+  return '<p>'. t('phpbb2privatemsg settings removed.') .'</p>';
+
 }
