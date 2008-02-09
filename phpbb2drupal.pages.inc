@@ -458,3 +458,75 @@ function phpbb2drupal_admin_settings() {
   return system_settings_form($form); 
   
 }
+
+/**
+ * Callback admin/phpbb2drupal/postconfiguration
+ */
+function phpbb2drupal_postconfiguration() {
+  $output = '<p>'. t('This page will help guide you set up the forums. Before continuing it may be best to have already:') .'</p>';
+  $output .= '<ul>';
+  $output .= '<li>'. t('Imported users, forums, topics and optionally polls using the phpbb2drupal Module') .'</li>';
+  $output .= '<li>'. t('Imported any additional data using add on modules if available.') .'</li>';
+  $output .= '</ul>';
+  //User Set up
+  $output .= '<h2>'. t('User Settings') .'</h2>';  
+  $output .= '<p>'. t('Make sure your <a href="@usersettings">user settings</a> are correct. here you can enable or disable signature. In order to activate avatar/picture support, you need to enable pictures on this page and also:', array('@usersettings' => url('admin/user/settings'))) .'</p>';  
+  $output .= '<ul>';
+  $output .= '<li>'. t('Tick the checkboxes to allow "User pictures in posts" and/or "User pictures in comments" on the <a href="@themeconfig">themes configuration</a> page.', array('@themeconfig' => url('admin/build/themes/settings'))) .'</li>';
+  $output .= '<li>'. t('Manually copy the avatars from the phpbb2/images/avatars/ directory to the @files directory.', array('@files' => file_directory_path(). '/pictures')) .'</li>';
+  $output .= '</ul>';
+  $output .= '<p>'. t('Currently, the module does not block imported users who had been banned in phpBB. This needs to be done manually from the <a href="@userlist">users listing</a> page.', array('@userlist' => url('admin/user/user'))) .'</p>';
+  $output .= '<p>'. t('User blocking in core is simple and does not have all the same features as phpBB. For a similar featureset, consider using the <a href="http://www.drupal.org/project/troll" target="_blank">Troll module</a>.') .'</p>';
+  // Forum Set up
+  $output .= '<h2>'. t('Forum Settings') .'</h2>';
+  $output .= '<p>'. t('If you imported polls, you need to allow polls to show in the forums. On <a href="@forumvocab">this page</a> tick the checkbox next to the "polls" content type to allow polls to display in forums. Addidtionally check any additional content types you want to allow in the forums.',
+      array('@forumvocab' => url('admin/content/taxonomy/edit/vocabulary/' .variable_get('forum_nav_vocabulary', 0)))) .'</p>';
+  $output .= '<p>'. t('If need be, set up the private forums as explained in the <a href="http://drupal.org/node/58969" target="_blank">documentation</a>.') .'</p>';
+
+  // Redirection from old URL:
+  $output .= '<h2>'. t('Redirection from phpBB2 forum URL to new Drupal forum URL') .'</h2>';
+  $output .= '<p>'. t('Enable the phpbb_redirect.module. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum. (note that currently the module assumes that the phpbb forum was located in the forum/ subdirectory of your Drupal installation).') .'</p>';
+
+  // BBcode
+  $bbcode = variable_get('phpbb2drupal_bbcode', 0);
+  if ($bbcode) {
+    $output .= '<h2>'. t('Remove BBcode module') .'</h2>';
+    $output .= '<p>'. t("The bbcode has been cleaned from the posts. You shouldn't need the bbcode module anymore. You can disable it.") .'</p>';
+  }
+  else {
+    $output .= '<h2>'. t('Configure BBcode module') .'</h2>';
+    $output .= '<p>'. t('Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode.module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.') .'</p>';
+  }
+
+  return $output;
+}
+
+/**
+ * Callback admin/phpbb2drupal
+ */
+function phpbb2drupal_main() {
+  $output = '<ol><li>';
+  $output .= t('You may want to <a href="http://drupal.org/node/58199" target="_blank">check the documentation</a> before starting.');
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= l(t('Configure the migration'), 'admin/settings/phpbb2drupal');
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= l(t('Execute the migration'), 'admin/phpbb2drupal/migrate');
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= l(t('Post migration configuration'), 'admin/phpbb2drupal/postconfiguration');
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= t('Import additional data using other modules. Private Messages can be imported using the bundled phpbb2privatemsg module.');
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= t('<a href="@cleanuplink">Cleanup</a> (Accessing this link will delete all the saved phpbb2drupal settings and temporary tables: click only when you\'re done with all the above.)', array('@cleanuplink' => url('admin/phpbb2drupal/cleanup')));
+  $output .= '</ol>';
+
+  // process will die() if the link to the phpBB2 database is wrong:
+  $output .= '<p>'. t('If the phpBB2 data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. <a href="@reseturl">Click here to reset the database url</a>.',
+      array('@reseturl' => url('admin/phpbb2drupal/reset'))) .'</p>';
+
+  return $output;
+}
