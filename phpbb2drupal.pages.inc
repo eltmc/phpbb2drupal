@@ -521,7 +521,14 @@ function phpbb2drupal_main() {
   $output .= t('Import additional data using other modules. Private Messages can be imported using the bundled phpbb2privatemsg module.');
   $output .= '</li>';
   $output .= '<li>';
-  $output .= t('<a href="@cleanuplink">Cleanup</a> (Accessing this link will delete all the saved phpbb2drupal settings and temporary tables: click only when you\'re done with all the above.)', array('@cleanuplink' => url('admin/phpbb2drupal/cleanup')));
+  $output .= t('<a href="@cleanuplink">Cleanup</a> (Accessing this link will delete all the saved phpbb2drupal settings: click only when you\'re done with all the above.)', array('@cleanuplink' => url('admin/phpbb2drupal/cleanup')));
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= t('Enable the phpBB_Redirect module for seamless redirection from the old forums to the new. This module requires clean urls and assumes the old forums were located in the forum/ folder. If they were elsewhere, another manual redirect would need to be added.');
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= t('If you decide to use the phpBB_Redirect module, do NOT uninstall phpbb2drupal - This will delete tables necessary for redirection. You CAN deactivate the module safely.');
+  $output .= '</li>';
   $output .= '</ol>';
 
   // process will die() if the link to the phpBB2 database is wrong:

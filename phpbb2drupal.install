@@ -2,6 +2,7 @@
 // $Id$
 function phpbb2drupal_schema() {
   $schema['phpbb2drupal_temp_forum'] = array(
+    'description' => t('Maps phpBB forum forum_id to Drupal taxonomy tid.'),
     'fields' => array(
          'forum_id' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'small', 'not null' => TRUE, 'default' => 0, 'disp-width' => '5'),
          'tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'disp-width' => '10')),
@@ -9,6 +10,7 @@ function phpbb2drupal_schema() {
   );
 
   $schema['phpbb2drupal_temp_post'] = array(
+    'description' => t('Maps phpBB posts to Drupal comments.'),
     'fields' => array(
          'post_id' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'medium', 'not null' => TRUE, 'default' => 0, 'disp-width' => '8'),
          'cid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '10')),
@@ -16,6 +18,7 @@ function phpbb2drupal_schema() {
   );
 
   $schema['phpbb2drupal_temp_topic'] = array(
+    'description' => t('Maps phpBB topics and polls to Drupal Nodes.'),
     'fields' => array(
          'topic_id' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'medium', 'not null' => TRUE, 'default' => 0, 'disp-width' => '8'),
          'post_id' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'medium', 'not null' => TRUE, 'default' => 0, 'disp-width' => '8'),
@@ -24,6 +27,7 @@ function phpbb2drupal_schema() {
   );
 
   $schema['phpbb2drupal_temp_user'] = array(
+    'description' => t('Maps phpBB  User (User_id) to Drupal User (uid).'),
     'fields' => array(
          'user_id' => array('type' => 'int', 'size' => 'medium', 'not null' => TRUE, 'default' => 0, 'disp-width' => '8'),
          'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'disp-width' => '10')),
@@ -33,6 +37,11 @@ function phpbb2drupal_schema() {
 }
 
 function phpbb2drupal_install() {
-  // Create my tables.
+  // Create tables.
   drupal_install_schema('phpbb2drupal');
+}
+
+function phpbb2drupal_uninstall() {
+  // Drop tables.
+  drupal_uninstall_schema('phpbb2drupal');
 }
