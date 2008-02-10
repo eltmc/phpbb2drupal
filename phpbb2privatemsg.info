@@ -4,3 +4,4 @@ description = "Migrate your phpBB private messages to Drupal privatemsg."
 core = 6.x
 dependencies[] = privatemsg
 dependencies[] = phpbb2drupal
+package = phpBB to Drupal
