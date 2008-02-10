@@ -139,7 +139,11 @@ function phpbb2privatemsg_import() {
 //        'type' => $type,
 //        'variables' => serialize($variables),
       );
-      $result = drupal_write_record('privatemsg', $message);
+	  //check for duplicate messages
+	  $dupe = db_result(db_query('SELECT COUNT(*) FROM {privatemsg} WHERE timestamp = %d AND (recipient = %d AND author = %d)', $pm->privmsgs_date, $to, $from));
+	  if (!($dupe >0)) {
+        $result = drupal_write_record('privatemsg', $message);
+	  }
     }
   }
   variable_set('phpbb2privatemsg_import_successful', 1);
