@@ -30,16 +30,12 @@ function phpbb_redirect_menu() {
   $items = array();
 
   $items['forum/viewtopic.php'] = array(
-    'title' => 'phpBB to Drupal',
-    'access callback' => 'user_access',
-    'access arguments' => array('access content'),
+    'title' => 'Topic Redirect',
     'page callback' => 'phpbb_redirect_viewtopic', 
     'type' => MENU_CALLBACK
   );
   $items['forum/viewforum.php'] = array(
-    'title' => 'phpBB to Drupal',
-    'access callback' => 'user_access',
-    'access arguments' => array('access content'),
+    'title' => 'Forum Redirect',
     'page callback' => 'phpbb_redirect_viewforum', 
     'type' => MENU_CALLBACK
   );
