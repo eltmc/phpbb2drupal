@@ -475,8 +475,6 @@ function phpbb2drupal_postconfiguration() {
   $output .= '<li>'. t('Tick the checkboxes to allow "User pictures in posts" and/or "User pictures in comments" on the <a href="@themeconfig">themes configuration</a> page.', array('@themeconfig' => url('admin/build/themes/settings'))) .'</li>';
   $output .= '<li>'. t('Manually copy the avatars from the phpbb2/images/avatars/ directory to the @files directory.', array('@files' => file_directory_path(). '/pictures')) .'</li>';
   $output .= '</ul>';
-  $output .= '<p>'. t('Currently, the module does not block imported users who had been banned in phpBB. This needs to be done manually from the <a href="@userlist">users listing</a> page.', array('@userlist' => url('admin/user/user'))) .'</p>';
-  $output .= '<p>'. t('User blocking in core is simple and does not have all the same features as phpBB. For a similar featureset, consider using the <a href="http://www.drupal.org/project/troll" target="_blank">Troll module</a>.') .'</p>';
   // Forum Set up
   $output .= '<h2>'. t('Forum Settings') .'</h2>';
   $output .= '<p>'. t('If you imported polls, you need to allow polls to show in the forums. On <a href="@forumvocab">this page</a> tick the checkbox next to the "polls" content type to allow polls to display in forums. Addidtionally check any additional content types you want to allow in the forums.',
@@ -524,7 +522,7 @@ function phpbb2drupal_main() {
   $output .= t('<a href="@cleanuplink">Cleanup</a> (Accessing this link will delete all the saved phpbb2drupal settings: click only when you\'re done with all the above.)', array('@cleanuplink' => url('admin/phpbb2drupal/cleanup')));
   $output .= '</li>';
   $output .= '<li>';
-  $output .= t('Enable the phpBB_Redirect module for seamless redirection from the old forums to the new. This module requires clean urls and assumes the old forums were located in the forum/ folder. If they were elsewhere, another manual redirect would need to be added.');
+  $output .= t('Enable the phpBB_Redirect module for seamless redirection from the old forums to the new. This module requires <a href="@cleanurls">clean urls</a> to be active.', array('@cleanurls' => url('admin/settings/clean-urls')));
   $output .= '</li>';
   $output .= '<li>';
   $output .= t('If you decide to use the phpBB_Redirect module, do NOT uninstall phpbb2drupal - This will delete tables necessary for redirection. You CAN deactivate the module safely.');

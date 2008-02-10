@@ -13,9 +13,13 @@
 function phpbb_redirect_help($path, $arg) {
   $output = '';
   switch ($path) {
-    case 'admin/modules#description':
-      $output = t('Redirects links to your old phpBB installation to the new Drupal forum.');
-      break;
+    case 'admin/help#phpbb_redirect':
+      $output = '<p>'. t('Redirects links to your old phpBB installation to the new Drupal forum.') .'</p>';
+      $output .= '<p>'. t('This module requires <a href="@cleanurls">clean urls</a> to be active.', array('@cleanurls' => url('admin/settings/clean-urls'))) .'</p>';
+      $output .= '<p>'. t('phpBB_Redirect assumes that the old forum was located in the /forum folder. If that is not true, redirection will not work.') .'</p>';
+      $output .= '<p>'. t('This can be worked around by either adding a redirect in the .htacceass file on apache installations or by manually editing the module.') .'</p>';
+      $output .= '<p>'. t('If you choose to edit the module, all you need to do is change "forum/viewtopic.php" and "forum/viewtopic.php" in the "phpbb_redirect_menu" function. Just replace the "forum" bit with the real old location. e.g. if the old forums were located in the phpbb folder, change these paths to "phpbb/viewtopic.php" and "phpbb/viewtopic.php".') .'</p>';
+	  break;
   }
   return $output;
 }
