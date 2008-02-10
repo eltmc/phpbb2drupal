@@ -1,7 +1,0 @@
-
-* check that poll.module is enabled, if importing polls.
-* add drupal.org forum topic to post success.
-* test viewtopic.php, redirection, etc... How to configure?
-* Link drupal users to phpBB users?
-* check translatable strings with links embedded -> modify to make translation easier, following Drupal standard.
-* 4.8 use core fonction table_exists().
