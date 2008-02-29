@@ -136,7 +136,7 @@ function phpbb2privatemsg_import() {
         'hostname' => substr($pm->privmsgs_ip, 0, 255),
         'format' => $format,
 //        'thread' => $thread,
-//        'type' => $type,
+        'type' => 'private-message',
 //        'variables' => serialize($variables),
       );
 	  //check for duplicate messages
