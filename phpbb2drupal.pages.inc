@@ -41,7 +41,31 @@ function phpbb2drupal_admin_settings() {
     '#return_value' => 1,
     '#default_value' => variable_get('phpbb2drupal_tested', 0),
     '#description' => '',
+  );
+     
+  //PHPBB Version settings
+  $form['version'] = array(
+    '#type' => 'fieldset',
+    '#title'=> t('PHPBB Version Select'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $output = '<p>'.t('Select which phpbb version you are importing from. (Please make sure you are on the latest release within that series.)').'</p>';
+  $form['version']['intro'] = array('#value' => $output);
+  $output = '';
+  $versions = array(
+    "PHPBB2"=> "phpBB 2.x series",
+    "PHPBB3" => "phpBB 3.x series",
   ); 
+  $phpbb_version = variable_get('phpbb2drupal_version', 'PHPBB2');
+   $form['version']['phpbb2drupal_version'] = array(
+   '#type' => 'radios',
+   '#title' => t('phpBB Selection'),
+   '#default_value' => $phpbb_version,
+   '#options' => $versions,
+  );
+
+ $form['version']['result'] = array('#value' => $output);
 
   // Input format settings
   $form['input'] = array(
@@ -211,7 +235,22 @@ function phpbb2drupal_admin_settings() {
     '#description' => t('What prefix is used for your phpBB2 tables?'),
   );
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-  $tables = array($pre .'categories', $pre .'forums', $pre .'posts', $pre .'posts_text', $pre .'topics', $pre .'users');
+  switch($phpbb_version)
+    { 
+    case 'PHPBB3': 
+    {
+      $tables = array($pre .'forums', $pre .'posts', $pre .'topics', $pre .'users');
+      break;
+    }
+    case 'PHPBB2': 
+    {
+      $tables = array($pre.'categories', $pre.'forums', $pre.'posts', $pre.'posts_text', $pre.'topics', $pre.'users');
+      break;
+    }
+    default:
+    $tables = array($pre.'categories', $pre.'forums', $pre.'posts', $pre.'posts_text', $pre.'topics', $pre.'users');
+  }
+
   $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
   $output .= $result['html'];
   
@@ -219,7 +258,7 @@ function phpbb2drupal_admin_settings() {
     $ready_for_migration = 0;
     $form['phpbb2']['#collapsed']= FALSE;
     $output .= '<span class="marker">';
-    $output .= t("Some tables couldn't be found. Please correct the errors so that the phpBB2 tables can be accessed.");
+    $output .= t("Some tables couldn't be found. This can be caused by an incorrect prefix or if your phpbb version is incorrectly set. Please correct the errors so that the phpBB tables can be accessed.");
     $output .= '</span>';
   }
   $form['phpbb2']['result'] = array('#value' => $output);

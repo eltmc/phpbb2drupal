@@ -579,10 +579,16 @@ function phpbb2drupal_import_topics() {
   // Get All topics from PHPBB
   db_set_active('phpbb');
   // topic_status == 2, Moved topics are duplicates don't import
-  $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre);
+  if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
+    $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE poll_start = 1 ORDER BY topic_id', $pre);
 
-  $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre));
+    $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE poll_start = 1 ORDER BY topic_id', $pre));
+  }
+  else{
+    $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre);
 
+    $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre));
+  }
   drupal_set_message(t('Found %topic_count topics: Beginning Import', array('%topic_count' => $topic_count)));
 
   // Import the topics into drupal
@@ -776,8 +782,14 @@ function phpbb2drupal_import_polls() {
 
   // Get all polls from PHPBB
   db_set_active('phpbb');
-  $topics = db_query('SELECT * FROM %stopics t WHERE topic_vote = 1 ORDER BY topic_id', $pre);
-  $topic_count = db_result(db_query('SELECT COUNT(*) FROM %stopics t WHERE topic_vote = 1 ORDER BY topic_id', $pre));
+  if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
+    $topics = db_query('SELECT topic_id FROM %stopics WHERE poll_start > 0 ORDER BY topic_id', $pre);
+    $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE poll_start > 0 ORDER BY topic_id', $pre));
+  }
+  else{
+    $topics = db_query('SELECT * FROM %stopics t WHERE topic_vote = 1 ORDER BY topic_id', $pre);
+    $topic_count = db_result(db_query('SELECT COUNT(*) FROM %stopics t WHERE topic_vote = 1 ORDER BY topic_id', $pre));
+  }
   drupal_set_message(t('Found %poll_count polls: Beginning Import', array('%poll_count' => $topic_count)));
 
   // insert into polls
@@ -961,10 +973,18 @@ function phpbb2drupal_import_posts() {
   }
 
   db_set_active('phpbb');
-  $topic_ids = db_query('SELECT topic_id, topic_vote, topic_first_post_id, topic_last_post_id
-    FROM %stopics 
-    WHERE topic_replies > 0
-    ORDER BY topic_id', $pre);
+  if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
+    $topic_ids = db_query('SELECT topic_id, topic_first_post_id, topic_last_post_id
+      FROM %stopics 
+      WHERE topic_replies > 0
+      ORDER BY topic_id', $pre);
+  }
+  else{
+    $topic_ids = db_query('SELECT topic_id, topic_vote, topic_first_post_id, topic_last_post_id
+      FROM %stopics 
+      WHERE topic_replies > 0
+      ORDER BY topic_id', $pre);
+  }
 
   $topic_count = db_result(db_query("SELECT COUNT(topic_id) FROM %stopics WHERE topic_replies > 0", $pre));
   drupal_set_message(t('Found %post_count posts: Beginning Import', array('%post_count' => $topic_count)));
@@ -978,7 +998,11 @@ function phpbb2drupal_import_posts() {
     // skip first post if the post is not a poll
     // stupid phpbb... make the way you store topics consistent for crying out loud
     db_set_active('phpbb');
-    if ($obj->topic_vote == 0) {
+    if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3 && $obj->poll_start > 0) {
+      $post_ids = db_query('SELECT post_id FROM %sposts WHERE topic_id = %d AND post_id <> %d ORDER BY post_id',
+        $pre, $obj->topic_id, $obj->topic_first_post_id);    
+    }
+    elseif (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB2 && $obj->topic_vote == 0) {
       $post_ids = db_query('SELECT post_id FROM %sposts WHERE topic_id = %d AND post_id <> %d ORDER BY post_id',
         $pre, $obj->topic_id, $obj->topic_first_post_id);
     }
@@ -1162,6 +1186,7 @@ function phpbb2drupal_import_cleanup() {
   variable_del('phpbb2drupal_encode');
   variable_del('phpbb2drupal_encoding_phpbb');
   variable_del('phpbb2drupal_encoding_drupal');
+  variable_del('phpbb2drupal_version');
 
   db_query('DELETE FROM {cache}');
 }
