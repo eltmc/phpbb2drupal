@@ -580,9 +580,9 @@ function phpbb2drupal_import_topics() {
   db_set_active('phpbb');
   // topic_status == 2, Moved topics are duplicates don't import
   if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
-    $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE poll_start = 1 ORDER BY topic_id', $pre);
+    $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE poll_start = 0 ORDER BY topic_id', $pre);
 
-    $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE poll_start = 1 ORDER BY topic_id', $pre));
+    $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE poll_start = 0 ORDER BY topic_id', $pre));
   }
   else{
     $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE topic_vote <> 1 ORDER BY topic_id', $pre);
