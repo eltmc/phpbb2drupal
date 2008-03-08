@@ -475,7 +475,7 @@ function phpbb2drupal_import_categories() {
 
   // Get Categories/Forums from PHPBB
   db_set_active('phpbb');
-  if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
+  if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3') {
     $category_results = db_query('SELECT * FROM %sforums WHERE forum_type = 0 ORDER BY cat_order', $pre);
     $cat_count = db_result(db_query('SELECT COUNT(*) FROM %sforums WHERE forum_type = 0 ORDER BY cat_order', $pre));
   }
@@ -490,7 +490,7 @@ function phpbb2drupal_import_categories() {
   while ($category_result = db_fetch_array($category_results)) {
 
     $cat_id = $category_result['cat_id'];
-  if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
+  if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3') {
     $forums_results = db_query('SELECT * FROM %sforums WHERE parent_id = %d', $pre, $cat_id);
     $forum_count += db_result(db_query('SELECT COUNT(*) FROM %sforums WHERE parent_id = %d', $pre, $cat_id));
   }
@@ -591,7 +591,7 @@ function phpbb2drupal_import_topics() {
   // Get All topics from PHPBB
   db_set_active('phpbb');
   // topic_status == 2, Moved topics are duplicates don't import
-  if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
+  if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3') {
     $topic_ids = db_query('SELECT topic_id FROM %stopics WHERE poll_start = 0 ORDER BY topic_id', $pre);
     $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE poll_start = 0 ORDER BY topic_id', $pre));
   }
@@ -792,7 +792,7 @@ function phpbb2drupal_import_polls() {
 
   // Get all polls from PHPBB
   db_set_active('phpbb');
-  if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
+  if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3') {
     $topics = db_query('SELECT topic_id FROM %stopics WHERE poll_start > 0 ORDER BY topic_id', $pre);
     $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics WHERE poll_start > 0 ORDER BY topic_id', $pre));
   }
@@ -983,7 +983,7 @@ function phpbb2drupal_import_posts() {
   }
 
   db_set_active('phpbb');
-  if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3) {
+  if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3') {
     $topic_ids = db_query('SELECT topic_id, topic_first_post_id, topic_last_post_id
       FROM %stopics 
       WHERE topic_replies > 0
@@ -1008,11 +1008,11 @@ function phpbb2drupal_import_posts() {
     // skip first post if the post is not a poll
     // stupid phpbb... make the way you store topics consistent for crying out loud
     db_set_active('phpbb');
-    if (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB3 && $obj->poll_start > 0) {
+    if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3' && $obj->poll_start > 0) {
       $post_ids = db_query('SELECT post_id FROM %sposts WHERE topic_id = %d AND post_id <> %d ORDER BY post_id',
         $pre, $obj->topic_id, $obj->topic_first_post_id);    
     }
-    elseif (variable_get('phpbb2drupal_version', 'PHPBB2') == PHPBB2 && $obj->topic_vote == 0) {
+    elseif (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB2' && $obj->topic_vote == 0) {
       $post_ids = db_query('SELECT post_id FROM %sposts WHERE topic_id = %d AND post_id <> %d ORDER BY post_id',
         $pre, $obj->topic_id, $obj->topic_first_post_id);
     }
