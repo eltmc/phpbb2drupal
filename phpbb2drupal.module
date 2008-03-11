@@ -617,27 +617,36 @@ function phpbb2drupal_import_topics() {
     } 
 
     db_set_active('phpbb');
-    /*$query = db_query("SELECT *
-      FROM {topics} t
-      INNER JOIN {posts} p ON t.topic_id = p.topic_id
-      INNER JOIN {posts_text} pt ON p.post_id = pt.post_id                            
-      WHERE t.topic_id = %d
-      ORDER BY p.post_id     
-      LIMIT 1", $result->topic_id); /**/
 
-    $query = db_query('SELECT *
-      FROM %stopics t
-      INNER JOIN %sposts p ON t.topic_id = p.topic_id
-      INNER JOIN %sposts_text pt ON p.post_id = pt.post_id                            
-      WHERE p.post_id = t.topic_first_post_id
-      AND t.topic_id = %d', $pre, $pre, $pre, $result->topic_id);
-	  
-    $querycount = db_query('SELECT COUNT(*)
-      FROM %stopics t
-      INNER JOIN %sposts p ON t.topic_id = p.topic_id
-      INNER JOIN %sposts_text pt ON p.post_id = pt.post_id                            
-      WHERE p.post_id = t.topic_first_post_id
-      AND t.topic_id = %d', $pre, $pre, $pre, $result->topic_id);
+    if (variable_get('phpbb2drupal_version','PHPBB2') == 'PHPBB2')
+    {
+    
+      $query = db_query('SELECT *
+        FROM %stopics t
+        INNER JOIN %sposts p ON t.topic_id = p.topic_id
+        INNER JOIN %sposts_text pt ON p.post_id = pt.post_id                            
+        WHERE p.post_id = t.topic_first_post_id
+        AND t.topic_id = %d', $pre, $pre, $pre, $result->topic_id);
+  	  
+      $querycount = db_query('SELECT COUNT(*)
+        FROM %stopics t
+        INNER JOIN %sposts p ON t.topic_id = p.topic_id
+        INNER JOIN %sposts_text pt ON p.post_id = pt.post_id                            
+        WHERE p.post_id = t.topic_first_post_id
+        AND t.topic_id = %d', $pre, $pre, $pre, $result->topic_id);
+     }
+     elseif (variable_get('phpbb2drupal_version','PHPBB2') == 'PHPBB3'){
+      $query = db_query('SELECT *
+        FROM %stopics t
+        INNER JOIN %sposts p ON t.topic_id = p.topic_id WHERE p.post_id = t.topic_first_post_id
+        AND t.topic_id = %d',$pre, $pre, $result->topic_id);
+        
+      $query = db_query('SELECT COUNT(*)
+        FROM %stopics t
+        INNER JOIN %sposts p ON t.topic_id = p.topic_id WHERE p.post_id = t.topic_first_post_id
+        AND t.topic_id = %d',$pre, $pre, $result->topic_id);
+     }
+
       
     // check if the topic is a valid topic.  if not, continue on
     if (db_result($querycount)) {
