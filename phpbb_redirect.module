@@ -70,7 +70,8 @@ function phpbb_redirect_viewtopic() {
 
     $nid = db_result(db_query('SELECT nid FROM {comments} WHERE cid = %d', $cid));
     
-    $comments_per_page = _comment_get_display_setting('comments_per_page', $nid);
+    $node = node_load($nid);
+    $comments_per_page = _comment_get_display_setting('comments_per_page', $node);
     $comment_count = db_result(db_query('SELECT COUNT(c.cid) FROM {comments} c WHERE c.nid = %d AND c.status = %d AND c.cid < %d', $nid, COMMENT_PUBLISHED, $cid));
     $page_number = floor($comment_count / $comments_per_page);
     
