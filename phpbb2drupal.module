@@ -475,7 +475,6 @@ function phpbb2drupal_import_categories() {
   db_set_active('phpbb');
   if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3') {
     $results = db_query('SELECT * FROM %sforums ORDER BY parent_id', $pre);
-    $results = db_query('SELECT * FROM %sforums WHERE forum_type = 0 ORDER BY parent_id', $pre);
     while ($result = db_fetch_array($results)) {
       if (!db_result(db_query('SELECT forum_id FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $result->forum_id))) {
         if ($result->parent_id > 0) {
