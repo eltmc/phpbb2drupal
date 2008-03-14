@@ -486,16 +486,16 @@ function phpbb2drupal_import_categories() {
           'description' => $result->forum_desc,
           'parent' => $result->parent_id,
         );
-        $forum_edit['name'] = _phpbb2drupal_text_encode($forum_edit['name']);
-        $forum_edit['description'] = _phpbb2drupal_text_encode($forum_edit['description']);
+        $forum['name'] = _phpbb2drupal_text_encode($forum_edit['name']);
+        $forum['description'] = _phpbb2drupal_text_encode($forum_edit['description']);
 
-        taxonomy_save_term($cat);
+        taxonomy_save_term($forum);
         
         // serialize the forum containers
         if ($result->forum_type == 0) {
           //This is a category
           $containers = variable_get('forum_containers', array());
-          $containers[] = $edit['tid'];
+          $containers[] = $forum['tid'];
           variable_set('forum_containers', $containers);
         }
         //save the container to the forum table - yes this is hackish.
