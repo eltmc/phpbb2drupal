@@ -463,8 +463,6 @@ function phpbb2drupal_import_categories() {
   // forum mapping temporary tables
   if (variable_get('phpbb2drupal_import_category_started', 0) == 0) {
     db_set_active('default');
-    //db_query('DROP TABLE IF EXISTS {phpbb2drupal_temp_forum}');
-    //db_query("CREATE TABLE {phpbb2drupal_temp_forum} ( forum_id smallint(5) UNSIGNED DEFAULT '0' NOT NULL, tid integer UNSIGNED DEFAULT '0' NOT NULL, KEY forum_id (forum_id))");
     variable_set('phpbb2drupal_import_category_started', 1);
   }
 
@@ -476,13 +474,60 @@ function phpbb2drupal_import_categories() {
   // Get Categories/Forums from PHPBB
   db_set_active('phpbb');
   if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3') {
-    $category_results = db_query('SELECT * FROM %sforums WHERE forum_type = 0 ORDER BY cat_order', $pre);
-    $cat_count = db_result(db_query('SELECT COUNT(*) FROM %sforums WHERE forum_type = 0 ORDER BY cat_order', $pre));
+    $results = db_query('SELECT * FROM %sforums ORDER BY parent_id', $pre);
+    $results = db_query('SELECT * FROM %sforums WHERE forum_type = 0 ORDER BY parent_id', $pre);
+    while ($result = db_fetch_array($results)) {
+      if ($result->forum_type == 0) {
+        //This is a category
+        if (!db_result(db_query('SELECT forum_id FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $result->forum_id))) {
+          if ($result->parent_id > 0) {
+            $result->parent_id = db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $result->parent_id);
+          }
+          $cat = array(
+            'name' => $result->forum_name,
+            'vid' => $forum_vid,
+            'description' => $result->forum_desc,
+            'parent' => $result->parent_id,
+          );
+          $forum_edit['name'] = _phpbb2drupal_text_encode($forum_edit['name']);
+          $forum_edit['description'] = _phpbb2drupal_text_encode($forum_edit['description']);
+
+        taxonomy_save_term($cat);
+        
+        // serialize the forum containers
+        $containers = variable_get('forum_containers', array());
+        $containers[] = $edit['tid'];
+        variable_set('forum_containers', $containers);
+        //save the container to the forum table - yes this is hackish.
+        db_query('INSERT INTO {phpbb2drupal_temp_forum} (forum_id, tid) VALUES (%d, %d)', $forum->forum_id, $cat['tid']);
+        }
+      }
+      else {
+        // This is a forum
+        if (!db_result(db_query('SELECT forum_id FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $result))) {
+          if ($result->parent_id > 0) {
+            $result->parent_id = db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $result->parent_id);
+          }
+          $forum = array(
+            'name' => $result->forum_name,
+            'vid' => $forum_vid,
+            'description' => $result->forum_desc,
+            'parent' => $result->parent_id,
+          );
+          $forum_edit['name'] = _phpbb2drupal_text_encode($forum_edit['name']);
+          $forum_edit['description'] = _phpbb2drupal_text_encode($forum_edit['description']);
+
+          taxonomy_save_term($forum);
+          db_query('INSERT INTO {phpbb2drupal_temp_forum} (forum_id, tid) VALUES (%d, %d)', $forum->forum_id, $forum['tid']);
+        }
+      }
+    }
   }
+  
   else{
     $category_results = db_query('SELECT * FROM %scategories ORDER BY cat_order', $pre);
     $cat_count = db_result(db_query('SELECT COUNT(*) FROM %scategories ORDER BY cat_order', $pre));
-  }
+    
     drupal_set_message(t('Found %cat_count categories: Beginning Import', array('%cat_count' => $cat_count)));
   
   $forum_count = 0;
@@ -490,14 +535,9 @@ function phpbb2drupal_import_categories() {
   while ($category_result = db_fetch_array($category_results)) {
 
     $cat_id = $category_result['cat_id'];
-  if (variable_get('phpbb2drupal_version', 'PHPBB2') == 'PHPBB3') {
-    $forums_results = db_query('SELECT * FROM %sforums WHERE parent_id = %d', $pre, $cat_id);
-    $forum_count += db_result(db_query('SELECT COUNT(*) FROM %sforums WHERE parent_id = %d', $pre, $cat_id));
-  }
-  else{
     $forums_results = db_query('SELECT * FROM %sforums WHERE cat_id = %d', $pre, $cat_id);
     $forum_count += db_result(db_query('SELECT COUNT(*) FROM %sforums WHERE cat_id = %d', $pre, $cat_id));
-  }
+
     $phpbb2_forums = array();  # reinitialize the temp var not to include it multiple times
     while ($forum_result = db_fetch_object($forums_results)) {
       //$phpbb2_categories[$category_result->cat_id]['forums'][] = $forums_result;
@@ -557,13 +597,13 @@ function phpbb2drupal_import_categories() {
 
     $container_order++;
   }
-
+}
   db_set_active('default');
   // set the forums import successful flag in the variable table
   variable_set('phpbb2drupal_import_category_successful', '1');
 
   $count = db_result(db_query('SELECT COUNT(*) FROM {phpbb2drupal_temp_forum}'));
-  drupal_set_message(t('Successfully Imported %count forums.', array('%count' => $count)));
+  drupal_set_message(t('Successfully Imported %count forums and containers.', array('%count' => $count)));
 }
 
 /**
