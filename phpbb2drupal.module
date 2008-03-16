@@ -499,7 +499,7 @@ function phpbb2drupal_import_categories() {
           variable_set('forum_containers', $containers);
         }
         //save the container to the forum table - yes this is hackish.
-        db_query('INSERT INTO {phpbb2drupal_temp_forum} (forum_id, tid) VALUES (%d, %d)', $forum->forum_id, $forum['tid']);
+        db_query('INSERT INTO {phpbb2drupal_temp_forum} (forum_id, tid) VALUES (%d, %d)', $result->forum_id, $forum['tid']);
       }
     }
   }
