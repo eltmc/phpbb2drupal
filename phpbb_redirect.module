@@ -35,12 +35,14 @@ function phpbb_redirect_menu() {
 
   $items['forum/viewtopic.php'] = array(
     'title' => 'Topic Redirect',
-    'page callback' => 'phpbb_redirect_viewtopic', 
+    'page callback' => 'phpbb_redirect_viewtopic',
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK
   );
   $items['forum/viewforum.php'] = array(
     'title' => 'Forum Redirect',
-    'page callback' => 'phpbb_redirect_viewforum', 
+    'page callback' => 'phpbb_redirect_viewforum',
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK
   );
 
@@ -67,24 +69,28 @@ function phpbb_redirect_viewtopic() {
     }
     
     $cid = db_result(db_query('SELECT cid FROM {phpbb2drupal_temp_post} WHERE post_id = %d', $post_id));
-
     $nid = db_result(db_query('SELECT nid FROM {comments} WHERE cid = %d', $cid));
     
     $node = node_load($nid);
-    $comments_per_page = _comment_get_display_setting('comments_per_page', $node);
-    $comment_count = db_result(db_query('SELECT COUNT(c.cid) FROM {comments} c WHERE c.nid = %d AND c.status = %d AND c.cid < %d', $nid, COMMENT_PUBLISHED, $cid));
-    $page_number = floor($comment_count / $comments_per_page);
+    $mode =_comment_get_display_setting('mode', $node);
+
+    $flat = in_array($mode, array(COMMENT_MODE_FLAT_COLLAPSED, COMMENT_MODE_FLAT_EXPANDED));
+    if ($flat) {
+      $comments_per_page = _comment_get_display_setting('comments_per_page', $node);
+      $comment_count = db_result(db_query('SELECT COUNT(c.cid) FROM {comments} c WHERE c.nid = %d AND c.status = %d AND c.cid < %d', $nid, COMMENT_PUBLISHED, $cid));
+      $page_number = floor($comment_count / $comments_per_page);
+    }
     
-    if ($page_number == 0) {
-      $page = NULL;
+    if (empty($page_number)) {
+      $pagenum = NULL;
     }
     else {
-      $page = 'page='. $page_number;
+      $pagenum = 'page='. intval($page_number);
     }
 
     header('HTTP/1.1 301 Moved Permanently');
-    drupal_goto("node/$nid", "$page", "comment-$cid");
-  } 
+    drupal_goto("node/$nid", "$pagenum", "comment-$cid");
+  }
 }
 
 function phpbb_redirect_viewforum() {
