@@ -126,7 +126,7 @@ function phpbb2privatemsg_import() {
       $pm->privmsgs_subject = _phpbb2drupal_text_encode($pm->privmsgs_subject);
       
 	    //save message if no duplicates
-	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_message} WHERE body = %s AND (recipient = %d AND author = %d)', $pm->privmsgs_text, $to, $from));
+	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_message} WHERE body = %s AND author = %d', $pm->privmsgs_text, $from));
 	    if (!($dupe >0)) {
 
         // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061)
