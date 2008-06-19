@@ -43,30 +43,6 @@ function phpbb2drupal_admin_settings() {
     '#description' => '',
   );
      
-  //PHPBB Version settings
-  $form['version'] = array(
-    '#type' => 'fieldset',
-    '#title'=> t('PHPBB Version Select'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $output = '<p>'.t('Select which phpbb version you are importing from. (Please make sure you are on the latest release within that series.)').'</p>';
-  $form['version']['intro'] = array('#value' => $output);
-  $output = '';
-  $versions = array(
-    "PHPBB2"=> "phpBB 2.x series",
-    "PHPBB3" => "phpBB 3.x series",
-  ); 
-  $phpbb_version = variable_get('phpbb2drupal_version', 'PHPBB2');
-   $form['version']['phpbb2drupal_version'] = array(
-   '#type' => 'radios',
-   '#title' => t('phpBB Selection'),
-   '#default_value' => $phpbb_version,
-   '#options' => $versions,
-  );
-
- $form['version']['result'] = array('#value' => $output);
-
   // Input format settings
   $form['input'] = array(
     '#type' => 'fieldset',
@@ -188,14 +164,14 @@ function phpbb2drupal_admin_settings() {
   $form['modules']['result'] = array('#value' => $output);
   $output = '';
 
-  // Where is phpbb2?
-  $form['phpbb2'] = array(
+  // Where is phpbb data?
+  $form['phpbb'] = array(
     '#type' => 'fieldset',
     '#title' => t('Location of phpBB2 data'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  $form['phpbb2']['phpbb2drupal_same_db'] = array(
+  $form['phpbb']['phpbb2drupal_same_db'] = array(
     '#type' => 'checkbox',
     '#title' => t('phpbb is on the same database as drupal'),
     '#return_value' => 1,
@@ -207,12 +183,12 @@ function phpbb2drupal_admin_settings() {
     if ($url == $db_url) {
       $output = '<p class="marker">'. t('Set the address of the phpBB database according to the following format: <br /><pre>mysql://phpbb_username:phpbb_password@localhost/phpbb_database</pre>') .'</p>';
       $ready_for_migration = 0;
-      $form['phpbb2']['#collapsed']= FALSE;
+      $form['phpbb']['#collapsed']= FALSE;
     }
 
-    $form['phpbb2']['phpbb2drupal_db_url'] = array(
+    $form['phpbb']['phpbb2drupal_db_url'] = array(
       '#type' => 'textfield',
-      '#title' => t('phpBB2 database location'),
+      '#title' => t('phpBB database location'),
       '#default_value' => variable_get('phpbb2drupal_db_url', $db_url),
       '#size' => 80,
       '#maxlength' => 255,
@@ -226,7 +202,7 @@ function phpbb2drupal_admin_settings() {
   
   // phpBB2 table prefix
   $output = '';
-  $form['phpbb2']['phpbb2drupal_table_prefix'] = array(
+  $form['phpbb']['phpbb2drupal_table_prefix'] = array(
     '#type' => 'textfield',
     '#title' => t('phpBB2 table prefix'),
     '#default_value' => variable_get('phpbb2drupal_table_prefix', 'phpbb_'),
@@ -235,33 +211,20 @@ function phpbb2drupal_admin_settings() {
     '#description' => t('What prefix is used for your phpBB2 tables?'),
   );
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-  switch($phpbb_version)
-    { 
-    case 'PHPBB3': 
-    {
-      $tables = array($pre .'forums', $pre .'posts', $pre .'topics', $pre .'users');
-      break;
-    }
-    case 'PHPBB2': 
-    {
-      $tables = array($pre.'categories', $pre.'forums', $pre.'posts', $pre.'posts_text', $pre.'topics', $pre.'users');
-      break;
-    }
-    default:
-    $tables = array($pre.'categories', $pre.'forums', $pre.'posts', $pre.'posts_text', $pre.'topics', $pre.'users');
-  }
+
+  $tables = array($pre .'forums', $pre .'posts', $pre .'topics', $pre .'users');
 
   $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
   $output .= $result['html'];
   
   if ($result['result'] != 1) {
     $ready_for_migration = 0;
-    $form['phpbb2']['#collapsed']= FALSE;
+    $form['phpbb']['#collapsed']= FALSE;
     $output .= '<span class="marker">';
     $output .= t("Some tables couldn't be found. This can be caused by an incorrect prefix or if your phpbb version is incorrectly set. Please correct the errors so that the phpBB tables can be accessed.");
     $output .= '</span>';
   }
-  $form['phpbb2']['result'] = array('#value' => $output);
+  $form['phpbb']['result'] = array('#value' => $output);
 
 
   
@@ -321,35 +284,6 @@ function phpbb2drupal_admin_settings() {
     '#description' => '',
   );
  
-  //Polls
-  $form['polls'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Polls import'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $form['polls']['phpbb2drupal_import_polls'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Import polls?'),
-    '#return_value' => 1,
-    '#default_value' => variable_get('phpbb2drupal_import_polls', 0),
-    '#description' => '',
-  );
-  if (variable_get('phpbb2drupal_import_polls', 0) == 1) {
-    //poll modules
-    $result = _phpbb2drupal_check_module('poll');
-    $output .= $result['html'];
-    if ($result['result'] != 1) {
-      $ready_for_migration = 0;
-      $form['polls']['#collapsed'] = FALSE;
-      $output .= '<span class="marker">';
-      $output .= t('Please enable the poll module.') ;
-      $output .= '</span>';
-    }
-    $form['polls']['info'] = array('#value' => $output);
-  }
-  
- 
   //Attachments
   $output ='';
   $form['attachments'] = array(
@@ -378,105 +312,6 @@ function phpbb2drupal_admin_settings() {
     }
   }
   
-  // Encoding
-  $form['encoding'] = array(
-    '#type' => 'fieldset',
-    '#title' => 'Encoding setting',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-
-  //check if the encoding functions are available.
-  if (variable_get('phpbb2drupal_encode', '1')) {
-    if (function_exists('iconv') || function_exists('mb_convert_encoding') || function_exists('recode_string')) {
-    } 
-    else {
-      $ready_for_migration = 0;
-      $form['encoding']['#collapsed']= FALSE;
-      $output .= '<p class="marker">';
-      $output .= t("The php function iconv is not available on this server: the posts' encoding cannot be changed during the migration.");
-      $output .= '</p>';
-    }	
-  }
-  
-  $encodings = array(
-    'utf-8' => 'utf-8',
-    'iso-8859-1' => 'iso-8859-1',
-    'UCS-4' => 'UCS-4',
-    'UCS-4BE' => 'UCS-4BE',
-    'UCS-4LE' => 'UCS-4LE',
-    'UCS-2' => 'UCS-2',
-    'UCS-2BE' => 'UCS-2BE',
-    'UCS-2LE' => 'UCS-2LE',
-    'UTF-32' => 'UTF-32',
-    'UTF-32BE' => 'UTF-32BE',
-    'UTF-32LE' => 'UTF-32LE',
-    'UTF-16' => 'UTF-16',
-    'UTF-16BE' => 'UTF-16BE',
-    'UTF-16LE' => 'UTF-16LE',
-    'UTF-7' => 'UTF-7',
-    'UTF7-IMAP' => 'UTF7-IMAP',
-    'ASCII' => 'ASCII',
-    'EUC-JP' => 'EUC-JP',
-    'SJIS' => 'SJIS',
-    'eucJP-win' => 'eucJP-win',
-    'SJIS-win' => 'SJIS-win',
-    'ISO-2022-JP' => 'ISO-2022-JP',
-    'JIS' => 'JIS',
-    'ISO-8859-2' => 'ISO-8859-2',
-    'ISO-8859-3' => 'ISO-8859-3',
-    'ISO-8859-4' => 'ISO-8859-4',
-    'ISO-8859-5' => 'ISO-8859-5',
-    'ISO-8859-6' => 'ISO-8859-6',
-    'ISO-8859-7' => 'ISO-8859-7',
-    'ISO-8859-8' => 'ISO-8859-8',
-    'ISO-8859-9' => 'ISO-8859-9',
-    'ISO-8859-10' => 'ISO-8859-10',
-    'ISO-8859-13' => 'ISO-8859-13',
-    'ISO-8859-14' => 'ISO-8859-14',
-    'ISO-8859-15' => 'ISO-8859-15',
-    'byte2be' => 'byte2be',
-    'byte2le' => 'byte2le',
-    'byte4be' => 'byte4be',
-    'byte4le' => 'byte4le',
-    'BASE64' => 'BASE64',
-    'HTML-ENTITIES' => 'HTML-ENTITIES',
-    '7bit' => '7bit',
-    '8bit' => '8bit',
-    'EUC-CN' => 'EUC-CN',
-    'CP936' => 'CP936',
-    'HZ' => 'HZ',
-    'EUC-TW' => 'EUC-TW',
-    'CP950' => 'CP950',
-    'BIG-5' => 'BIG-5',
-    'EUC-KR' => 'EUC-KR',
-    'UHC (CP949)' => 'UHC (CP949)',
-    'ISO-2022-KR' => 'ISO-2022-KR',
-    'Windows-1251 (CP1251)' => 'Windows-1251 (CP1251)',
-    'Windows-1252 (CP1252)' => 'Windows-1252 (CP1252)',
-    'Windows-1256 (CP1256)' => 'Windows-1256 (CP1256)',
-    'CP866 (IBM866)' => 'CP866 (IBM866)',
-    'KOI8-R' => 'KOI8-R',
-    );
-  
-  $form['encoding']['phpbb2drupal_encode'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Change encoding of text strings during the import'),
-    '#default_value' => variable_get('phpbb2drupal_encode', '1'),
-  );
-
-  $output .= '<p>'. t('This setting is useful when the phpBB2 encoding is not the same as the Drupal encoding.') .'</p>';
-  $form['encoding']['info'] = array(
-    '#value' => $output 
-  );
-  
-  $form['encoding']['phpbb2drupal_encoding_phpbb'] = array(
-    '#type' => 'select',
-    '#title' => t('phpBB2 encoding'),
-    '#default_value' => variable_get('phpbb2drupal_encoding_phpbb', 'iso-8859-1'),
-    '#options' => $encodings,
-  );
-
   // Are we ready for migration?
   $form['migration'] = array(
     '#type' => 'fieldset',

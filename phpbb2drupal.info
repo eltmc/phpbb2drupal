@@ -2,10 +2,10 @@
 name = phpBB2Drupal
 description = "Migrate your phpBB data into a Drupal forum."
 core = 6.x
+dependencies[] = bbcode
 dependencies[] = comment
 dependencies[] = forum
 dependencies[] = node
-dependencies[] = poll
 dependencies[] = profile
 dependencies[] = taxonomy
 dependencies[] = user
