@@ -451,6 +451,7 @@ function phpbb2drupal_import_categories() {
 
   $results = db_query('SELECT * FROM %sforums ORDER BY parent_id', $pre);
   while ($result = db_fetch_object($results)) {
+    db_set_active('default');
     if (!db_result(db_query('SELECT forum_id FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $result->forum_id))) {
       if ($result->parent_id > 0) {
         $result->parent_id = db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $result->parent_id);
