@@ -797,7 +797,7 @@ function phpbb2drupal_import_posts() {
 
           while ($file = db_fetch_object($files)) {
             db_set_active('default');
-            db_query("INSERT INTO {files} (nid, filename, filepath, filemime, filesize) VALUES (%d, '%s', '%s', '%s', %d)", 0, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize);
+            db_query("INSERT INTO {files} (nid, filename, filepath, filemime, filesize) VALUES (%d, '%s', '%s', '%s', %d)", $nid, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize);
             $fid = db_last_insert_id('files', 'fid');
             db_query('INSERT INTO {comment_files} (cid, fid) VALUES (%d, %d)', $cid, $fid);
             db_set_active('phpbb');
