@@ -114,9 +114,9 @@ function phpbb2privatemsg_import() {
       // remove the bbcode_uid from post_text
       $pm->message_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->message_text);
       $pm->message_text = _phpbb2drupal_strip_bbcode($pm->message_text);
-      $pm->message_text = _phpbb2drupal_text_encode($pm->message_text);
+      $pm->message_text = _phpbb2drupal_text_sanitise($pm->message_text);
       $pm->message_text = _phpbb2drupal_replace_links($pm->message_text);
-      $pm->message_subject = _phpbb2drupal_text_encode($pm->message_subject);
+      $pm->message_subject = _phpbb2drupal_text_sanitise($pm->message_subject);
       
 	    //save message if no duplicates
 	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_index} WHERE recipient = %d AND (author = %d AND timestamp = %d)', $to, $from, $pm->message_time));
