@@ -41,7 +41,7 @@ function phpbb2privatemsg_main() {
   $output .= '</p>';
 
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-  $tables = array($pre .'privmsgs', $pre .'privmsgs_text');
+  $tables = array($pre .'privmsgs', $pre .'message_text');
   $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
   $output .= $result['html'];
 	  
@@ -99,52 +99,47 @@ function phpbb2privatemsg_import() {
     return;
   }
   db_set_active('phpbb');
-  $query = "SELECT p.privmsgs_id, p.privmsgs_from_userid, p.privmsgs_to_userid, p.privmsgs_subject, pt.privmsgs_text, pt.privmsgs_bbcode_uid, p.privmsgs_date,
-      CASE WHEN p.privmsgs_type = 1 THEN 1
-      WHEN p.privmsgs_type = 5 THEN 1
-      ELSE 0
-      END as newmsg,
-      p.privmsgs_ip, 0, 0, 0
-      FROM %sprivmsgs p
-      LEFT JOIN %sprivmsgs_text AS pt ON p.privmsgs_id = pt.privmsgs_text_id";
-  $messages = db_query($query, $pre, $pre);
+  $query = "SELECT * FROM %sprivmsgs";
+  $messages = db_query($query, $pre);
   
   db_set_active('default');
   while ($pm = db_fetch_object($messages)) {    
     $query = 'SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d';
-    $from_result = db_query($query, $pm->privmsgs_from_userid);
+    $from_result = db_query($query, $pm->author_id);
     $from = db_result($from_result);
-    $to_result = db_query($query, $pm->privmsgs_to_userid);
+    $to_result = db_query($query, $pm->to_address);
     $to = db_result($to_result);
     // don't import private messages from or to users who are not imported.
     if ($from and $to) {
       // remove the bbcode_uid from post_text
-      $pm->privmsgs_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->privmsgs_text);
-      $pm->privmsgs_text = _phpbb2drupal_strip_bbcode($pm->privmsgs_text);
-      $pm->privmsgs_text = _phpbb2drupal_text_encode($pm->privmsgs_text);
-      $pm->privmsgs_text = _phpbb2drupal_replace_links($pm->privmsgs_text);
-      $pm->privmsgs_subject = _phpbb2drupal_text_encode($pm->privmsgs_subject);
+      $pm->message_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->message_text);
+      $pm->message_text = _phpbb2drupal_strip_bbcode($pm->message_text);
+      $pm->message_text = _phpbb2drupal_text_encode($pm->message_text);
+      $pm->message_text = _phpbb2drupal_replace_links($pm->message_text);
+      $pm->message_subject = _phpbb2drupal_text_encode($pm->message_subject);
       
 	    //save message if no duplicates
-	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_message} WHERE body = %s AND author = %d', $pm->privmsgs_text, $from));
+	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_index} WHERE recipient = %d AND (author = %d AND timestamp = %d)', $to, $from, $pm->message_time));
 	    if (!($dupe >0)) {
 
         // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061)
         $message = array(
           'author' => $from,
           'recipient' => $to,
-          'subject' => substr($pm->privmsgs_subject, 0, 64),
-          'body' => $pm->privmsgs_text,
-          'timestamp' => $pm->privmsgs_date,
-          'newmsg' => $pm->newmsg,
-          'hostname' => substr($pm->privmsgs_ip, 0, 255),
+          'subject' => substr($pm->message_subject, 0, 64),
+          'body' => $pm->message_text,
+          'timestamp' => $pm->message_time,
+// HACK ALERT!!!
+//  Current version of the privaetmsg module does not seem to store data about wether the message or not. Once it dies, this should = $pm->newmsg, but the original query does not currently join with the privatemsgs_to table which contains this info
+//          'newmsg' => 0, 
+          'hostname' => substr($pm->author_ip, 0, 255),
           'format' => $format,
         );
         $result = drupal_write_record('pm_message', $message);
-        $message_id = db_last_insert_id('pm_message', 'message_id');
-        $message['message_id'] = $message_id;
+        $message_id = db_last_insert_id('pm_message', 'mid');
+        $message['mid'] = $message_id;
     
-        //thread ID is the same as the message_id if its the first message in the thread
+        //thread ID is the same as the mid if its the first message in the thread
         if (!isset($message['thread_id'])) {
           $message['thread_id'] = $message_id;
         }
