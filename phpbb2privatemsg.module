@@ -41,7 +41,7 @@ function phpbb2privatemsg_main() {
   $output .= '</p>';
 
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-  $tables = array($pre .'privmsgs', $pre .'message_text');
+  $tables = array($pre .'privmsgs', $pre .'privmsgs_to');
   $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
   $output .= $result['html'];
 	  
