@@ -150,7 +150,7 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
       $result = (bool) db_result(db_query("SELECT COUNT(*) FROM pg_class WHERE relname = '%s'", $table));
 	}
 	else {
-      // adapt from db_table_exists in database.mysqli.inc
+      // adapt from db_table_exists in database.mysql.inc
       $result = (bool) db_fetch_object(db_query("SHOW TABLES LIKE '%s'", $table));
     }
     if ($result) {
