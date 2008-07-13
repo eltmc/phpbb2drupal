@@ -249,40 +249,6 @@ function phpbb2drupal_admin_settings() {
   $output .= '<p><em>'. t('This setting will be applied to all posts, private messages and the users\' signature.') .'</em></p>';
   $form['bbcode']['result'] = array('#value' => $output);
 
-  
-
-  // Drupal Modules settings
-  $form['modules'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Drupal modules'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $output = '<p>';
-  $result1 = _phpbb2drupal_check_module('forum');
-  $output .= $result1['html'];
-  $result2 = _phpbb2drupal_check_module('node');
-  $output .= $result2['html'];
-  $result3 = _phpbb2drupal_check_module('comment');
-  $output .= $result3['html'];
-  $result4 = _phpbb2drupal_check_module('user');
-  $output .= $result4['html'];
-  $result5 = _phpbb2drupal_check_module('profile');
-  $output .= $result5['html'];
-  $result6 = _phpbb2drupal_check_module('taxonomy');
-  $output .= $result6['html'];
-  $output .= '</p>';
-
-  if ($result1['result'] == 0 || $result2['result'] == 0 || $result3['result'] == 0 || $result4['result'] == 0 || $result5['result'] == 0 || $result6['result'] == 0) {
-    $ready_for_migration = 0;
-    $form['modules']['#collapsed']= FALSE;
-    $output .= '<p class="marker">';
-    $output .= t('Some of the modules are not enabled. <a href="@adminmodules">Got to the admin/modules page to enable them</a>', array('@adminmodules' => url('admin/modules')));
-    $output .= '</p>';
-  }
-  $form['modules']['result'] = array('#value' => $output);
-  $output = '';
-
   //Attachments
   $output ='';
   $form['attachments'] = array(
