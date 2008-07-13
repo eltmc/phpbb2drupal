@@ -159,7 +159,7 @@ function phpbb2drupal_admin_settings() {
     '#title' => t('Import users who have never posted?'),
     '#return_value' => 1,
     '#default_value' => variable_get('phpbb2drupal_import_spammers', 1),
-    '#description' => 'Warning: phpBB 3 creates 52 dummy user accounts which WILL be imported along with all other users with no posts if this option is checked.',
+    '#description' => 'Warning: phpBB 3 creates 52 dummy user accounts for crawlers andsearch engines which will be imported along with all other users with no posts if this option is checked.',
   );
 
   // Input format settings
