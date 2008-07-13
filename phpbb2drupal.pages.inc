@@ -43,6 +43,125 @@ function phpbb2drupal_admin_settings() {
     '#description' => '',
   );
      
+  // Where is phpbb data?
+  $form['phpbb_data'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Location of phpBB data'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['phpbb_data']['phpbb2drupal_same_db'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('phpbb is on the same database as drupal'),
+    '#return_value' => 1,
+    '#default_value' => variable_get('phpbb2drupal_same_db', 1),
+    '#description' => '',
+  );
+  if (variable_get('phpbb2drupal_same_db', 1) != 1) {
+    $url = variable_get('phpbb2drupal_db_url', $db_url);
+    if ($url == $db_url) {
+      $output = '<p class="marker">'. t('Set the address of the phpBB database according to the following format: <br /><pre>mysql://phpbb_username:phpbb_password@localhost/phpbb_database</pre>') .'</p>';
+      $ready_for_migration = 0;
+      $form['phpbb']['#collapsed']= FALSE;
+    }
+
+    $form['phpbb_data']['phpbb2drupal_db_url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('phpBB database location'),
+      '#default_value' => variable_get('phpbb2drupal_db_url', $db_url),
+      '#size' => 80,
+      '#maxlength' => 255,
+      '#description' => '',
+    );
+  }
+
+  $output = t('<p>Note that due to a limitation within Drupal core, we cannot import messages from one database type to another database type. E.g, we cannot import phpBB from a myqsl DB, to a postgresql DB. You need to import the data into the same type of database first (import all the phpBB data, as is, from mysql to postgresql.</p>
+    <p>If both phpBB and Drupal are on postgresql, see <a href="http://drupal.org/node/64877">this issue</a>.</p>');
+  $form['phpbb_data']['note'] = array('#value' => $output);
+  
+  // phpBB2 table prefix
+  $output = '';
+  $form['phpbb_data']['phpbb2drupal_table_prefix'] = array(
+    '#type' => 'textfield',
+    '#title' => t('phpBB table prefix'),
+    '#default_value' => variable_get('phpbb2drupal_table_prefix', 'phpbb_'),
+    '#size' => 20,
+    '#maxlength' => 255,
+    '#description' => t('What prefix is used for your phpBB2 tables?'),
+  );
+  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
+
+  $tables = array($pre .'forums', $pre .'posts', $pre .'topics', $pre .'users');
+
+  $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
+  $output .= $result['html'];
+  
+  if ($result['result'] != 1) {
+    $ready_for_migration = 0;
+    $form['phpbb_data']['#collapsed']= FALSE;
+    $output .= '<span class="marker">';
+    $output .= t("Some tables couldn't be found. This can be caused by an incorrect prefix or if your phpbb version is incorrectly set. Please correct the errors so that the phpBB tables can be accessed.");
+    $output .= '</span>';
+  }
+
+  $form['phpbb_data']['result'] = array('#value' => $output);
+
+  // Misc.	
+  $form['misc'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Misc. settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  // Time limit 
+  $output = '';
+  //Registration date format
+  $form['misc']['phpbb2drupal_regdate_us_english'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Convert Registration Date'),
+    '#default_value' => variable_get('phpbb2drupal_regdate_us_english', 0),
+    '#return_value' => 1,
+    '#description' => t('If you find out that the registration date for ALL your users is over 36 years ago, maybe your DB stores the registration date in the English US format (like: "Sep 11, 2001") instead as a linux timestamp (like: "1152568884"). If so, check this box.'),
+  );
+  $form['misc']['phpbb2drupal_time_limit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Time limit'),
+    '#default_value' => variable_get('phpbb2drupal_time_limit', 1200),
+    '#size' => 7,
+    '#maxlength' => 10,
+    '#description' => t('How long, in seconds, will the migration take?'),
+  );
+  $form['misc']['info'] = array(
+    '#value' => '<p>'. t('1200 = 20 minutes should be enough for most boards. It worked well for a board with 300,000 rows. Beware: if your site is cohosted and safe-mode is on, then this value will have no effect.') .'</p>',
+  );
+  
+  // USERS settings
+  $form['users'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('User import'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  // User to map admin user too
+  $drupal_admin = user_load(array('uid' => 1));
+  $form['users']['phpbb2drupal_admin_user'] = array(
+    '#title' => t('User to map phpBB admin'),
+    '#type' => 'textfield',
+    '#autocomplete_path' => 'user/autocomplete',
+    '#default_value' => variable_get('phpbb2drupal_admin_user', $drupal_admin->name ),
+  );
+  
+
+  // Import users who have never posted?
+  $form['users']['phpbb2drupal_import_spammers'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Import users who have never posted?'),
+    '#return_value' => 1,
+    '#default_value' => variable_get('phpbb2drupal_import_spammers', 1),
+    '#description' => 'Warning: phpBB 3 creates 52 dummy user accounts which WILL be imported along with all other users with no posts if this option is checked.',
+  );
+
   // Input format settings
   $form['input'] = array(
     '#type' => 'fieldset',
@@ -99,8 +218,8 @@ function phpbb2drupal_admin_settings() {
   $output = '';
   $result7 = _phpbb2drupal_check_module('bbcode');
   $output .= $result7['html'];
-  $link_input_format_enable = url('admin/filters/'. $input_format);
-  $link_input_format_configure = url('admin/filters/'. $input_format .'/configure');
+  $link_input_format_enable = url('admin/settings/filters/'. $input_format);
+  $link_input_format_configure = url('admin/settings/filters/'. $input_format .'/configure');
   if (variable_get('phpbb2drupal_bbcode', 0)) { 
     if ($result7['result'] == 0) {
       $ready_for_migration = 0;
@@ -164,126 +283,6 @@ function phpbb2drupal_admin_settings() {
   $form['modules']['result'] = array('#value' => $output);
   $output = '';
 
-  // Where is phpbb data?
-  $form['phpbb'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Location of phpBB2 data'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $form['phpbb']['phpbb2drupal_same_db'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('phpbb is on the same database as drupal'),
-    '#return_value' => 1,
-    '#default_value' => variable_get('phpbb2drupal_same_db', 1),
-    '#description' => '',
-  );
-  if (variable_get('phpbb2drupal_same_db', 1) != 1) {
-    $url = variable_get('phpbb2drupal_db_url', $db_url);
-    if ($url == $db_url) {
-      $output = '<p class="marker">'. t('Set the address of the phpBB database according to the following format: <br /><pre>mysql://phpbb_username:phpbb_password@localhost/phpbb_database</pre>') .'</p>';
-      $ready_for_migration = 0;
-      $form['phpbb']['#collapsed']= FALSE;
-    }
-
-    $form['phpbb']['phpbb2drupal_db_url'] = array(
-      '#type' => 'textfield',
-      '#title' => t('phpBB database location'),
-      '#default_value' => variable_get('phpbb2drupal_db_url', $db_url),
-      '#size' => 80,
-      '#maxlength' => 255,
-      '#description' => '',
-    );
-  }
-
-  $output = t('<p>Note that due to a limitation within Drupal core, we cannot import messages from one database type to another database type. E.g, we cannot import phpBB from a myqsl DB, to a postgresql DB. You need to import the data into the same type of database first (import all the phpBB data, as is, from mysql to postgresql.</p>
-    <p>If both phpBB and Drupal are on postgresql, see <a href="http://drupal.org/node/64877">this issue</a>.</p>');
-  $form['phpbb2']['note'] = array('#value' => $output);
-  
-  // phpBB2 table prefix
-  $output = '';
-  $form['phpbb']['phpbb2drupal_table_prefix'] = array(
-    '#type' => 'textfield',
-    '#title' => t('phpBB2 table prefix'),
-    '#default_value' => variable_get('phpbb2drupal_table_prefix', 'phpbb_'),
-    '#size' => 20,
-    '#maxlength' => 255,
-    '#description' => t('What prefix is used for your phpBB2 tables?'),
-  );
-  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-
-  $tables = array($pre .'forums', $pre .'posts', $pre .'topics', $pre .'users');
-
-  $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
-  $output .= $result['html'];
-  
-  if ($result['result'] != 1) {
-    $ready_for_migration = 0;
-    $form['phpbb']['#collapsed']= FALSE;
-    $output .= '<span class="marker">';
-    $output .= t("Some tables couldn't be found. This can be caused by an incorrect prefix or if your phpbb version is incorrectly set. Please correct the errors so that the phpBB tables can be accessed.");
-    $output .= '</span>';
-  }
-  $form['phpbb']['result'] = array('#value' => $output);
-
-
-  
-  // Misc.	
-  $form['misc'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Misc. settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-
-  // Time limit 
-  $output = '';
-  //Registration date format
-  $form['misc']['phpbb2drupal_regdate_us_english'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Convert Registration Date'),
-    '#default_value' => variable_get('phpbb2drupal_regdate_us_english', 0),
-    '#return_value' => 1,
-    '#description' => t('If you find out that the registration date for ALL your users is over 36 years ago, maybe your DB stores the registration date in the English US format (like: "Sep 11, 2001") instead as a linux timestamp (like: "1152568884"). If so, check this box.'),
-  );
-  $form['misc']['phpbb2drupal_time_limit'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Time limit'),
-    '#default_value' => variable_get('phpbb2drupal_time_limit', 1200),
-    '#size' => 7,
-    '#maxlength' => 10,
-    '#description' => t('How long, in seconds, will the migration take?'),
-  );
-  $form['misc']['info'] = array(
-    '#value' => '<p>'. t('1200 = 20 minutes should be enough for most boards. It worked well for a board with 300,000 rows. Beware: if your site is cohosted and safe-mode is on, then this value will have no effect.') .'</p>',
-  );
-  
-  // USERS settings
-  $form['users'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('User import'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  // User to map admin user too
-  $drupal_admin = user_load(array('uid' => 1));
-  $form['users']['phpbb2drupal_admin_user'] = array(
-    '#title' => t('User to map phpBB admin'),
-    '#type' => 'textfield',
-    '#autocomplete_path' => 'user/autocomplete',
-    '#default_value' => variable_get('phpbb2drupal_admin_user', $drupal_admin->name ),
-  );
-  
-
-  // Import users who have never posted?
-  $form['users']['phpbb2drupal_import_spammers'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Import users who have never posted?'),
-    '#return_value' => 1,
-    '#default_value' => variable_get('phpbb2drupal_import_spammers', 1),
-    '#description' => '',
-  );
- 
   //Attachments
   $output ='';
   $form['attachments'] = array(
