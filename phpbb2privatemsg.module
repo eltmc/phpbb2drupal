@@ -129,9 +129,8 @@ function phpbb2privatemsg_import() {
           'subject' => substr($pm->message_subject, 0, 64),
           'body' => $pm->message_text,
           'timestamp' => $pm->message_time,
-// HACK ALERT!!!
-//  Current version of the privaetmsg module does not seem to store data about wether the message or not. Once it dies, this should = $pm->newmsg, but the original query does not currently join with the privatemsgs_to table which contains this info
-//          'newmsg' => 0, 
+// HACK ALERT!!! - assume all imported messages have alerady been read.
+          'new' => 0, 
           'hostname' => substr($pm->author_ip, 0, 255),
           'format' => $format,
         );
@@ -139,10 +138,8 @@ function phpbb2privatemsg_import() {
         $message_id = db_last_insert_id('pm_message', 'mid');
         $message['mid'] = $message_id;
     
-        //thread ID is the same as the mid if its the first message in the thread
-        if (!isset($message['thread_id'])) {
-          $message['thread_id'] = $message_id;
-        }
+        //thread ID is the same as the mid if its the first message in the thread - which we'll assume is always the case.
+        $message['thread_id'] = $message_id;
         $result = drupal_write_record('pm_index', $message);
 	    }
     }
