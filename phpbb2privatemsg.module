@@ -107,8 +107,6 @@ function phpbb2privatemsg_import() {
     $query = 'SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d';
     $from_result = db_query($query, $pm->author_id);
     $from = db_result($from_result);
-    $to_result = db_query($query, $pm->to_address);
-    $to = db_result($to_result);
     // don't import private messages from or to users who are not imported.
     if ($from and $to) {
       // remove the bbcode_uid from post_text
@@ -119,13 +117,12 @@ function phpbb2privatemsg_import() {
       $pm->message_subject = _phpbb2drupal_text_sanitise($pm->message_subject);
       
 	    //save message if no duplicates
-	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_index} WHERE recipient = %d AND (author = %d AND timestamp = %d)', $to, $from, $pm->message_time));
+	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_index} WHERE author = %d AND timestamp = %d)', $from, $pm->message_time));
 	    if (!($dupe >0)) {
 
         // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061)
         $message = array(
           'author' => $from,
-          'recipient' => $to,
           'subject' => substr($pm->message_subject, 0, 64),
           'body' => $pm->message_text,
           'timestamp' => $pm->message_time,
@@ -140,7 +137,16 @@ function phpbb2privatemsg_import() {
     
         //thread ID is the same as the mid if its the first message in the thread - which we'll assume is always the case.
         $message['thread_id'] = $message_id;
-        $result = drupal_write_record('pm_index', $message);
+
+        $recipients = explode(":", $pm->to_address);
+        $recipients_count = count($recipients);
+        $count = 0;
+        while ($count < $recipients_count) {
+          $recipients[$count] = (int)str_replace("u_", "", $recipients[$count]);
+          $recipient = db_query($query, $recipients[$count]);
+          $message['recipient'] = $recipients;
+          $result = drupal_write_record('pm_index', $message);
+        }
 	    }
     }
   }
