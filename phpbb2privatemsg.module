@@ -40,17 +40,19 @@ function phpbb2privatemsg_main() {
   $output .= t('In cases where either recipients or senders of a message have NOT had their user data already imported into Drupal, that message will be lost.');
   $output .= '</p>';
 
+  if (!variable_get('phpbb2drupal_ready', 0)) {
+    return '<p>'. t('the phpBB2Drupal settings. Please <a href="@settings">complete the setup first</a>', array('@settings' => url('admin/settings/phpbb2drupal'))) .'</p>';
+  }
+  if (variable_get('phpbb2privatemsg_import_successful', 0) == 1) { 
+    return t('Private Messages have already been imported. You can now <a href="@cleanup">clean up</a> any variables set by this module and deactivate/uninstall it.', array('@cleanup' => url('admin/phpbb2privatemsg/cleanup')));
+  }
+
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
   $tables = array($pre .'privmsgs', $pre .'privmsgs_to');
   $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
   $output .= $result['html'];
 	  
-  if (!variable_get('phpbb2drupal_ready', 0)) {
-    return '<p>'. t('the phpBB2Drupal settings. Please <a href="@settings">complete the setup first</a>', array('@settings' => url('admin/settings/phpbb2drupal'))) .'</p>';
-  }
-  elseif (variable_get('phpbb2privatemsg_import_successful', 0) == 1) { 
-    $output = t('Private Messages have already been imported. You can now <a href="@cleanup">clean up</a> any variables set by this module and deactivate/uninstall it.', array('@cleanup' => url('admin/phpbb2privatemsg/cleanup')));
-  }elseif ($result['result'] != 1) {
+  if ($result['result'] != 1) {
     $output .= '<p class="marker">';
     $output .= t('Please use the correct database settings!');
     $output .= '</p>';
@@ -108,7 +110,7 @@ function phpbb2privatemsg_import() {
     $from_result = db_query($query, $pm->author_id);
     $from = db_result($from_result);
     // don't import private messages from or to users who are not imported.
-    if ($from and $to) {
+    if ($from) {
       // remove the bbcode_uid from post_text
       $pm->message_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->message_text);
       $pm->message_text = _phpbb2drupal_strip_bbcode($pm->message_text);
@@ -117,7 +119,7 @@ function phpbb2privatemsg_import() {
       $pm->message_subject = _phpbb2drupal_text_sanitise($pm->message_subject);
       
 	    //save message if no duplicates
-	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_index} WHERE author = %d AND timestamp = %d)', $from, $pm->message_time));
+	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_index} WHERE author = %d AND timestamp = %d', $from, $pm->message_time));
 	    if (!($dupe >0)) {
 
         // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061)
@@ -143,9 +145,10 @@ function phpbb2privatemsg_import() {
         $count = 0;
         while ($count < $recipients_count) {
           $recipients[$count] = (int)str_replace("u_", "", $recipients[$count]);
-          $recipient = db_query($query, $recipients[$count]);
-          $message['recipient'] = $recipients;
+          $recipient = db_result(db_query($query, $recipients[$count]));
+          $message['recipient'] = $recipient;
           $result = drupal_write_record('pm_index', $message);
+          $count++;
         }
 	    }
     }
