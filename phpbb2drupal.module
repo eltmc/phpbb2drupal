@@ -383,7 +383,7 @@ function phpbb2drupal_import_users() {
 
     $data = array(
       'name' => substr($user->username, 0, 60),
-      'pass' => substr($user->user_password, 0, 32),
+      'pass' => $user->user_password,
       'mail' => substr($user->user_email, 0, 64),
       'signature' => substr($signature, 0, 255),
       'created' => $user_regdate,
