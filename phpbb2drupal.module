@@ -901,13 +901,13 @@ function phpbb2drupal_user_save($phpbb_user, $category = array()) {
     
     if ($phpbb_user['user_pass_convert']) {
       //The password has NOT been converted from md5 to phpass yet
-      $result = db_query("UPDATE {users} SET pass = '%s' WHERE uid = %d", $phpbb_user['password'], $user->uid);
+      $result = db_query("UPDATE {users} SET pass = '%s' WHERE uid = %d", $phpbb_user['pass'], $user->uid);
     }
     else {
       // Update the password: just import the phpass hash straight into Drupal phpass mopdule tables and
       // set the normal password as plain 'phpass'.
       $result = db_query("UPDATE {users} SET pass = 'phpass' WHERE uid = %d", $user->uid);
-      $result = db_query("INSERT INTO {user_phpass} VALUES ('%s' %d)", $phpbb_user['password'], $user->uid);
+      $result = db_query("INSERT INTO {user_phpass} VALUES ('%s' %d)", $phpbb_user['pass'], $user->uid);
     }
   }
   $phpbb_user['uid'] = $user->uid;
