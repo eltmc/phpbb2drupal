@@ -107,24 +107,16 @@ function phpbb2drupal_admin_settings() {
   $form['phpbb_data']['result'] = array('#value' => $output);
 
   // Misc.	
-  $form['misc'] = array(
+  $form['time'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Misc. settings'),
+    '#title' => t('php Time limit'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
 
   // Time limit 
   $output = '';
-  //Registration date format
-  $form['misc']['phpbb2drupal_regdate_us_english'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Convert Registration Date'),
-    '#default_value' => variable_get('phpbb2drupal_regdate_us_english', 0),
-    '#return_value' => 1,
-    '#description' => t('If you find out that the registration date for ALL your users is over 36 years ago, maybe your DB stores the registration date in the English US format (like: "Sep 11, 2001") instead as a linux timestamp (like: "1152568884"). If so, check this box.'),
-  );
-  $form['misc']['phpbb2drupal_time_limit'] = array(
+  $form['time']['phpbb2drupal_time_limit'] = array(
     '#type' => 'textfield',
     '#title' => t('Time limit'),
     '#default_value' => variable_get('phpbb2drupal_time_limit', 1200),
@@ -132,7 +124,7 @@ function phpbb2drupal_admin_settings() {
     '#maxlength' => 10,
     '#description' => t('How long, in seconds, will the migration take?'),
   );
-  $form['misc']['info'] = array(
+  $form['time']['info'] = array(
     '#value' => '<p>'. t('1200 = 20 minutes should be enough for most boards. It worked well for a board with 300,000 rows. Beware: if your site is cohosted and safe-mode is on, then this value will have no effect.') .'</p>',
   );
   
@@ -152,6 +144,14 @@ function phpbb2drupal_admin_settings() {
     '#default_value' => variable_get('phpbb2drupal_admin_user', $drupal_admin->name ),
   );
   
+    //Registration date format
+  $form['users']['phpbb2drupal_regdate_us_english'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Convert Registration Date'),
+    '#default_value' => variable_get('phpbb2drupal_regdate_us_english', 0),
+    '#return_value' => 1,
+    '#description' => t('If you find out that the registration date for ALL your users is over 36 years ago, maybe your DB stores the registration date in the English US format (like: "Sep 11, 2001") instead as a linux timestamp (like: "1152568884"). If so, check this box.'),
+  );
 
   // Import users who have never posted?
   $form['users']['phpbb2drupal_import_spammers'] = array(
@@ -169,7 +169,7 @@ function phpbb2drupal_admin_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  $output = '<p>'. t('Select which <a href="@link">input format</a> should the imported messages be set:', array('@link' => url('admin/filters'))) .'</p>';
+  $output = '<p>'. t('Select which <a href="@link">input format</a> should the imported messages be set:', array('@link' => url('admin/settings/filters'))) .'</p>';
   $form['input']['intro'] = array('#value' => $output);
   $output = '';
 
@@ -235,7 +235,7 @@ function phpbb2drupal_admin_settings() {
       $form['bbcode']['#collapsed']= FALSE;
       $output .= '<p class="marker">'. t('You need to <a href="@formatenable">enable bbcode in the selected input format</a> <a href="@formatconfigure">THEN click on configure to see bbcode options</a>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure)) .'</p>';
     }
-    $output .= '<p>'. t('For best results, <a href="@bbcodeconfig">all four BBcode configure options should be disabled</a>.', array('@bbcodeconfig' => url('admin/filters/'. $input_format .'/configure'))) .'</p>';
+    $output .= '<p>'. t('For best results, <a href="@bbcodeconfig">all four BBcode configure options should be disabled</a>.', array('@bbcodeconfig' => url('admin/settings/filters/'. $input_format .'/configure'))) .'</p>';
     
   }
   else {
@@ -344,6 +344,9 @@ function phpbb2drupal_postconfiguration() {
 function phpbb2drupal_main() {
   $output = '<ol><li>';
   $output .= t('You may want to <a href="http://drupal.org/node/58199" target="_blank">check the documentation</a> before starting.');
+  $output .= '</li>';
+  $output .= '<li>';
+  $output .= t('phpass.module by default changes hashing for all users from md5 to phpass. If you do not want this, please select md5 as the password hash method on the <a href="@phpass">User Settings page</a>. This will not affect user import from phpbb as this module ignores that page.', array('@phpass' => url('admin/user/settings')));
   $output .= '</li>';
   $output .= '<li>';
   $output .= l(t('Configure the migration'), 'admin/settings/phpbb2drupal');
