@@ -109,7 +109,7 @@ function phpbb2drupal_admin_settings() {
   // Misc.	
   $form['time'] = array(
     '#type' => 'fieldset',
-    '#title' => t('php Time limit'),
+    '#title' => t('php Data Import Time limit'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -159,7 +159,7 @@ function phpbb2drupal_admin_settings() {
     '#title' => t('Import users who have never posted?'),
     '#return_value' => 1,
     '#default_value' => variable_get('phpbb2drupal_import_spammers', 1),
-    '#description' => 'Warning: phpBB 3 creates 52 dummy user accounts for crawlers andsearch engines which will be imported along with all other users with no posts if this option is checked.',
+    '#description' => 'Do you want to import with zero posts? If the phpbb forums had a problem with spam accounts, it may be beneficial to not import any users with zero posts.',
   );
 
   // Input format settings

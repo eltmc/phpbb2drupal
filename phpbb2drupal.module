@@ -457,7 +457,7 @@ function phpbb2drupal_import_categories() {
   // Get Categories/Forums from PHPBB
   db_set_active('phpbb');
 
-  $results = db_query('SELECT * FROM %sforums ORDER BY parent_id', $pre);
+  $results = db_query('SELECT * FROM %sforums WHERE forum_type <> 2 ORDER BY parent_id', $pre);
   while ($result = db_fetch_object($results)) {
     db_set_active('default');
     if (!db_result(db_query('SELECT forum_id FROM {phpbb2drupal_temp_forum} WHERE forum_id = %d', $result->forum_id))) {
