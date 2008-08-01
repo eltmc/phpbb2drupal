@@ -321,7 +321,7 @@ function phpbb2drupal_import_users() {
 
   // Insert the users into drupal
   db_set_active('phpbb');
-  $user_ids = db_query('SELECT user_id FROM %susers WHERE user_id > 2 ORDER BY user_id', $pre);
+  $user_ids = db_query('SELECT user_id FROM %susers WHERE ( user_id > 2 AND user_type <> 2) ORDER BY user_id', $pre);
 
   $user_count = db_result(db_query('SELECT COUNT(user_id) FROM %susers WHERE user_id > 2 ORDER BY user_id', $pre));
 
