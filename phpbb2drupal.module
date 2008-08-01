@@ -381,11 +381,11 @@ function phpbb2drupal_import_users() {
       $user_session_time = $user->user_session_time;
     }
     
-    //phpbb3 stores user status in user_type instead of user_active as phpbb2 did. inactive users get an id of 0. there are other status too, no idea what they mean.
-    //KISS - user_type of 0 = inactive. The rest mean active.
+    //phpbb3 stores user status in user_type instead of user_active as phpbb2 did. inactive users get an id of 1. there are other status too, no idea what they mean.
+    //KISS - user_type of 1 = inactive. The rest mean active.
     //further complication - duplicate check sets $user->user_active to 0 if the user is a duplicate.
     //Assume the only time the $user->user_active is set before now is in duplicate check and nothing is taken from database - so php isset() should work.
-    if ($user->user_type <> 0 && !(isset($user->user_active))) {
+    if ($user->user_type <> 1 && !(isset($user->user_active))) {
       $user->user_active = 1;
     }
 
