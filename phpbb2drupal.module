@@ -334,7 +334,7 @@ function phpbb2drupal_import_users() {
   
   $import_spammers = variable_get('phpbb2drupal_import_spammers', 1);
   
-  while ($result = db_fetch_object($user_ids)) {    
+  while ($result = db_fetch_object($user_ids)) {
 
     db_set_active('phpbb');
     $user = db_fetch_object(db_query('SELECT * FROM %susers WHERE user_id = %d', $pre, $result->user_id));
@@ -485,6 +485,7 @@ function phpbb2drupal_import_categories() {
       //save the container to the forum table - yes this is hackish.
       db_query('INSERT INTO {phpbb2drupal_temp_forum} (forum_id, tid) VALUES (%d, %d)', $result->forum_id, $forum['tid']);
     }
+  db_set_active('phpbb');
   }
   db_set_active('default');
   // set the forums import successful flag in the variable table
