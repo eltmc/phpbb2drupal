@@ -1015,6 +1015,9 @@ function phpbb2drupal_decode_ip($int_ip) {
  * If requested, strips all bbcode from text.
  */
 function _phpbb2drupal_strip_bbcode($text) {
+  // Convert the wierd format that phpbb 3 uses to store its smiliesto the normal smileys as used everywhere.
+  $text = preg_replace('{^<!-- s\S --><img src=\"{SMILIES_PATH}/icon_[\w]\.gif\" alt=\"(.*)\" title=\"\w\" \/><\!-- s\S -->$}i', "$1", $text);
+  // If bbcode conversion to has been selected, the following will convert the bbcode to normal html.
   if (variable_get('phpbb2drupal_bbcode', 0)) {
     $input_format = variable_get('phpbb2drupal_input_format', 0);
     $text = bbcode_filter('process', 0 , $input_format, $text);
