@@ -118,38 +118,38 @@ function phpbb2privatemsg_import() {
       $pm->message_text = _phpbb2drupal_replace_links($pm->message_text);
       $pm->message_subject = _phpbb2drupal_text_sanitise($pm->message_subject);
       
-	    //save message if no duplicates
-	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_index} WHERE author = %d AND timestamp = %d', $from, $pm->message_time));
-	    if (!($dupe >0)) {
-
-        // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061)
+        // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061).
         $message = array(
           'author' => $from,
           'subject' => substr($pm->message_subject, 0, 64),
           'body' => $pm->message_text,
           'timestamp' => $pm->message_time,
-// HACK ALERT!!! - assume all imported messages have alerady been read.
+          // HACK ALERT!!! - assume all imported messages have alerady been read.
           'new' => 0, 
           'hostname' => substr($pm->author_ip, 0, 255),
           'format' => $format,
         );
+
+	    //save message if no duplicates
+	    //save message if no duplicates
+	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_message} WHERE author = %d AND timestamp = %d', $message['author'], $message['timestamp']));
+	    if (!($dupe)) {
+
         $result = drupal_write_record('pm_message', $message);
         $message_id = db_last_insert_id('pm_message', 'mid');
         $message['mid'] = $message_id;
-    
-        //thread ID is the same as the mid if its the first message in the thread - which we'll assume is always the case.
-        $message['thread_id'] = $message_id;
-
         $recipients = explode(":", $pm->to_address);
         $recipients_count = count($recipients);
         $count = 0;
         while ($count < $recipients_count) {
           $recipients[$count] = (int)str_replace("u_", "", $recipients[$count]);
           $recipient = db_result(db_query($query, $recipients[$count]));
-          $message['recipient'] = $recipient;
+          $message['uid'] = $recipient;
           $result = drupal_write_record('pm_index', $message);
           $count++;
         }
+        $message['uid'] = $from;
+        $result = drupal_write_record('pm_index', $message);
 	    }
     }
   }
