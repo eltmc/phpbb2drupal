@@ -908,16 +908,17 @@ function phpbb2drupal_user_save($phpbb_user, $category = array()) {
     //so we need to update it here.
     $user = user_save($user, array('created' => $phpbb_user['created']));
     
-    if ($phpbb_user['user_pass_convert']) {
-      //The password has NOT been converted from md5 to phpass yet
-      $result = db_query("UPDATE {users} SET pass = '%s' WHERE uid = %d", $phpbb_user['pass'], $user->uid);
-    }
-    elseif ($phpbb_user['pass']) {
+    if ($phpbb_user['pass'] && strlen($phpbb_user['pass']) <> 32 && substr($phpbb_user['pass'], 0, 2) == '$H') {
       // Update the password:import the phpass hash into Drupal phpass mopdule table after modifying the hash identifier - phpbb3 uses $H$ while phpass uses $P$ at the start of every phpass hash
       // set the normal password as plain 'phpass'. This is needed for the phpass module as it uses the count of passwords as 'phpass' when calculatign wether or not to allow the module to be deactivated.
       $hash = substr_replace($phpbb_user['pass'],'$P', 0, 2);
       $result = db_query("UPDATE {users} SET pass = 'phpass' WHERE uid = %d", $user->uid);
       $result = db_query("INSERT INTO {user_phpass} (hash, uid) VALUES ('%s', %d)", $hash, $user->uid);
+
+    }
+    elseif ($phpbb_user['pass']) {
+    //The password has NOT been converted from md5 to phpass yet
+    $result = db_query("UPDATE {users} SET pass = '%s' WHERE uid = %d", $phpbb_user['pass'], $user->uid);
     }
   }
   $phpbb_user['uid'] = $user->uid;
