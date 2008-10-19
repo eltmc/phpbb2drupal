@@ -395,7 +395,9 @@ function phpbb2drupal_import_users() {
       'mail' => substr($user->user_email, 0, 64),
       'signature' => substr($signature, 0, 255),
       'created' => $user_regdate,
-      'access' => $user_session_time,
+      //'access' => $user_session_time,
+      // It seems that last login time is more accurate for the last access data...
+      'access' => $user_lastvisit,
       'login' => $user_lastvisit,
       'status' => $user->user_active,
       'timezone' => $user->user_timezone, 
