@@ -136,8 +136,7 @@ function _phpbb2drupal_check_module($module) {
  *   $out['result'] = boolean.
  */
 function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefix = 1) {
-  _phpbb2drupal_db_connect() ;
-  db_set_active($db);
+  _phpbb2drupal_db_connect();
 
   $out['html'] = '<ul>';
   $out['result']= 1;
@@ -145,6 +144,8 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
     if ($prefix) {
       $table = db_prefix_tables('{'. $table .'}');
     }  
+
+    db_set_active($db);
     if ($GLOBALS['db_type'] == 'pgsql') {
       // adapt from db_table_exists in database.pgsql.inc
       $result = (bool) db_result(db_query("SELECT COUNT(*) FROM pg_class WHERE relname = '%s'", $table));
@@ -153,6 +154,7 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
       // adapt from db_table_exists in database.mysql.inc
       $result = (bool) db_fetch_object(db_query("SHOW TABLES LIKE '%s'", $table));
     }
+    db_set_active('default');
     if ($result) {
       $out['html'] .= '<li>'. t('Table %table: OK!', array('%table' => $table)) .'</li>';
     }
@@ -162,7 +164,6 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default' , $prefi
     }
   }
   $out['html'] .= '</ul>';
-  db_set_active('default');
   return $out;
 }
 
