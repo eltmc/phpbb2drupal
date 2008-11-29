@@ -98,10 +98,10 @@ function phpbb2privatemsg_import() {
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
   $format = variable_get('phpbb2drupal_input_format', 0);
   if (variable_get('phpbb2privatemsg_import_successful', 0) == 1) {
-    return;
+    return t('Messages have already been imported successfully.');
   }
   db_set_active('phpbb');
-  $query = "SELECT * FROM %sprivmsgs";
+  $query = "SELECT * FROM %sprivmsgs ORDER BY msg_id ASC";
   $messages = db_query($query, $pre);
   
   db_set_active('default');
