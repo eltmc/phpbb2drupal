@@ -272,8 +272,9 @@ function phpbb2drupal_admin_settings() {
       $ready_for_migration = 0;
       $form['attachments']['#collapsed']= FALSE;
       $output .= '<span class="marker">';
-      $output .= t('The comment_upload.module is not enabled. You can <a href="http://drupal.org/node/37197" target="_blank">go to the module Home Page to download it</a>. <a href="@adminmodules">After having installed it, go to the admin/module page to enable it</a>', array('@adminmodules' => url('admin/modules')));
+      $output .= t('The comment_upload.module is not enabled. You can go to the <a href="http://drupal.org/node/37197" target="_blank">module Home Page</a> and download it. Then go to <a href="@adminmodules">admin/build/modules</a> to enable the module.', array('@adminmodules' => url('admin/build/modules')));
       $output .= '</span>';
+      $form['attachments']['result'] = array('#value' => $output);
     }
   }
   
