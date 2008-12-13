@@ -125,7 +125,7 @@ function phpbb2privatemsg_import() {
           'body' => $pm->message_text,
           'timestamp' => $pm->message_time,
           // HACK ALERT!!! - assume all imported messages have alerady been read.
-          'new' => 0, 
+          'is_new' => 0, 
           'hostname' => substr($pm->author_ip, 0, 255),
           'format' => $format,
         );
