@@ -12,10 +12,13 @@ date  	  | phpbb   | Drupal  | Who 	 		    | What
  	  |         |         |				    |	
  	  |         |         |				    |
 ----------|---------|---------|-----------------------------|---------------------	
+ Late	  | 3.x 2   |         | Naheem Zaffar   	    | 
+ 2008	  |         |  6.x    |	aka nbz			    | Import data from phpbb3 instead of phpbb2
+ 	  |         |         |	drupal.org/user/123528	    | 
+----------|---------|---------|-----------------------------|---------------------	
  24 Dec	  | 20.22   |  5.x    | Naheem Zaffar   	    | Become maintainer, 
  2007	  |         |   to    |	aka nbz			    | create final Drupal5.x-3.x branch,
  	  |         |  6.x    |	drupal.org/user/123528	    | port to Drupal 6.x
- 	  |         |         |				    |
 ----------|---------|---------|-----------------------------|---------------------	
  3 Apr	  | 2.0.18  | 4.6.6   |	Augustin Masquilier	    |	
  2006	  |   to    |   to    | a.k.a beginner		    | Released the first phpbb2drupal.module	
