@@ -654,8 +654,9 @@ function phpbb2drupal_import_topics() {
 
         while ($file = db_fetch_object($files)) {
           db_set_active('default');
-          db_query("INSERT INTO {files} (nid, filename, filepath, filemime, filesize) VALUES (%d, '%s', '%s', '%s', %d)", $node->nid, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize);
+          db_query("INSERT INTO {files} (uid, filename, filepath, filemime, filesize, status, timestamp) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize, 1, $file->filetime);
           $fid = db_last_insert_id('files', 'fid');
+          db_query("INSERT INTO {upload} (fid, nid, vid, description, list, weight) VALUES (%d, %d, %d, '%s', %d, %d)", $fid, $node->nid, $node->nid, substr($file->real_filename, 0, 255), 1, $file->attach_id);
           db_set_active('phpbb');
         }
       }
@@ -684,6 +685,7 @@ function phpbb2drupal_import_topics() {
 function phpbb2drupal_import_posts() {
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
   $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = variable_get('phpbb2drupal_import_attachments', 0);
+  $input_format = variable_get('phpbb2drupal_input_format', 0);
 
   db_set_active('default');
   // check if the post database has been successfully imported
@@ -773,7 +775,7 @@ function phpbb2drupal_import_posts() {
       $post->post_text = _phpbb2drupal_text_sanitise($post->post_text);
       $post->post_subject = _phpbb2drupal_text_sanitise($post->post_subject);
 
-      //construct the node
+      //construct the comment.
       $comment = array(
         'pid' => $pid,
         'nid' => $nid,
@@ -781,7 +783,8 @@ function phpbb2drupal_import_posts() {
         'subject' => $post->post_subject,
         'comment' => $post->post_text,
         'hostname' => $hostname,
-        'timestamp' => $post->post_time
+        'timestamp' => $post->post_time,
+        'format' => $input_format
       );
 
       // if the title field is empty, use the node title as default.
@@ -809,9 +812,9 @@ function phpbb2drupal_import_posts() {
 
           while ($file = db_fetch_object($files)) {
             db_set_active('default');
-            db_query("INSERT INTO {files} (nid, filename, filepath, filemime, filesize) VALUES (%d, '%s', '%s', '%s', %d)", $nid, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize);
+            db_query("INSERT INTO {files} (uid, filename, filepath, filemime, filesize, status, timestamp) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize, 1, $file->filetime);
             $fid = db_last_insert_id('files', 'fid');
-            db_query('INSERT INTO {comment_files} (cid, fid) VALUES (%d, %d)', $cid, $fid);
+            db_query("INSERT INTO {comment_upload} (fid, nid, cid, description, list, weight) VALUES (%d, %d, %d, '%s', %d, %d)", $fid, $nid, $cid, substr($file->real_filename, 0, 255), 1, $file->attach_id);
             db_set_active('phpbb');
           }        
         }
