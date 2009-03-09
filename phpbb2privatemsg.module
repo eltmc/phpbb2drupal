@@ -131,13 +131,14 @@ function phpbb2privatemsg_import() {
         );
 
 	    //save message if no duplicates
-	    //save message if no duplicates
 	    $dupe = db_result(db_query('SELECT COUNT(*) FROM {pm_message} WHERE author = %d AND timestamp = %d', $message['author'], $message['timestamp']));
 	    if (!($dupe)) {
 
         $result = drupal_write_record('pm_message', $message);
         $message_id = db_last_insert_id('pm_message', 'mid');
         $message['mid'] = $message_id;
+        // Hack to give each message its own thread. ToDo - replace all this with proper import with threading etc.
+        $message['thread_id'] = $message_id;
         $recipients = explode(":", $pm->to_address);
         $recipients_count = count($recipients);
         $count = 0;
