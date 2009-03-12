@@ -324,7 +324,7 @@ function phpbb2drupal_import_users() {
   db_set_active('phpbb');
   $user_ids = db_query('SELECT user_id FROM %susers WHERE ( user_id > 2 AND user_type <> 2) ORDER BY user_id', $pre);
 
-  $user_count = db_result(db_query('SELECT COUNT(user_id) FROM %susers WHERE user_id > 2 ORDER BY user_id', $pre));
+  $user_count = db_result(db_query('SELECT COUNT(*) FROM %susers WHERE user_id > 2', $pre));
 
   if (!$user_count) {
       drupal_set_message(t('There were no users found: Aborting script'), 'error');
@@ -517,7 +517,7 @@ function phpbb2drupal_import_topics() {
   db_set_active('phpbb');
   // topic_status == 2, Moved topics are duplicates don't import
   $topic_ids = db_query('SELECT topic_id FROM %stopics ORDER BY topic_id', $pre);
-  $topic_count = db_result(db_query('SELECT COUNT(topic_id) FROM %stopics ORDER BY topic_id', $pre));
+  $topic_count = db_result(db_query('SELECT COUNT(*) FROM %stopics', $pre));
   drupal_set_message(t('Found %topic_count topics: Beginning Import', array('%topic_count' => $topic_count)));
 
   // Import the topics into drupal
