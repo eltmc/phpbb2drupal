@@ -106,9 +106,7 @@ function phpbb2privatemsg_import() {
   
   db_set_active('default');
   while ($pm = db_fetch_object($messages)) {    
-    $query = 'SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d';
-    $from_result = db_query($query, $pm->author_id);
-    $from = db_result($from_result);
+    $from = db_result(db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d', $pm->author_id));
     // don't import private messages from or to users who are not imported.
     if ($from) {
       // remove the bbcode_uid from post_text
@@ -124,10 +122,6 @@ function phpbb2privatemsg_import() {
           'subject' => substr($pm->message_subject, 0, 64),
           'body' => $pm->message_text,
           'timestamp' => $pm->message_time,
-          // HACK ALERT!!! - assume all imported messages have alerady been read.
-          'is_new' => 0, 
-          'hostname' => substr($pm->author_ip, 0, 255),
-          'format' => $format,
         );
 
 	    //save message if no duplicates
@@ -135,22 +129,38 @@ function phpbb2privatemsg_import() {
 	    if (!($dupe)) {
 
         $result = drupal_write_record('pm_message', $message);
-        $message_id = db_last_insert_id('pm_message', 'mid');
-        $message['mid'] = $message_id;
-        // Hack to give each message its own thread. ToDo - replace all this with proper import with threading etc.
-        $message['thread_id'] = $message_id;
-        $recipients = explode(":", $pm->to_address);
-        $recipients_count = count($recipients);
-        $count = 0;
-        while ($count < $recipients_count) {
-          $recipients[$count] = (int)str_replace("u_", "", $recipients[$count]);
-          $recipient = db_result(db_query($query, $recipients[$count]));
-          $message['uid'] = $recipient;
-          $result = drupal_write_record('pm_index', $message);
-          $count++;
+        $message['mid'] = db_last_insert_id('pm_message', 'mid');
+
+        // Fix the message threading.
+        if ($pm->root_level <> 0) {
+          // This message is part of an existing thread.
+          $message['thread_id'] = db_result(db_query('SELECT thread_id FROM {phpbb2privatemsg} WHERE msg_id = %d', $pm->root_level));
         }
+        else {
+          $message['thread_id'] = $message['mid'];
+        }
+        
+        $result = db_query('INSERT INTO {phpbb2privatemsg} (mid, thread_id, msg_id) VALUES (%d, %d, %d)', $message['mid'], $message['thread_id'], $pm->msg_id);
+        
+        // Insert index record for the author.
         $message['uid'] = $from;
+        $message['is_new'] = 0;
         $result = drupal_write_record('pm_index', $message);
+        
+        //insert index record for all the recipients.
+        db_set_active('phpbb');
+        $query = "SELECT * FROM %sprivmsgs_to  WHERE msg_id = %d ORDER BY msg_id ASC";
+        $result = db_query($query, $pm->msg_id);
+        db_set_active('default');
+        while ($index = db_fetch_object($result)) {
+          // Fill in appropriate fields.
+          $message['uid'] = db_result(db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = %d', $index->user_id));
+          $message['is_new'] = $index->pm_unread;
+          $message['deleted'] = $index->pm_deleted;
+          
+          //Save to the index.
+          $save = drupal_write_record('pm_index', $message);
+        }
 	    }
     }
   }

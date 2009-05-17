@@ -1,0 +1,25 @@
+<?php
+// $Id$
+function phpbb2privatemsg_schema() {
+  $schema['phpbb2privatemsg'] = array(
+    'description' => t('Maps phpBB forum forum_id to Drupal taxonomy tid.'),
+    'fields' => array(
+      'mid' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'small', 'not null' => TRUE, 'default' => 0),
+      'thread_id' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'small', 'not null' => TRUE, 'default' => 0),
+      'msg_id' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'small', 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('mid'),
+  );
+
+  return $schema;
+}
+
+function phpbb2privatemsg_install() {
+  // Create tables.
+  drupal_install_schema('phpbb2privatemsg');
+}
+
+function phpbb2privatemsg_uninstall() {
+  variable_del('phpbb2privatemsg_import_successful');
+  drupal_uninstall_schema('phpbb2privatemsg');
+}
