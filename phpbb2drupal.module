@@ -648,7 +648,7 @@ function phpbb2drupal_import_topics() {
         db_set_active('phpbb');
         $files = db_query('SELECT * 
           FROM %sattachments a 
-          INNER JOIN %sposts p ON a.post_id = p.post_id 
+          INNER JOIN %sposts p ON a.post_msg_id = p.post_id 
           WHERE p.topic_id = %d
           ORDER BY a.attach_id', $pre, $pre, $pre, $topic->topic_id);
 
