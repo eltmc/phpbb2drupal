@@ -110,7 +110,7 @@ function phpbb2privatemsg_import() {
     // don't import private messages from or to users who are not imported.
     if ($from) {
       // remove the bbcode_uid from post_text
-      $pm->message_text = preg_replace("/:$pm->privmsgs_bbcode_uid/", '', $pm->message_text);
+      $pm->message_text = preg_replace("/:$pm->bbcode_uid/", '', $pm->message_text);
       $pm->message_text = _phpbb2drupal_strip_bbcode($pm->message_text);
       $pm->message_text = _phpbb2drupal_text_sanitise($pm->message_text);
       $pm->message_text = _phpbb2drupal_replace_links($pm->message_text);
