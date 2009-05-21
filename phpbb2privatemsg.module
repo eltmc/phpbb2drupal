@@ -150,7 +150,7 @@ function phpbb2privatemsg_import() {
         //insert index record for all the recipients.
         db_set_active('phpbb');
         $query = "SELECT * FROM %sprivmsgs_to  WHERE msg_id = %d ORDER BY msg_id ASC";
-        $result = db_query($query, $pm->msg_id);
+        $result = db_query($query, $pre, $pm->msg_id);
         db_set_active('default');
         while ($index = db_fetch_object($result)) {
           // Fill in appropriate fields.
