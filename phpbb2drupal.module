@@ -1019,11 +1019,21 @@ function phpbb2drupal_decode_ip($int_ip) {
 }
 
 /**
- * If requested, strips all bbcode from text.
+ * Strips text of extra phpbb3 markup and if requested, also strips all bbcode from text.
  */
 function _phpbb2drupal_strip_bbcode($text) {
-  // Convert the wierd format that phpbb 3 uses to store its smiliesto the normal smileys as used everywhere.
-  $text = preg_replace('#<!\-\- s(.*?) \-\-><img src="\{SMILIES_PATH\}\/.*? \/><!\-\- s\1 \-\->#', "$1", $text);
+  // Strip the text of extra markup - regular expressions taken from phpbb3 includes/function.php, function get_preg_expression().
+  $match = array(
+    '#<!\-\- e \-\-><a href="mailto:(.*?)">.*?</a><!\-\- e \-\->#',
+    '#<!\-\- l \-\-><a (?:class="[\w-]+" )?href="(.*?)(?:(&amp;|\?)sid=[0-9a-f]{32})?">.*?</a><!\-\- l \-\->#',
+    '#<!\-\- ([mw]) \-\-><a (?:class="[\w-]+" )?href="(.*?)">.*?</a><!\-\- \1 \-\->#',
+    '#<!\-\- s(.*?) \-\-><img src="\{SMILIES_PATH\}\/.*? \/><!\-\- s\1 \-\->#',
+    '#<!\-\- .*? \-\->#s',
+    '#<.*?>#s',
+  );
+  $replace = array('$1', '$1', '$2', '$1', '', '');
+  $text = preg_replace($match, $replace, $text);
+
   // If bbcode conversion to has been selected, the following will convert the bbcode to normal html.
   if (variable_get('phpbb2drupal_bbcode', 0)) {
     $input_format = variable_get('phpbb2drupal_input_format', 0);
@@ -1031,7 +1041,6 @@ function _phpbb2drupal_strip_bbcode($text) {
   }
   return $text;
 }
-
 
 /**
  * function to properly encode strings.
