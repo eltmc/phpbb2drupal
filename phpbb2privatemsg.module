@@ -139,15 +139,10 @@ function phpbb2privatemsg_import() {
         else {
           $message['thread_id'] = $message['mid'];
         }
-        
+
         $result = db_query('INSERT INTO {phpbb2privatemsg} (mid, thread_id, msg_id) VALUES (%d, %d, %d)', $message['mid'], $message['thread_id'], $pm->msg_id);
-        
-        // Insert index record for the author.
-        $message['uid'] = $from;
-        $message['is_new'] = 0;
-        $result = drupal_write_record('pm_index', $message);
-        
-        //insert index record for all the recipients.
+
+        //insert index record for the author and all recipients of a message.
         db_set_active('phpbb');
         $query = "SELECT * FROM %sprivmsgs_to  WHERE msg_id = %d ORDER BY msg_id ASC";
         $result = db_query($query, $pre, $pm->msg_id);
