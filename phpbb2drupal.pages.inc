@@ -283,11 +283,10 @@ function phpbb2drupal_admin_settings() {
     '#type' => 'fieldset',
     '#title' => 'Migration',
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => FALSE,
   );
   variable_set('phpbb2drupal_ready', $ready_for_migration);
   if ($ready_for_migration) {
-    $form['migration']['#collapsed']= FALSE;
     $output .= '<p>'. t('Check again all the settings above, and if everything is ok, <a href="@migratelink">you can now proceed with the migration</a>', array('@migratelink' => url('admin/phpbb2drupal/migrate'))) .'</p>';
   }
   else {
