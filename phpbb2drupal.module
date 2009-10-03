@@ -354,9 +354,6 @@ function phpbb2drupal_import_users() {
     $user->user_yim = strtr($user->user_yim, array('+' => ' '));
     $user->user_timezone = $user->user_timezone * 60 * 60;  # Drupal stores timezones in seconds
 
-    // remove the bbcode_uid from post_text
-    $user->user_sig = preg_replace("/:$user->user_sig_bbcode_uid/", '', $user->user_sig);
-
     // if the $user->user_avatar_type is not their own image, delete it
     // drupal doesn't have pre-defined avatars.   if we were to import it
     // then multiple people would share the same avatar image and if one user 
@@ -368,8 +365,10 @@ function phpbb2drupal_import_users() {
     $user->user_avatar = ($user->user_avatar) ? "$files_path/$pictures_path/$user->user_avatar" : '';
 
     // remove the :bbcode_uid from signature
-    $signature = preg_replace("/:$post->bbcode_uid/", '', $user->user_sig);
-    $signature = _phpbb2drupal_strip_bbcode($signature);
+    if(!empty($user->user_sig_bbcode_uid)) {
+      $user->user_sig = preg_replace("/:$user->user_sig_bbcode_uid/", '', $user->user_sig);
+    }
+    $signature = _phpbb2drupal_strip_bbcode($user->user_sig);
     $signature = _phpbb2drupal_text_sanitise($signature);
     if (variable_get('phpbb2drupal_regdate_us_english', 0)) {
       $user_regdate = strtotime($user->user_regdate);
@@ -588,7 +587,9 @@ function phpbb2drupal_import_topics() {
     }
 
     // remove the bbcode_uid from post_text
-    $topic->post_text = preg_replace("/:$topic->bbcode_uid/", '', $topic->post_text);
+    if(!empty($topic->bbcode_uid)) {
+      $topic->post_text = preg_replace("/:$topic->bbcode_uid/", '', $topic->post_text);
+    }
     $topic->post_text = _phpbb2drupal_strip_bbcode($topic->post_text);
     $topic->post_text = _phpbb2drupal_text_sanitise($topic->post_text);
 
@@ -770,7 +771,9 @@ function phpbb2drupal_import_posts() {
       $hostname = phpbb2drupal_decode_ip($post->poster_ip);
 
       // remove the :bbcode_uid from post_text
-      $post->post_text = preg_replace("/:$post->bbcode_uid/", '', $post->post_text);
+      if(!empty($post->bbcode_uid)) {
+        $post->post_text = preg_replace("/:$post->bbcode_uid/", '', $post->post_text);
+      }
       $post->post_text = _phpbb2drupal_strip_bbcode($post->post_text);
       $post->post_text = _phpbb2drupal_text_sanitise($post->post_text);
       $post->post_subject = _phpbb2drupal_text_sanitise($post->post_subject);
