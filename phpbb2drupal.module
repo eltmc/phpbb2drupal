@@ -370,6 +370,13 @@ function phpbb2drupal_import_users() {
     }
     $signature = _phpbb2drupal_strip_bbcode($user->user_sig);
     $signature = _phpbb2drupal_text_sanitise($signature);
+    
+    // Signatures for Forums module supports longer values than default 255 chars
+    // http://drupal.org/project/signature_forum0
+    if(!module_exists('signature_forum')) {
+      $signature = substr($signature, 0, 255);
+    }
+    
     if (variable_get('phpbb2drupal_regdate_us_english', 0)) {
       $user_regdate = strtotime($user->user_regdate);
       $user_lastvisit = strtotime($user->user_lastvisit);
@@ -393,7 +400,7 @@ function phpbb2drupal_import_users() {
       'name' => substr($user->username, 0, 60),
       'pass' => $user->user_password,
       'mail' => substr($user->user_email, 0, 64),
-      'signature' => substr($signature, 0, 255),
+      'signature' => $signature,
       'created' => $user_regdate,
       //'access' => $user_session_time,
       // It seems that last login time is more accurate for the last access data...
@@ -647,11 +654,8 @@ function phpbb2drupal_import_topics() {
         $file_path = variable_get('file_directory_path', 'files');
 
         db_set_active('phpbb');
-        $files = db_query('SELECT * 
-          FROM %sattachments a 
-          INNER JOIN %sposts p ON a.post_msg_id = p.post_id 
-          WHERE p.topic_id = %d
-          ORDER BY a.attach_id', $pre, $pre, $pre, $topic->topic_id);
+        $files = db_query('SELECT * FROM %sattachments a WHERE a.post_msg_id = %d',
+          $pre, $topic->topic_first_post_id);
 
         while ($file = db_fetch_object($files)) {
           db_set_active('default');
@@ -811,7 +815,7 @@ function phpbb2drupal_import_posts() {
 
           db_set_active('phpbb');
           $files = db_query('SELECT * FROM %sattachments a WHERE a.post_msg_id = %d',
-            $pre, $pre, $post->post_id);
+            $pre, $post->post_id);
 
           while ($file = db_fetch_object($files)) {
             db_set_active('default');
