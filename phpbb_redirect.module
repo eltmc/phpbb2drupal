@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /****************************************************
  * phpbb_redirect module: redirects links incoming from old phpBB forum to new Drupal forum.
  *

@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Callback admin/settings/phpbb2drupal

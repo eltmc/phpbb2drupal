@@ -1,4 +1,3 @@
-; $Id$
 name = phpBB_Redirect
 description = Redirects links incoming from old phpBB forum to the new Drupal forum. 
 core = 6.x

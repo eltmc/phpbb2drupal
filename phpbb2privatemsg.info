@@ -1,4 +1,3 @@
-; $Id$
 name = phpBB2Privatemsg
 description = "Migrate your phpBB private messages to Drupal privatemsg."
 core = 6.x

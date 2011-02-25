@@ -1,5 +1,4 @@
 <?php
-// $Id$
 function phpbb2drupal_schema() {
   $schema['phpbb2drupal_temp_forum'] = array(
     'description' => t('Maps phpBB forum forum_id to Drupal taxonomy tid.'),
