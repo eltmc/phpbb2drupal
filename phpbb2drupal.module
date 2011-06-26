@@ -660,7 +660,7 @@ function phpbb2drupal_import_topics() {
           db_set_active('default');
           db_query("INSERT INTO {files} (uid, filename, filepath, filemime, filesize, status, timestamp) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, substr($file->real_filename, 0, 255), substr("$file_path/$file->physical_filename", 0, 255), substr($file->mimetype, 0, 255), $file->filesize, 1, $file->filetime);
           $fid = db_last_insert_id('files', 'fid');
-          db_query("INSERT INTO {upload} (fid, nid, vid, description, list, weight) VALUES (%d, %d, %d, '%s', %d, %d)", $fid, $node->nid, $node->nid, substr($file->real_filename, 0, 255), 1, $file->attach_id);
+          db_query("INSERT INTO {upload} (fid, nid, vid, description, list, weight) VALUES (%d, %d, %d, '%s', %d, %d)", $fid, $node->nid, $node->vid, substr($file->real_filename, 0, 255), 1, $file->attach_id);
           db_set_active('phpbb');
         }
       }
