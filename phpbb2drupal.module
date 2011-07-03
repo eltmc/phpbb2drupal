@@ -174,8 +174,7 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default', $prefix
 
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Shows the Migrate page from where the code migration is done. I simply calls the migration form.
  */
 function phpbb2drupal_migrate() {
   if (!variable_get('phpbb2drupal_ready', 0)) {
@@ -188,8 +187,7 @@ function phpbb2drupal_migrate() {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * The migration form used to import the data.
  */
 function phpbb2drupal_migrate_form($form) {
   _phpbb2drupal_db_connect();
@@ -223,8 +221,7 @@ function phpbb2drupal_migrate_form($form) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Submit function for the migrate form.
  */
 function phpbb2drupal_migrate_form_submit($form, $form_state) {
 
@@ -1086,40 +1083,14 @@ function phpbb2drupal_user_save($phpbb_user, $category = array()) {
     //so we need to update it here.
     $user = user_save($user, array('created' => $phpbb_user['created']));
 
-    if ($phpbb_user['pass'] && strlen($phpbb_user['pass']) <> 32 && substr($phpbb_user['pass'], 0, 2) == '$H') {
-      // Update the password:import the phpass hash into Drupal phpass mopdule table after modifying the hash identifier - phpbb3 uses $H$ while phpass uses $P$ at the start of every phpass hash
-      // set the normal password as plain 'phpass'. This is needed for the phpass module as it uses the count of passwords as 'phpass' when calculatign wether or not to allow the module to be deactivated.
-      $hash = substr_replace($phpbb_user['pass'], '$P', 0, 2);
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query("UPDATE {users} SET pass = 'phpass' WHERE uid = %d", $user->uid) */
-      $result = db_update('users')
-  ->fields(array(
-        'pass' => 'phpass',
-      ))
-  ->condition('uid', $user->uid)
-  ->execute();
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query("INSERT INTO {user_phpass} (hash, uid) VALUES ('%s', %d)", $hash, $user->uid) */
-      $result = $id = db_insert('user_phpass')
-  ->fields(array(
-        'hash' => $hash,
-        'uid' => $user->uid,
-      ))
-  ->execute();
-
-    }
-    elseif ($phpbb_user['pass']) {
-      //The password has NOT been converted from md5 to phpass yet
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query("UPDATE {users} SET pass = '%s' WHERE uid = %d", $phpbb_user['pass'], $user->uid) */
-      $result = db_update('users')
-  ->fields(array(
+    //Insert the user password hash
+    $result = db_update('users')
+      ->fields(array(
         'pass' => $phpbb_user['pass'],
       ))
-  ->condition('uid', $user->uid)
-  ->execute();
+      ->condition('uid', $user->uid)
+      ->execute();
     }
-  }
   $phpbb_user['uid'] = $user->uid;
 
   db_set_active('default');

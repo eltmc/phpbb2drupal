@@ -8,5 +8,4 @@ dependencies[] = node
 dependencies[] = profile
 dependencies[] = taxonomy
 dependencies[] = user
-dependencies[] = phpass
 package = phpBB to Drupal
