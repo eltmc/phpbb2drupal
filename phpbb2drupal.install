@@ -6,8 +6,7 @@
  */
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Implements hook_schema().
  */
 function phpbb2drupal_schema() {
   $schema['phpbb2drupal_temp_forum'] = array(
@@ -43,24 +42,4 @@ function phpbb2drupal_schema() {
     'primary key' => array('user_id'),
   );
   return $schema;
-}
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function phpbb2drupal_install() {
-  // Create tables.
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_install_schema('phpbb2drupal')
-}
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function phpbb2drupal_uninstall() {
-  // Drop tables.
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_uninstall_schema('phpbb2drupal')
 }
