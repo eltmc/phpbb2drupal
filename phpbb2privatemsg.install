@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * Install, update and uninstall functions for the phpbb2drupal module.
+ *
+ */
+
 function phpbb2privatemsg_schema() {
   $schema['phpbb2privatemsg'] = array(
     'description' => t('Maps phpBB forum forum_id to Drupal taxonomy tid.'),

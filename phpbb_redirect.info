@@ -1,4 +1,4 @@
 name = phpBB_Redirect
 description = Redirects links incoming from old phpBB forum to the new Drupal forum. 
-core = 6.x
+core = 7.x
 package = phpBB to Drupal
