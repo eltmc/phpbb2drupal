@@ -370,8 +370,8 @@ function phpbb2drupal_main() {
   $output .= '</li>';
   $output .= '</ol>';
 
-  // process will die() if the link to the phpBB2 database is wrong:
-  $output .= '<p>' . t('If the phpBB2 data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. <a href="@reseturl">Click here to reset the database url</a>.',
+  // process will die() if the link to the phpBB database is wrong:
+  $output .= '<p>' . t('If the phpBB data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. <a href="@reseturl">Click here to reset the database url</a>.',
       array('@reseturl' => url('admin/phpbb2drupal/reset'))) . '</p>';
 
   return $output;
