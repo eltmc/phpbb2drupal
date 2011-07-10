@@ -156,7 +156,9 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default', $prefix
     }
     else {
       // adapt from db_table_exists in database.mysql.inc
-      $result = (bool) db_fetch_object(db_query("SHOW TABLES LIKE '%s'", $table));
+      $result = (bool) db_fetch_object(db_query("SHOW TABLES LIKE :table", array(
+        ':table' => $table,
+      )));
     }
     db_set_active('default');
     if ($result) {
@@ -300,53 +302,42 @@ function phpbb2drupal_import_users() {
     db_set_active('default');
 
     // create profile fields for icq, aim, msn...etc
-    $querybase = 'INSERT INTO {profile_fields} (title, name, explanation, category, page, type, weight, required, register, visibility, options) VALUES ';
+    $query = db_insert('profile_fields')
+      ->fields(array(
+        'title', 'name', 'explanation', 'category', 'page', 'type',
+ 	'weight', 'required', 'register', 'visibility', 'options',
+      ));
 
-    $query = $querybase . "('YIM', 'user_yim', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
-    // TODO Please convert this statement to the D7 database API syntax.
-    db_query($query);
+    $values = array(
+      array('YIM', 'user_yim', '', 'Contact', '', 'textfield', 0, 0, 1, 2, ''),
+      array('AIM', 'user_aim', '', 'Contact', '', 'textfield', 0, 0, 1, 2, ''),
+      array('icq', 'user_icq', '', 'Contact', '', 'textfield', 0, 0, 1, 2, ''),
+      array('Website', 'user_website', '', 'Contact', '', 'url', 0, 0, 1, 2, ''),
+      array('Location', 'user_from', '', 'Personal', '', 'textfield', 0, 0, 1, 2, ''),
+      array('Occupation', 'user_occ', '', 'Personal', '', 'textfield', 0, 0, 1, 2, ''),
+      array('Interests', 'user_interests', '', 'Personal', '', 'textfield', 0, 0, 1, 2, ''),
+    );
+    foreach ($values as $record) {
+      $query->values($record);
+    } 
 
-    $query = $querybase . "('AIM', 'user_aim', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
-    // TODO Please convert this statement to the D7 database API syntax.
-    db_query($query);
-
-    $query = $querybase . "('icq', 'user_icq', '', 'Contact', '', 'textfield', 0, 0, 1, 2, '')";
-    // TODO Please convert this statement to the D7 database API syntax.
-    db_query($query);
-
-    $query = $querybase . "('Website', 'user_website', '', 'Contact', '', 'url', 0, 0, 1, 2, '')";
-    // TODO Please convert this statement to the D7 database API syntax.
-    db_query($query);
-
-    $query = $querybase . "('Location', 'user_from', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
-    // TODO Please convert this statement to the D7 database API syntax.
-    db_query($query);
-
-    $query = $querybase . "('Occupation', 'user_occ', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
-    // TODO Please convert this statement to the D7 database API syntax.
-    db_query($query);
-
-    $query = $querybase . "('Interests', 'user_interests', '', 'Personal', '', 'textfield', 0, 0, 1, 2, '')";
-    // TODO Please convert this statement to the D7 database API syntax.
-    db_query($query);
+    $query->execute();
 
     variable_set('phpbb2drupal_import_user_started', 1);
   }
 
   db_set_active('default');
   $drupal_admin = array_shift(user_load_multiple(array(), array('name' => variable_get('phpbb2drupal_admin_user', ''))));
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('INSERT INTO {phpbb2drupal_temp_user} (user_id, uid) VALUES (2 , %d)', $drupal_admin->uid) */
   $id = db_insert('phpbb2drupal_temp_user')
-  ->fields(array(
-    'user_id' => 2,
-    'uid' => $drupal_admin->uid,
+    ->fields(array(
+      'user_id' => 2,
+      'uid' => $drupal_admin->uid,
   ))
   ->execute();
 
   $files_path = variable_get('file_directory_path', 'files');
   $pictures_path = variable_get('user_picture_path', 'pictures');
-
+  // FIXME continue here.
   // Insert the users into drupal
   db_set_active('phpbb');
   $user_ids = db_query('SELECT user_id FROM %susers WHERE ( user_id > :user_id AND user_type <> :user_type ORDER BY user_id', array(':user_id' => 2, ':user_type' => 2, '' => $pre));
@@ -652,7 +643,7 @@ function phpbb2drupal_import_topics() {
       'type' => 'forum',
       'title' => $topic->topic_title,
       'uid' => $uid,
-      'status' => 1,  // published or not - always publish
+      'status' => NODE_PUBLISHED,  // published or not - always publish
       'promote' => $promote,
       'created' => $topic->topic_time,
       'changed' => $topic->post_edit_time,
@@ -1178,11 +1169,6 @@ function phpbb2drupal_comment_save($edit) {
       $thread = $parent->thread . '.' . int2vancode(vancode2int($last) + 1) . '/';
     }
   }
-
-  $status = 0; // 1 - not published, 0 - published
-  $format = variable_get('phpbb2drupal_input_format', 0);
-  $score = 0; // 0 default value, comments get higher score depending on the author's roles
-  $users = serialize(array(0 => 1)); // default value for everybody!!
 
   if ($edit['uid'] === $user->uid) { // '===' because we want to modify anonymous users too
     $edit['name'] = $user->name;
