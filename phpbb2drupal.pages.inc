@@ -229,7 +229,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
       $output .= '</span></p>';
     }
     $sql = 'SELECT COUNT(*) FROM {filters} WHERE module = \'bbcode\' AND format = %d';
-    $result = db_query('SELECT COUNT(*) FROM {filters} WHERE module = :module AND format = :format', array(':module' => ':format' => $input_format,));
+    $result = db_query('SELECT COUNT(*) FROM {filters} WHERE module = :module AND format = :format', array(':module' => 'bbcode', ':format' => $input_format,));
     if (!$result->fetchField()) {
       $form['bbcode']['#collapsed'] = FALSE;
       $output .= '<p class="marker">' . t('You need to <a href="@formatenable">enable bbcode in the selected input format</a> <a href="@formatconfigure">THEN click on configure to see bbcode options</a>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure)) . '</p>';

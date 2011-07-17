@@ -552,7 +552,7 @@ function phpbb2drupal_import_topics() {
   // Get All topics from PHPBB
   db_set_active('phpbb');
   // topic_status == 2, Moved topics are duplicates don't import
-  $topic_ids = db_query('SELECT topic_id FROM :pretopics ORDER BY topic_id', array(':pre' => $pre);
+  $topic_ids = db_query('SELECT topic_id FROM :pretopics ORDER BY topic_id', array(':pre' => $pre));
   $topic_count = db_query('SELECT COUNT(*) FROM %pretopics', array(':pre' => $pre))->fetchField();
   drupal_set_message(t('Found %topic_count topics: Beginning Import', array('%topic_count' => $topic_count)));
 
@@ -579,7 +579,7 @@ function phpbb2drupal_import_topics() {
     $querycount = db_query('SELECT COUNT(*)
       FROM :pretopics t
       INNER JOIN :pre1posts p ON t.topic_id = p.topic_id WHERE p.post_id = :p.post_id
-      AND t.topic_id = :t.topic_id', array(':pre' => $pre, ':pre1' => $pre ':p.post_id' => t . topic_first_post_id, ':t.topic_id' => $result->topic_id));
+      AND t.topic_id = :t.topic_id', array(':pre' => $pre, ':pre1' => $pre, ':p.post_id' => t . topic_first_post_id, ':t.topic_id' => $result->topic_id));
 
 
     // check if the topic is a valid topic.  if not, continue on
@@ -693,7 +693,7 @@ function phpbb2drupal_import_topics() {
           $id = db_insert('files')->fields(array(
             'uid' => $uid,
             'filename' => substr($file->real_filename, 0, 255),
-            'filepath' => substr( $file_path $file->physical_filename, 0, 255),
+            'filepath' => substr( $file_path . $file->physical_filename, 0, 255),
             'filemime' => substr($file->mimetype, 0, 255),
             'filesize' => $file->filesize,
             'status' => 1,
@@ -886,7 +886,7 @@ function phpbb2drupal_import_posts() {
             ->fields(array(
               'uid' => $uid,
               'filename' => substr($file->real_filename, 0, 255),
-              'filepath' => substr( $file_path $file->physical_filename, 0, 255),
+              'filepath' => substr( $file_path . $file->physical_filename, 0, 255),
               'filemime' => substr($file->mimetype, 0, 255),
               'filesize' => $file->filesize,
               'status' => 1,
