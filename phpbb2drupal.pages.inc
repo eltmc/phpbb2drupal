@@ -175,7 +175,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
   $input_formats = array(0 => t('not set yet'));
   $sql = 'SELECT format, name FROM {filter_formats}';
   $result = db_query($sql);
-  while ($format = db_fetch_array($result)) {
+  foreach ($result as $format) {
     $input_formats[$format['format']] = $format['name'];
   }
   $input_format = variable_get('phpbb2drupal_input_format', 0);
@@ -228,7 +228,6 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
         You first need to <a href="@adminmodules">enable the bbcode module</a>', array('@adminmodules' => url('admin/modules')));
       $output .= '</span></p>';
     }
-    $sql = 'SELECT COUNT(*) FROM {filters} WHERE module = \'bbcode\' AND format = %d';
     $result = db_query('SELECT COUNT(*) FROM {filters} WHERE module = :module AND format = :format', array(':module' => 'bbcode', ':format' => $input_format,));
     if (!$result->fetchField()) {
       $form['bbcode']['#collapsed'] = FALSE;
