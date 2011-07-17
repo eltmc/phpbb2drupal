@@ -936,69 +936,6 @@ function phpbb2drupal_import_posts() {
 function phpbb2drupal_import_cleanup() {
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
 
-  #
-  # Update Drupal sequence
-  #
-  db_set_active('default');
-  $term_data_tid = db_query('SELECT MAX(tid) FROM {taxonomy_term_data}')->fetchField();
-  $comments_cid = db_query('SELECT MAX(cid) FROM {comments}')->fetchField();
-  $node_nid = db_query('SELECT MAX(nid) FROM {node}')->fetchField();
-  $users_uid = db_query('SELECT MAX(uid) FROM {users}')->fetchField();
-
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("DELETE FROM {sequences} WHERE name='term_data_tid'") */
-  db_delete('sequences')
-  ->condition('name', 'term_data_tid')
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("DELETE FROM {sequences} WHERE name='comments_cid'") */
-  db_delete('sequences')
-  ->condition('name', 'comments_cid')
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("DELETE FROM {sequences} WHERE name='node_nid'") */
-  db_delete('sequences')
-  ->condition('name', 'node_nid')
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("DELETE FROM {sequences} WHERE name='users_uid'") */
-  db_delete('sequences')
-  ->condition('name', 'users_uid')
-  ->execute();
-
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("INSERT INTO {sequences} (name,id) VALUES ('term_data_tid', '%s')", $term_data_tid) */
-  $id = db_insert('sequences')
-  ->fields(array(
-    'name' => 'term_data_tid',
-    'id' => $term_data_tid,
-  ))
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("INSERT INTO {sequences} (name,id) VALUES ('comments_cid', '%s')", $comments_cid) */
-  $id = db_insert('sequences')
-  ->fields(array(
-    'name' => 'comments_cid',
-    'id' => $comments_cid,
-  ))
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("INSERT INTO {sequences} (name,id) VALUES ('node_nid', '%s')", $node_nid) */
-  $id = db_insert('sequences')
-  ->fields(array(
-    'name' => 'node_nid',
-    'id' => $node_nid,
-  ))
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("INSERT INTO {sequences} (name,id) VALUES ('users_uid', '%s')", $users_uid) */
-  $id = db_insert('sequences')
-  ->fields(array(
-    'name' => 'users_uid',
-    'id' => $users_uid,
-  ))
-  ->execute();
-
   if (variable_get('phpbb2drupal_import_attachments', 0)) {
     $files_fid = db_query('SELECT MAX(fid) FROM {files}')->fetchField();
     if (!$files_fid) { //may be NULL
