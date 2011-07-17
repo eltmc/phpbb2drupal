@@ -150,16 +150,9 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default', $prefix
     }
 
     db_set_active($db);
-    if ($GLOBALS['db_type'] == 'pgsql') {
-      // adapt from db_table_exists in database.pgsql.inc
-      $result = (bool) db_query("SELECT COUNT(*) FROM pg_class WHERE relname = :relname", array(':relname' => $table))->fetchField();
-    }
-    else {
-      // adapt from db_table_exists in database.mysql.inc
-      $result = (bool) db_fetch_object(db_query("SHOW TABLES LIKE :table", array(
-        ':table' => $table,
-      )));
-    }
+
+    $result = db_table_exists($table);
+
     db_set_active('default');
     if ($result) {
       $out['html'] .= '<li>' . t('Table %table: OK!', array('%table' => $table)) . '</li>';

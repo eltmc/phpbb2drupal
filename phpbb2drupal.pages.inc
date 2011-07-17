@@ -78,7 +78,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     <p>If both phpBB and Drupal are on postgresql, see <a href="http://drupal.org/node/64877">this issue</a>.</p>');
   $form['phpbb_data']['note'] = array('#value' => $output);
 
-  // phpBB2 table prefix
+  // phpBB table prefix
   $output = '';
   $form['phpbb_data']['phpbb2drupal_table_prefix'] = array(
     '#type' => 'textfield',
@@ -173,10 +173,10 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
   $output = '';
 
   $input_formats = array(0 => t('not set yet'));
-  $sql = 'SELECT format, name FROM {filter_formats}';
+  $sql = 'SELECT format, name FROM {filter_format}';
   $result = db_query($sql);
   foreach ($result as $format) {
-    $input_formats[$format['format']] = $format['name'];
+    $input_formats[$format->format] = $format->name;
   }
   $input_format = variable_get('phpbb2drupal_input_format', 0);
   $form['input']['phpbb2drupal_input_format'] = array(
