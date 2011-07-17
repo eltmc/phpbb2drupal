@@ -263,14 +263,15 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     '#description' => '',
   );
   if (variable_get('phpbb2drupal_import_attachments', 0) == 1) {
-    // Comment attachments module
-    $result = _phpbb2drupal_check_module('comment_upload');
+    // Make sure that File module is enabled.
+    //TODO: Add a check to see if a file field is enabled on the forum node and on comments and select the correct one.
+    $result = _phpbb2drupal_check_module('file');
     $output .= $result['html'];
     if ($result['result'] != 1) {
       $ready_for_migration = 0;
       $form['attachments']['#collapsed'] = FALSE;
       $output .= '<span class="marker">';
-      $output .= t('The comment_upload.module is not enabled. You can go to the <a href="http://drupal.org/node/37197" target="_blank">module Home Page</a> and download it. Then go to <a href="@adminmodules">admin/build/modules</a> to enable the module.', array('@adminmodules' => url('admin/modules')));
+      $output .= t('The file module is not enabled. You can go to <a href="@adminmodules">admin/modules</a> to enable this module.', array('@adminmodules' => url('admin/modules')));
       $output .= '</span>';
       $form['attachments']['result'] = array('#markup' => $output);
     }
