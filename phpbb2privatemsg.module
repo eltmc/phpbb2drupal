@@ -104,7 +104,8 @@ function phpbb2privatemsg_import() {
   $messages = db_query($query, $pre);
 
   db_set_active('default');
-  while ($pm = db_fetch_object($messages)) {
+
+  foreach ($messages as $pm) {
     $from = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $pm->author_id))->fetchField();
     // don't import private messages from or to users who are not imported.
     if ($from) {
@@ -141,8 +142,6 @@ function phpbb2privatemsg_import() {
           $message['thread_id'] = $message['mid'];
         }
 
-        // TODO Please review the conversion of this statement to the D7 database API syntax.
-        /* db_query('INSERT INTO {phpbb2privatemsg} (mid, thread_id, msg_id) VALUES (%d, %d, %d)', $message['mid'], $message['thread_id'], $pm->msg_id) */
         $result = $id = db_insert('phpbb2privatemsg')
   ->fields(array(
     'mid' => $message['mid'],
@@ -156,7 +155,8 @@ function phpbb2privatemsg_import() {
         $query = "SELECT * FROM %sprivmsgs_to  WHERE msg_id = %d ORDER BY msg_id ASC";
         $result = db_query("SELECT * FROM %sprivmsgs_to  WHERE msg_id = :msg_id ORDER BY msg_id ASC", array(':msg_id' => $pre, '' => $pm->msg_id));
         db_set_active('default');
-        while ($index = db_fetch_object($result)) {
+
+        foreach ($result as $index) {
           // Fill in appropriate fields.
           $message['uid'] = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $index->user_id))->fetchField();
           $message['is_new'] = $index->pm_unread;

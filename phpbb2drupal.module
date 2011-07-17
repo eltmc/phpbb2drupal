@@ -353,7 +353,7 @@ function phpbb2drupal_import_users() {
 
   $import_spammers = variable_get('phpbb2drupal_import_spammers', 1);
 
-  while ($result = db_fetch_object($user_ids)) {
+  foreach ($user_ids as $result) {
 
     db_set_active('phpbb');
     $user = db_fetch_object(db_query('SELECT * FROM %susers WHERE user_id = :user_id', array(':user_id' => $pre, '' => $result->user_id)));
@@ -449,14 +449,13 @@ function phpbb2drupal_import_users() {
 
       // populate the temporary user table
       db_set_active('default');
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query('INSERT INTO {phpbb2drupal_temp_user} (user_id, uid) VALUES ( %d, %d )', $user->user_id, $drupal_user->uid) */
+
       $id = db_insert('phpbb2drupal_temp_user')
-  ->fields(array(
+      ->fields(array(
         'user_id' => $user->user_id,
         'uid' => $drupal_user->uid,
       ))
-  ->execute();
+      ->execute();
 
       db_set_active('phpbb');
     }
@@ -492,7 +491,8 @@ function phpbb2drupal_import_categories() {
   db_set_active('phpbb');
 
   $results = db_query('SELECT * FROM %sforums WHERE forum_type <> :forum_type ORDER BY parent_id', array(':forum_type' => 2, '' => $pre));
-  while ($result = db_fetch_object($results)) {
+
+  foreach ($results as $result) {
     db_set_active('default');
     if (!db_query('SELECT forum_id FROM {phpbb2drupal_temp_forum} WHERE forum_id = :forum_id', array(':forum_id' => $result->forum_id))->fetchField()) {
       if ($result->parent_id > 0) {
@@ -517,14 +517,12 @@ function phpbb2drupal_import_categories() {
         variable_set('forum_containers', $containers);
       }
       //save the container to the forum table - yes this is hackish.
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query('INSERT INTO {phpbb2drupal_temp_forum} (forum_id, tid) VALUES (%d, %d)', $result->forum_id, $forum['tid']) */
       $id = db_insert('phpbb2drupal_temp_forum')
-  ->fields(array(
+      ->fields(array(
         'forum_id' => $result->forum_id,
         'tid' => $forum['tid'],
       ))
-  ->execute();
+      ->execute();
     }
     db_set_active('phpbb');
   }
@@ -561,8 +559,8 @@ function phpbb2drupal_import_topics() {
   // Import the topics into drupal
   $counter = 0;
   db_set_active('phpbb');
-  while ($result = db_fetch_object($topic_ids)) {
 
+  foreach ($topic_ids as $result) {
     // check if this topic has been imported already just to be sure
     db_set_active('default');
     $count = db_query('SELECT count(*) FROM {phpbb2drupal_temp_topic} WHERE topic_id = :topic_id', array(':topic_id' => $result->topic_id))->fetchField();
@@ -688,57 +686,55 @@ function phpbb2drupal_import_topics() {
         db_set_active('phpbb');
         $files = db_query('SELECT * FROM %sattachments a WHERE a.post_msg_id = :a.post_msg_id', array(':a.post_msg_id' => $pre, '' => $topic->topic_first_post_id));
 
-        while ($file = db_fetch_object($files)) {
+        foreach ($files as $file) {
+        
           db_set_active('default');
-	  // TODO Please review the conversion of this statement to the D7 database API syntax.
-	  /* db_query("INSERT INTO {files} (uid, filename, filepath, filemime, filesize, status, timestamp) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, substr($file->real_filename, 0, 255), substr( $file_path $file->physical_filename, 0, 255), substr($file->mimetype, 0, 255), $file->filesize, 1, $file->filetime) */
-	  $id = db_insert('files')->fields(array(
-	    'uid' => $uid,
-	    'filename' => substr($file->real_filename, 0, 255),
-	    'filepath' => substr( $file_path $file->physical_filename, 0, 255),
-	    'filemime' => substr($file->mimetype, 0, 255),
-	    'filesize' => $file->filesize,
-	    'status' => 1,
-	    'timestamp' => $file->filetime,
-	  ))->execute();
+
+          $id = db_insert('files')->fields(array(
+            'uid' => $uid,
+            'filename' => substr($file->real_filename, 0, 255),
+            'filepath' => substr( $file_path $file->physical_filename, 0, 255),
+            'filemime' => substr($file->mimetype, 0, 255),
+            'filesize' => $file->filesize,
+            'status' => 1,
+            'timestamp' => $file->filetime,
+          ))->execute();
+
           $fid = db_last_insert_id('files', 'fid');
-	  // TODO Please review the conversion of this statement to the D7 database API syntax.
-	  /* db_query("INSERT INTO {upload} (fid, nid, vid, description, list, weight) VALUES (%d, %d, %d, '%s', %d, %d)", $fid, $node->nid, $node->nid, substr($file->real_filename, 0, 255), 1, $file->attach_id) */
-	  $id = db_insert('upload')
-  ->fields(array(
-	    'fid' => $fid,
-	    'nid' => $node->nid,
-	    'vid' => $node->nid,
-	    'description' => substr($file->real_filename, 0, 255),
-	    'list' => 1,
-	    'weight' => $file->attach_id,
-	  ))
-  ->execute();
+
+          $id = db_insert('upload')
+           ->fields(array(
+            'fid' => $fid,
+            'nid' => $node->nid,
+            'vid' => $node->nid,
+            'description' => substr($file->real_filename, 0, 255),
+            'list' => 1,
+            'weight' => $file->attach_id,
+          ))
+          ->execute();
+
           db_set_active('phpbb');
         }
       }
     }
 
     db_set_active('default');
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query('INSERT INTO {phpbb2drupal_temp_topic} (topic_id, post_id, nid) VALUES (%d, %d, %d)', $topic->topic_id, $topic->post_id, $node->nid) */
+
     $id = db_insert('phpbb2drupal_temp_topic')
-  ->fields(array(
-      'topic_id' => $topic->topic_id,
-      'post_id' => $topic->post_id,
-      'nid' => $node->nid,
-    ))
-  ->execute();
+    ->fields(array(
+        'topic_id' => $topic->topic_id,
+        'post_id' => $topic->post_id,
+        'nid' => $node->nid,
+      ))
+    ->execute();
 
     //hack to keep the topics in correct order
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query('UPDATE {node_comment_statistics} SET last_comment_timestamp = %d WHERE nid = %d', $node->created, $node->nid) */
     db_update('node_comment_statistics')
-  ->fields(array(
-      'last_comment_timestamp' => $node->created,
-    ))
-  ->condition('nid', $node->nid)
-  ->execute();
+    ->fields(array(
+        'last_comment_timestamp' => $node->created,
+      ))
+    ->condition('nid', $node->nid)
+    ->execute();
 
     db_set_active('phpbb');
   }
@@ -784,7 +780,7 @@ function phpbb2drupal_import_posts() {
   $errors = 0;
   $loops = 0;
   // Import the posts into drupal
-  while ($obj = db_fetch_object($topic_ids)) {
+  foreach ($topic_ids as $obj) {
     $loops++;
 
     // skip first post if the post is not a poll
@@ -794,7 +790,8 @@ function phpbb2drupal_import_posts() {
 
     unset($obj);
 
-    while ($result = db_fetch_object($post_ids)) {
+    foreach ($post_ids as $result) {
+    
       $loops++;
 
       db_set_active('phpbb');
@@ -882,12 +879,11 @@ function phpbb2drupal_import_posts() {
           db_set_active('phpbb');
           $files = db_query('SELECT * FROM %sattachments a WHERE a.post_msg_id = :a.post_msg_id', array(':a.post_msg_id' => $pre, '' => $post->post_id));
 
-          while ($file = db_fetch_object($files)) {
+          foreach ($files as $file) {
+          
             db_set_active('default');
-            // TODO Please review the conversion of this statement to the D7 database API syntax.
-            /* db_query("INSERT INTO {files} (uid, filename, filepath, filemime, filesize, status, timestamp) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, substr($file->real_filename, 0, 255), substr( $file_path $file->physical_filename, 0, 255), substr($file->mimetype, 0, 255), $file->filesize, 1, $file->filetime) */
             $id = db_insert('files')
-  ->fields(array(
+            ->fields(array(
               'uid' => $uid,
               'filename' => substr($file->real_filename, 0, 255),
               'filepath' => substr( $file_path $file->physical_filename, 0, 255),
@@ -896,12 +892,10 @@ function phpbb2drupal_import_posts() {
               'status' => 1,
               'timestamp' => $file->filetime,
             ))
-  ->execute();
+            ->execute();
             $fid = db_last_insert_id('files', 'fid');
-            // TODO Please review the conversion of this statement to the D7 database API syntax.
-            /* db_query("INSERT INTO {comment_upload} (fid, nid, cid, description, list, weight) VALUES (%d, %d, %d, '%s', %d, %d)", $fid, $nid, $cid, substr($file->real_filename, 0, 255), 1, $file->attach_id) */
             $id = db_insert('comment_upload')
-  ->fields(array(
+            ->fields(array(
               'fid' => $fid,
               'nid' => $nid,
               'cid' => $cid,
@@ -909,21 +903,20 @@ function phpbb2drupal_import_posts() {
               'list' => 1,
               'weight' => $file->attach_id,
             ))
-  ->execute();
+            ->execute();
             db_set_active('phpbb');
           }
         }
       }
 
       db_set_active('default');
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query('INSERT INTO {phpbb2drupal_temp_post} (post_id, cid) VALUES (%d, %d)', $post->post_id, $cid) */
+
       $id = db_insert('phpbb2drupal_temp_post')
-  ->fields(array(
+      ->fields(array(
         'post_id' => $post->post_id,
         'cid' => $cid,
       ))
-  ->execute();
+      ->execute();
 
       db_set_active('phpbb');
     }
@@ -1097,25 +1090,23 @@ function phpbb2drupal_user_save($phpbb_user, $category = array()) {
 function phpbb2drupal_profile_save_profile(&$edit, &$user, $category) {
   $result = db_query('SELECT fid, name, type, category, weight FROM {profile_fields} WHERE register = :register ORDER BY category, weight', array(':register' => 1));
 
-  while ($field = db_fetch_object($result)) {
+  foreach ($result as $field) {
     if (_profile_field_serialize($field->type)) {
       $edit[$field->name] = serialize($edit[$field->name]);
     }
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query('DELETE FROM {profile_values} WHERE fid = %d AND uid = %d', $field->fid, $user->uid) */
+
     db_delete('profile_values')
-  ->condition('fid', $field->fid)
-  ->condition('uid', $user->uid)
-  ->execute();
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query("INSERT INTO {profile_values} (fid, uid, value) VALUES (%d, %d, '%s')", $field->fid, $user->uid, $edit[$field->name]) */
+      ->condition('fid', $field->fid)
+      ->condition('uid', $user->uid)
+      ->execute();
+
     $id = db_insert('profile_values')
-  ->fields(array(
-      'fid' => $field->fid,
-      'uid' => $user->uid,
-      'value' => $edit[$field->name],
-    ))
-  ->execute();
+      ->fields(array(
+        'fid' => $field->fid,
+        'uid' => $user->uid,
+        'value' => $edit[$field->name],
+      ))
+      ->execute();
     // Mark field as handled (prevents saving to user->data).
     $edit[$field->name] = NULL;
   }
@@ -1174,8 +1165,6 @@ function phpbb2drupal_comment_save($edit) {
     $edit['name'] = $user->name;
   }
 
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("INSERT INTO {comments} (nid, pid, uid, subject, comment, format, hostname, timestamp, status, thread, name) VALUES (%d, %d, %d, '%s', '%s', %d, '%s', %d, %d, '%s', '%s')", $edit['nid'], $edit['pid'], $edit['uid'], $edit['subject'], $edit['comment'], $edit['format'], ip_address(), $edit['timestamp'], $edit['status'], $thread, $edit['name']) */
   $id = db_insert('comments')
   ->fields(array(
     'nid' => $edit['nid'],
@@ -1285,13 +1274,13 @@ function phpbb2drupal_replace_url() {
   // As the topics have just been imported, there is only one vid for each nid,
   // so the query works as it is.
   $result = db_query('SELECT ptt.nid, n.body, n.teaser FROM {phpbb2drupal_temp_topic} AS ptt LEFT JOIN {node_revisions} AS n ON ptt.nid = n.nid');
-  while ($node = db_fetch_object($result)) {
+
+  foreach ($result as $node) {
     $node->body = _phpbb2drupal_replace_links($node->body);
     $node->teaser = _phpbb2drupal_replace_links($node->teaser);
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query("UPDATE {node_revisions} SET body= '%s', teaser = '%s' WHERE nid = %d", $node->body, $node->teaser, $node->nid) */
+
     db_update('node_revisions')
-  ->fields(array(
+    ->fields(array(
       'body' => $node->body,
       'teaser' => $node->teaser,
     ))
@@ -1301,16 +1290,16 @@ function phpbb2drupal_replace_url() {
 
   // transform comments:
   $result = db_query('SELECT c.cid, c.comment FROM {phpbb2drupal_temp_post} AS p LEFT JOIN {comments} AS c ON p.cid = c.cid');
-  while ($comment = db_fetch_object($result)) {
+
+  foreach ($result as $comment) {
     $comment->comment = _phpbb2drupal_replace_links($comment->comment);
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query("UPDATE {comments} SET comment= '%s' WHERE cid = %d", $comment->comment, $comment->cid) */
+
     db_update('comments')
-  ->fields(array(
+    ->fields(array(
       'comment' => $comment->comment,
     ))
-  ->condition('cid', $comment->cid)
-  ->execute();
+    ->condition('cid', $comment->cid)
+    ->execute();
   }
 
   variable_set('phpbb2drupal_replace_url_successful', '1');
