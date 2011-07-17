@@ -103,7 +103,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     $output .= '</span>';
   }
 
-  $form['phpbb_data']['result'] = array('#value' => $output);
+  $form['phpbb_data']['result'] = array('#markup' => $output);
 
   // Misc.	
   $form['time'] = array(
@@ -124,7 +124,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     '#description' => t('How long, in seconds, will the migration take?'),
   );
   $form['time']['info'] = array(
-    '#value' => '<p>' . t('1200 = 20 minutes should be enough for most boards. It worked well for a board with 300,000 rows. Beware: if your site is cohosted and safe-mode is on, then this value will have no effect.') . '</p>',
+    '#markup' => '<p>' . t('1200 = 20 minutes should be enough for most boards. It worked well for a board with 300,000 rows. Beware: if your site is cohosted and safe-mode is on, then this value will have no effect.') . '</p>',
   );
 
   // USERS settings
@@ -169,7 +169,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     '#collapsed' => TRUE,
   );
   $output = '<p>' . t('Select which <a href="@link">input format</a> should the imported messages be set:', array('@link' => url('admin/config/content/formats'))) . '</p>';
-  $form['input']['intro'] = array('#value' => $output);
+  $form['input']['intro'] = array('#markup' => $output);
   $output = '';
 
   $input_formats = array(0 => t('not set yet'));
@@ -190,7 +190,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     $form['input']['#collapsed'] = FALSE;
   }
   $output .= '<p><em>' . t('This setting will be applied to all posts and private messages.') . '</em></p>';
-  $form['input']['result'] = array('#value' => $output);
+  $form['input']['result'] = array('#markup' => $output);
 
 
   // BBcode settings
@@ -245,7 +245,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
       <p>You may want to enable it for other input formats, too.</p>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure));
   }
   $output .= '<p><em>' . t('This setting will be applied to all posts, private messages and the users\' signature.') . '</em></p>';
-  $form['bbcode']['result'] = array('#value' => $output);
+  $form['bbcode']['result'] = array('#markup' => $output);
 
   //Attachments
   $output = '';
@@ -272,7 +272,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
       $output .= '<span class="marker">';
       $output .= t('The comment_upload.module is not enabled. You can go to the <a href="http://drupal.org/node/37197" target="_blank">module Home Page</a> and download it. Then go to <a href="@adminmodules">admin/build/modules</a> to enable the module.', array('@adminmodules' => url('admin/modules')));
       $output .= '</span>';
-      $form['attachments']['result'] = array('#value' => $output);
+      $form['attachments']['result'] = array('#markup' => $output);
     }
   }
 
@@ -291,7 +291,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     $output = '<p class="marker">' . t('You are not ready for the migration yet. Check the settings above.') . '</p>';
   }
 
-  $form['migration']['info'] = array('#value' => $output);
+  $form['migration']['info'] = array('#markup' => $output);
   return system_settings_form($form);
 
 }
