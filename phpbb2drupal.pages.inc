@@ -273,8 +273,8 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
       $output .= '<span class="marker">';
       $output .= t('The file module is not enabled. You can go to <a href="@adminmodules">admin/modules</a> to enable this module.', array('@adminmodules' => url('admin/modules')));
       $output .= '</span>';
-      $form['attachments']['result'] = array('#markup' => $output);
     }
+    $form['attachments']['result'] = array('#markup' => $output);
   }
 
   // Are we ready for migration?
@@ -286,7 +286,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
   );
   variable_set('phpbb2drupal_ready', $ready_for_migration);
   if ($ready_for_migration) {
-    $output .= '<p>' . t('Check again all the settings above, and if everything is ok, <a href="@migratelink">you can now proceed with the migration</a>', array('@migratelink' => url('admin/phpbb2drupal/migrate'))) . '</p>';
+    $output = '<p>' . t('Check again all the settings above, and if everything is ok, <a href="@migratelink">you can now proceed with the migration</a>', array('@migratelink' => url('admin/phpbb2drupal/migrate'))) . '</p>';
   }
   else {
     $output = '<p class="marker">' . t('You are not ready for the migration yet. Check the settings above.') . '</p>';
