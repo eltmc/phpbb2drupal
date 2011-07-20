@@ -176,8 +176,7 @@ function phpbb2drupal_migrate() {
     return '<p>' . t('You cannot migrate the data now. Please <a href="@settings">complete the setup first</a>', array('@settings' => url('admin/config/phpbb2drupal'))) . '</p>';
   }
 
-  $output = 'Phpbb 2 Drupal Migration Form';
-  $output .= drupal_get_form('phpbb2drupal_migrate_form');
+  $output[] = drupal_get_form('phpbb2drupal_migrate_form');
   return $output;
 }
 
@@ -205,7 +204,8 @@ function phpbb2drupal_migrate_form($form) {
   $form['import'] = array(
     '#type' => 'select',
     '#title' => t('Next import to perform'),
-    '#default_value' => $_SESSION['phpbb2drupal_selected'],
+    // Get default value - if none exists, set the first step as default.
+    '#default_value' => isset($_SESSION['phpbb2drupal_selected']) ? $_SESSION['phpbb2drupal_selected'] : 'users',
     '#options' => $PHPBB2DRUPAL_FUNCTIONS,
   );
   $form[] = array(
