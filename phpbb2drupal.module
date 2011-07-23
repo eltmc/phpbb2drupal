@@ -70,11 +70,11 @@ function phpbb2drupal_permission() {
  * Callback admin/phpbb2drupal/reset
  */
 function phpbb2drupal_reset() {
-  variable_del('phpbb2drupal_db_database'),
-  variable_del('phpbb2drupal_db_username'),
-  variable_del('phpbb2drupal_db_password'),
-  variable_del('phpbb2drupal_db_host'),
-  variable_del('phpbb2drupal_db_driver'),  
+  variable_del('phpbb2drupal_db_database');
+  variable_del('phpbb2drupal_db_username');
+  variable_del('phpbb2drupal_db_password');
+  variable_del('phpbb2drupal_db_host');
+  variable_del('phpbb2drupal_db_driver');
   variable_del('phpbb2drupal_ready', 0);
 
   return '<p>' . t('The phpBB2 database URL has been reset. You may now <a href="@configlink">go back to the configuration page</a>.',
@@ -945,11 +945,11 @@ function phpbb2drupal_import_posts() {
  */
 function phpbb2drupal_import_cleanup() {
   variable_del('phpbb2drupal_table_prefix');
-  variable_del('phpbb2drupal_db_database'),
-  variable_del('phpbb2drupal_db_username'),
-  variable_del('phpbb2drupal_db_password'),
-  variable_del('phpbb2drupal_db_host'),
-  variable_del('phpbb2drupal_db_driver'),  
+  variable_del('phpbb2drupal_db_database');
+  variable_del('phpbb2drupal_db_username');
+  variable_del('phpbb2drupal_db_password');
+  variable_del('phpbb2drupal_db_host');
+  variable_del('phpbb2drupal_db_driver');
   variable_del('phpbb2drupal_import_user_successful');
   variable_del('phpbb2drupal_import_user_started');
   variable_del('phpbb2drupal_import_category_successful');
