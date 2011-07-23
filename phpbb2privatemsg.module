@@ -100,8 +100,8 @@ function phpbb2privatemsg_import() {
     return t('Messages have already been imported successfully.');
   }
   db_set_active('phpbb');
-  $query = "SELECT * FROM :preprivmsgs ORDER BY msg_id ASC";
-  $messages = db_query($query, array(':pre' => $pre));
+  $query = "SELECT * FROM {privmsgs} ORDER BY msg_id ASC";
+  $messages = db_query($query);
 
   db_set_active('default');
 
@@ -152,7 +152,7 @@ function phpbb2privatemsg_import() {
 
         //insert index record for the author and all recipients of a message.
         db_set_active('phpbb');
-        $result = db_query("SELECT * FROM :preprivmsgs_to  WHERE msg_id = :msg_id ORDER BY msg_id ASC", array(':pre' => $pre':msg_id' => $pm->msg_id));
+        $result = db_query("SELECT * FROM {privmsgs_to}  WHERE msg_id = :msg_id ORDER BY msg_id ASC", array(':msg_id' => $pm->msg_id));
         db_set_active('default');
 
         foreach ($result as $index) {

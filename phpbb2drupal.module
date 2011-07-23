@@ -346,9 +346,9 @@ function phpbb2drupal_import_users() {
   // FIXME continue here.
   // Insert the users into drupal
   db_set_active('phpbb');
-  $user_ids = db_query('SELECT user_id FROM :preusers WHERE ( user_id > :user_id AND user_type <> :user_type ORDER BY user_id', array(':pre' => $pre, ':user_id' => 2, ':user_type' => 2));
+  $user_ids = db_query('SELECT user_id FROM {users} WHERE ( user_id > :user_id AND user_type <> :user_type ORDER BY user_id', array(':user_id' => 2, ':user_type' => 2));
 
-  $user_count = db_query('SELECT COUNT(*) FROM :preusers WHERE user_id > :user_id', array(':pre' => $pre, ':user_id' => 2))->fetchField();
+  $user_count = db_query('SELECT COUNT(*) FROM {users} WHERE user_id > :user_id', array(':user_id' => 2))->fetchField();
 
   if (!$user_count) {
     drupal_set_message(t('There were no users found: Aborting script'), 'error');
@@ -362,7 +362,7 @@ function phpbb2drupal_import_users() {
   foreach ($user_ids as $result) {
 
     db_set_active('phpbb');
-    $user = db_fetch_object(db_query('SELECT * FROM :preusers WHERE user_id = :user_id', array(':pre' => $pre, ':user_id' => $result->user_id)));
+    $user = db_fetch_object(db_query('SELECT * FROM {users} WHERE user_id = :user_id', array(':user_id' => $result->user_id)));
 
     // If we don't want to import users who have never posted, break this while loop here.
     if ($import_spammers == 1 || $user->user_posts != 0 ) {
@@ -496,7 +496,7 @@ function phpbb2drupal_import_categories() {
   // Get Categories/Forums from PHPBB
   db_set_active('phpbb');
 
-  $results = db_query('SELECT * FROM :preforums WHERE forum_type <> :forum_type ORDER BY parent_id', array(':pre' => $pre, ':forum_type' => 2));
+  $results = db_query('SELECT * FROM {forums} WHERE forum_type <> :forum_type ORDER BY parent_id', array(':forum_type' => 2));
 
   foreach ($results as $result) {
     db_set_active('default');
@@ -558,8 +558,8 @@ function phpbb2drupal_import_topics() {
   // Get All topics from PHPBB
   db_set_active('phpbb');
   // topic_status == 2, Moved topics are duplicates don't import
-  $topic_ids = db_query('SELECT topic_id FROM :pretopics ORDER BY topic_id', array(':pre' => $pre));
-  $topic_count = db_query('SELECT COUNT(*) FROM %pretopics', array(':pre' => $pre))->fetchField();
+  $topic_ids = db_query('SELECT topic_id FROM {topics} ORDER BY topic_id');
+  $topic_count = db_query('SELECT COUNT(*) FROM {topics}')->fetchField();
   drupal_set_message(t('Found %topic_count topics: Beginning Import', array('%topic_count' => $topic_count)));
 
   // Import the topics into drupal
@@ -578,14 +578,14 @@ function phpbb2drupal_import_topics() {
     db_set_active('phpbb');
 
     $query = db_query('SELECT *
-      FROM :pretopics t
-      INNER JOIN :pre1posts p ON t.topic_id = p.topic_id WHERE p.post_id = :p.post_id
-      AND t.topic_id = :t.topic_id', array(':pre' => $pre, ':pre1' => $pre, ':p.post_id' => t . topic_first_post_id, ':t.topic_id' => $result->topic_id));
+      FROM {topics} t
+      INNER JOIN {posts} p ON t.topic_id = p.topic_id WHERE p.post_id = :p.post_id
+      AND t.topic_id = :t.topic_id', array(':p.post_id' => t . topic_first_post_id, ':t.topic_id' => $result->topic_id));
 
     $querycount = db_query('SELECT COUNT(*)
-      FROM :pretopics t
-      INNER JOIN :pre1posts p ON t.topic_id = p.topic_id WHERE p.post_id = :p.post_id
-      AND t.topic_id = :t.topic_id', array(':pre' => $pre, ':pre1' => $pre, ':p.post_id' => t . topic_first_post_id, ':t.topic_id' => $result->topic_id));
+      FROM {topics} t
+      INNER JOIN {posts} p ON t.topic_id = p.topic_id WHERE p.post_id = :p.post_id
+      AND t.topic_id = :t.topic_id', array(':p.post_id' => t . topic_first_post_id, ':t.topic_id' => $result->topic_id));
 
 
     // check if the topic is a valid topic.  if not, continue on
@@ -662,7 +662,7 @@ function phpbb2drupal_import_topics() {
 
     if ($topic->topic_status == 2) {
       db_set_active('phpbb');
-      $forum_id = db_query('SELECT forum_id FROM :pretopics WHERE topic_id = :topic_id', array(':pre' => $pre, ':topic_id' => $topic->topic_moved_id))->fetchField();
+      $forum_id = db_query('SELECT forum_id FROM {topics} WHERE topic_id = :topic_id', array(':topic_id' => $topic->topic_moved_id))->fetchField();
       db_set_active('default');
       $moved_tid = db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = :forum_id', array(':forum_id' => $forum_id))->fetchField();
 
@@ -690,7 +690,7 @@ function phpbb2drupal_import_topics() {
         $file_path = variable_get('file_directory_path', 'files');
 
         db_set_active('phpbb');
-        $files = db_query('SELECT * FROM :preattachments a WHERE a.post_msg_id = :a.post_msg_id', array(':pre' => $pre, ':a.post_msg_id' => $topic->topic_first_post_id));
+        $files = db_query('SELECT * FROM {attachments} a WHERE a.post_msg_id = :a.post_msg_id', array(':a.post_msg_id' => $topic->topic_first_post_id));
 
         foreach ($files as $file) {
         
@@ -776,11 +776,11 @@ function phpbb2drupal_import_posts() {
   db_set_active('phpbb');
 
   $topic_ids = db_query('SELECT topic_id, topic_first_post_id, topic_last_post_id
-    FROM :pretopics
+    FROM {topics}
     WHERE topic_replies > :topic_replies
-    ORDER BY topic_id', array(':pre' => $pre, ':topic_replies' => 0));
+    ORDER BY topic_id', array(':topic_replies' => 0));
 
-  $topic_count = db_query("SELECT COUNT(topic_id) FROM :pretopics WHERE topic_replies > :topic_replies", array(':pre' => $pre, ':topic_replies' => 0))->fetchField();
+  $topic_count = db_query("SELECT COUNT(topic_id) FROM {topics} WHERE topic_replies > :topic_replies", array(':topic_replies' => 0))->fetchField();
   drupal_set_message(t('Found %post_count posts: Beginning Import', array('%post_count' => $topic_count)));
 
   $errors = 0;
@@ -792,7 +792,7 @@ function phpbb2drupal_import_posts() {
     // skip first post if the post is not a poll
     // stupid phpbb... make the way you store topics consistent for crying out loud
     db_set_active('phpbb');
-    $post_ids = db_query('SELECT post_id FROM :preposts WHERE topic_id = :topic_id AND post_id <> :post_id ORDER BY post_id', array(':pre' => $pre, ':topic_id' => $obj->topic_id, ':post_id' => $obj->topic_first_post_id));
+    $post_ids = db_query('SELECT post_id FROM {posts} WHERE topic_id = :topic_id AND post_id <> :post_id ORDER BY post_id', array(':topic_id' => $obj->topic_id, ':post_id' => $obj->topic_first_post_id));
 
     unset($obj);
 
@@ -801,8 +801,8 @@ function phpbb2drupal_import_posts() {
       $loops++;
 
       db_set_active('phpbb');
-      $query = db_query('SELECT * FROM :preposts WHERE post_id = :post_id', array(':pre' => $pre, ':post_id' => $result->post_id));
-      $querycount = db_query('SELECT COUNT(*) FROM :preposts WHERE post_id = :post_id', array(':pre' => $pre, ':post_id' => $result->post_id));
+      $query = db_query('SELECT * FROM {posts} WHERE post_id = :post_id', array(':post_id' => $result->post_id));
+      $querycount = db_query('SELECT COUNT(*) FROM {posts} WHERE post_id = :post_id', array(':post_id' => $result->post_id));
 
       // make sure the post is valid
       if ($querycount->fetchField()) {
@@ -883,7 +883,7 @@ function phpbb2drupal_import_posts() {
           $file_path = variable_get('file_directory_path', 'files');
 
           db_set_active('phpbb');
-          $files = db_query('SELECT * FROM :preattachments a WHERE a.post_msg_id = :a.post_msg_id', array(':pre' => $pre, ':a.post_msg_id' => $post->post_id));
+          $files = db_query('SELECT * FROM {attachments} a WHERE a.post_msg_id = :a.post_msg_id', array(':a.post_msg_id' => $post->post_id));
 
           foreach ($files as $file) {
           
