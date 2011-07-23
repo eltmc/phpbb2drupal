@@ -70,9 +70,8 @@ function phpbb2drupal_permission() {
  * Callback admin/phpbb2drupal/reset
  */
 function phpbb2drupal_reset() {
-  global $db_url;
-  variable_set('phpbb2drupal_db_url', $db_url);
-  variable_set('phpbb2drupal_ready', 0);
+  variable_del('phpbb2drupal_db_url');
+  variable_del('phpbb2drupal_ready', 0);
   return '<p>' . t('The phpBB2 database URL has been reset. You may now <a href="@configlink">go back to the configuration page</a>.',
       array('@configlink' => url('admin/config/phpbb2drupal'))) . '</p>';
 }
@@ -95,16 +94,34 @@ function phpbb2drupal_cleanup() {
  * want to test. Therefore, the test part of the code is not used, now.
  */
 function _phpbb2drupal_db_connect($test = 0) {
-  global $db_url;
   $same = variable_get('phpbb2drupal_same_db', 1);
-  if (!$same) {
-    $db_url2['phpbb'] = variable_get('phpbb2drupal_db_url', $db_url);
-    $db_url2['default'] = $db_url;
-    $GLOBALS['db_url'] = &$db_url2;
+  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_')
+  
+  if ($same) {
+    // The phpbb data is in the same database as the drupal data.
+    // We simple need to copy databse settings and use the correct phpbb prefix.
+    // Code done following guide at http://drupal.org/node/18429.
+    global $databases;
+
+    $other_database = $databases['default']['default'];
+    $other_database['prefix'] = $pre;
+    Database::addConnectionInfo('phpbb', 'default', $other_database);
+  }
+  else{
+    // FIXME - placeholder code that will need to be filled in using info provided on the configuration page.
+    $other_database = array(
+      'database' => 'databasename',
+      'username' => 'username', // assuming this is necessary
+      'password' => 'password', // assuming this is necessary
+      'host' => 'localhost', // assumes localhost
+      'driver' => 'mysql', // replace with your database driver
+      'prefix' => $pre
+    );
+    Database::addConnectionInfo('phpbb', 'default', $other_database);
     if ($test) {
-      if (!db_connect($db_url2['phpbb'])) {
-        return 0;
-      }
+      //if (!db_connect($databases['default']['phpbb'])) {
+      //  return 0;
+      //}
     }
   }
   return 1;
@@ -145,10 +162,6 @@ function _phpbb2drupal_check_tables( $tables = array(), $db = 'default', $prefix
   $out['html'] = '<ul>';
   $out['result'] = 1;
   foreach ($tables as $table) {
-    if ($prefix) {
-      $table = db_prefix_tables('{' . $table . '}');
-    }
-
     db_set_active($db);
 
     $result = db_table_exists($table);
@@ -941,7 +954,7 @@ function phpbb2drupal_import_cleanup() {
   variable_del('phpbb2drupal_ready');
   variable_del('phpbb2drupal_regdate_us_english');
   variable_del('phpbb2drupal_input_format');
-  variable_del('phpbb2drupal_db_url');
+  variable_del('phpbb2drupal_databases');
   variable_del('phpbb2drupal_tested');
   variable_del('phpbb2drupal_same_db');
   variable_del('phpbb2drupal_table_prefix');

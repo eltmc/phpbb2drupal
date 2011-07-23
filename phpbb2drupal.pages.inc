@@ -90,7 +90,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
   );
   $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
 
-  $tables = array($pre . 'forums', $pre . 'posts', $pre . 'topics', $pre . 'users');
+  $tables = array('forums', 'posts', 'topics', 'users');
 
   $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
   $output .= $result['html'];
