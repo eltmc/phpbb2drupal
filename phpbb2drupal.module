@@ -95,7 +95,7 @@ function phpbb2drupal_cleanup() {
  */
 function _phpbb2drupal_db_connect($test = 0) {
   $same = variable_get('phpbb2drupal_same_db', 1);
-  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_')
+  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
   
   if ($same) {
     // The phpbb data is in the same database as the drupal data.
