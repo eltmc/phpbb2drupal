@@ -43,13 +43,13 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
   );
 
   // Where is phpbb data?
-  $form['phpbb_data'] = array(
+  $form['phpbb_db'] = array(
     '#type' => 'fieldset',
     '#title' => t('Location of phpBB data'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  $form['phpbb_data']['phpbb2drupal_same_db'] = array(
+  $form['phpbb_db']['phpbb2drupal_same_db'] = array(
     '#type' => 'checkbox',
     '#title' => t('phpbb is on the same database as drupal'),
     '#return_value' => 1,
@@ -57,30 +57,55 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     '#description' => '',
   );
   if (variable_get('phpbb2drupal_same_db', 1) != 1) {
-    $url = variable_get('phpbb2drupal_db_url', $db_url);
-    if ($url == $db_url) {
-      $output = '<p class="marker">' . t('Set the address of the phpBB database according to the following format: <br /><pre>mysql://phpbb_username:phpbb_password@localhost/phpbb_database</pre>') . '</p>';
-      $ready_for_migration = 0;
-      $form['phpbb']['#collapsed'] = FALSE;
-    }
-
-    $form['phpbb_data']['phpbb2drupal_db_url'] = array(
+  
+  // Get the default database so that its values can in entered as the default values.
+  global $databases;
+  
+    $form['phpbb_db']['phpbb2drupal_db_driver'] = array(
       '#type' => 'textfield',
-      '#title' => t('phpBB database location'),
-      '#default_value' => variable_get('phpbb2drupal_db_url', $db_url),
-      '#size' => 80,
+      '#title' => t('Driver'),
+      '#default_value' => variable_get('phpbb2drupal_db_driver', $databases['default']['default']['driver']),
+      '#size' => 20,
       '#maxlength' => 255,
-      '#description' => '',
+      '#description' => 'the phpBB database driver (examples: "mysql", "pgsql", "sqlite").',
+    );
+    $form['phpbb_db']['phpbb2drupal_db_database'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Name of the phpBB database'),
+      '#default_value' => variable_get('phpbb2drupal_db_database', $databases['default']['default']['database']),
+      '#size' => 20,
+      '#maxlength' => 255,
+      '#description' => 'the name of the phpBB database',
+    );
+    $form['phpbb_db']['phpbb2drupal_db_username'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Username'),
+      '#default_value' => variable_get('phpbb2drupal_db_username', $databases['default']['default']['username']),
+      '#size' => 20,
+      '#maxlength' => 255,
+      '#description' => 'the username to access the phpBB database',
+    );
+    $form['phpbb_db']['phpbb2drupal_db_password'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Password'),
+      '#default_value' => variable_get('phpbb2drupal_db_pass', $databases['default']['default']['password']),
+      '#size' => 20,
+      '#maxlength' => 255,
+      '#description' => 'the password the phpBB database',
+    );
+    $form['phpbb_db']['phpbb2drupal_db_host'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Hostname'),
+      '#default_value' => variable_get('phpbb2drupal_db_host', $databases['default']['default']['host']),
+      '#size' => 20,
+      '#maxlength' => 255,
+      '#description' => 'the hostname for the phpBB database.',
     );
   }
 
-  $output = t('<p>Note that due to a limitation within Drupal core, we cannot import messages from one database type to another database type. E.g, we cannot import phpBB from a myqsl DB, to a postgresql DB. You need to import the data into the same type of database first (import all the phpBB data, as is, from mysql to postgresql.</p>
-    <p>If both phpBB and Drupal are on postgresql, see <a href="http://drupal.org/node/64877">this issue</a>.</p>');
-  $form['phpbb_data']['note'] = array('#value' => $output);
-
   // phpBB table prefix
   $output = '';
-  $form['phpbb_data']['phpbb2drupal_table_prefix'] = array(
+  $form['phpbb_db']['phpbb2drupal_table_prefix'] = array(
     '#type' => 'textfield',
     '#title' => t('phpBB table prefix'),
     '#default_value' => variable_get('phpbb2drupal_table_prefix', 'phpbb_'),
@@ -97,13 +122,13 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
 
   if ($result['result'] != 1) {
     $ready_for_migration = 0;
-    $form['phpbb_data']['#collapsed'] = FALSE;
+    $form['phpbb_db']['#collapsed'] = FALSE;
     $output .= '<span class="marker">';
     $output .= t("Some tables couldn't be found. This can be caused by an incorrect prefix or if your phpbb version is incorrectly set. Please correct the errors so that the phpBB tables can be accessed.");
     $output .= '</span>';
   }
 
-  $form['phpbb_data']['result'] = array('#markup' => $output);
+  $form['phpbb_db']['result'] = array('#markup' => $output);
 
   // Misc.	
   $form['time'] = array(
