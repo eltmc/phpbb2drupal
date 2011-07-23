@@ -312,7 +312,7 @@ function phpbb2drupal_import_users() {
     db_set_active('default');
 
     // create profile fields for icq, aim, msn...etc
-    $query = db_insert('profile_fields')
+    $query = db_insert('profile_field')
       ->fields(array(
         'title', 'name', 'explanation', 'category', 'page', 'type',
  	'weight', 'required', 'register', 'visibility', 'options',
@@ -350,7 +350,8 @@ function phpbb2drupal_import_users() {
   // FIXME continue here.
   // Insert the users into drupal
   db_set_active('phpbb');
-  $user_ids = db_query('SELECT user_id FROM {users} WHERE ( user_id > :user_id AND user_type <> :user_type ORDER BY user_id', array(':user_id' => 2, ':user_type' => 2));
+  // Do not get "user_type = 2" as they are not real users - used for anon and for site crawlers.
+  $user_ids = db_query('SELECT user_id FROM {users} WHERE ( user_id > :user_id AND user_type <> :user_type ) ORDER BY user_id', array(':user_id' => 2, ':user_type' => 2));
 
   $user_count = db_query('SELECT COUNT(*) FROM {users} WHERE user_id > :user_id', array(':user_id' => 2))->fetchField();
 
@@ -366,7 +367,7 @@ function phpbb2drupal_import_users() {
   foreach ($user_ids as $result) {
 
     db_set_active('phpbb');
-    $user = db_fetch_object(db_query('SELECT * FROM {users} WHERE user_id = :user_id', array(':user_id' => $result->user_id)));
+    $user = db_query('SELECT * FROM {users} WHERE user_id = :user_id', array(':user_id' => $result->user_id))->fetchObject();
 
     // If we don't want to import users who have never posted, break this while loop here.
     if ($import_spammers == 1 || $user->user_posts != 0 ) {
@@ -408,12 +409,10 @@ function phpbb2drupal_import_users() {
       if (variable_get('phpbb2drupal_regdate_us_english', 0)) {
         $user_regdate = strtotime($user->user_regdate);
         $user_lastvisit = strtotime($user->user_lastvisit);
-        $user_session_time = strtotime($user->user_session_time);
       }
       else {
         $user_regdate = $user->user_regdate;
         $user_lastvisit = $user->user_lastvisit;
-        $user_session_time = $user->user_session_time;
       }
 
       //phpbb3 stores user status in user_type instead of user_active as phpbb2 did. inactive users get an id of 1. there are other status too, no idea what they mean.
@@ -430,8 +429,6 @@ function phpbb2drupal_import_users() {
       'mail' => substr($user->user_email, 0, 64),
       'signature' => $signature,
       'created' => $user_regdate,
-      //'access' => $user_session_time,
-      // It seems that last login time is more accurate for the last access data...
       'access' => $user_lastvisit,
       'login' => $user_lastvisit,
       'status' => $user->user_active,
@@ -446,7 +443,7 @@ function phpbb2drupal_import_users() {
       'user_yim' => $user->user_yim,
       'user_msnm' => $user->user_msnm,
       'user_occ' => $user->user_occ,
-      'user_interests' => $user->user_interest
+      'user_interests' => $user->user_interests
       );
       if (variable_get('phpbb2drupal_import_pm', 0)) {
         $data['privatemsg_allow'] = 1;
@@ -1017,19 +1014,19 @@ function phpbb2drupal_user_save($phpbb_user, $category = array()) {
  * @see http://drupal.org/node/1354
  */
 function phpbb2drupal_profile_save_profile(&$edit, &$user, $category) {
-  $result = db_query('SELECT fid, name, type, category, weight FROM {profile_fields} WHERE register = :register ORDER BY category, weight', array(':register' => 1));
+  $result = db_query('SELECT fid, name, type, category, weight FROM {profile_field} WHERE register = :register ORDER BY category, weight', array(':register' => 1));
 
   foreach ($result as $field) {
     if (_profile_field_serialize($field->type)) {
       $edit[$field->name] = serialize($edit[$field->name]);
     }
 
-    db_delete('profile_values')
+    db_delete('profile_value')
       ->condition('fid', $field->fid)
       ->condition('uid', $user->uid)
       ->execute();
 
-    $id = db_insert('profile_values')
+    $id = db_insert('profile_value')
       ->fields(array(
         'fid' => $field->fid,
         'uid' => $user->uid,
