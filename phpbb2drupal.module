@@ -513,8 +513,15 @@ function phpbb2drupal_import_categories() {
       );
       $forum['name'] = _phpbb2drupal_text_sanitise($forum['name']);
       $forum['description'] = _phpbb2drupal_text_sanitise($forum['description']);
+      
+      $term = (object)$forum;
 
-      taxonomy_term_save($term /* TODO Term object replaces array $forum */);
+      $status = taxonomy_term_save($term);
+      
+      // Stupid stupid taxonomy taxonomy_term_save does not return the saved term object.
+      // We need to make do by loading the tid from the database directly from the database table.
+      $forum['tid'] = db_query('SELECT MAX(tid) FROM {taxonomy_term_data} WHERE ( vid = :vid AND name = :name)', array (':vid' => $forum['vid'], ':name' => $forum['name']))->fetchfield();
+      
 
       // serialize the forum containers
       if ($result->forum_type == 0) {
