@@ -587,18 +587,18 @@ function phpbb2drupal_import_topics() {
 
     $query = db_query('SELECT *
       FROM {topics} t
-      INNER JOIN {posts} p ON t.topic_id = p.topic_id WHERE p.post_id = :p.post_id
-      AND t.topic_id = :t.topic_id', array(':p.post_id' => t . topic_first_post_id, ':t.topic_id' => $result->topic_id));
+      INNER JOIN {posts} p ON t.topic_id = p.topic_id WHERE ( p.post_id = t.topic_first_post_id
+      AND t.topic_id = :topic_id )', array(':topic_id' => $result->topic_id));
 
     $querycount = db_query('SELECT COUNT(*)
       FROM {topics} t
-      INNER JOIN {posts} p ON t.topic_id = p.topic_id WHERE p.post_id = :p.post_id
-      AND t.topic_id = :t.topic_id', array(':p.post_id' => t . topic_first_post_id, ':t.topic_id' => $result->topic_id));
+      INNER JOIN {posts} p ON t.topic_id = p.topic_id WHERE p.post_id = t.topic_first_post_id
+      AND t.topic_id = :topic_id', array(':topic_id' => $result->topic_id));
 
 
     // check if the topic is a valid topic.  if not, continue on
     if ($querycount->fetchField()) {
-      $topic = db_fetch_object($query);
+      $topic = db_query($query)->fetchObject();;
     }
     else {
       drupal_set_message(t('Could not find post details of topic: %topic_id', array('%topic_id' => $result->topic_id)));
@@ -644,29 +644,27 @@ function phpbb2drupal_import_topics() {
     $topic->post_text = _phpbb2drupal_strip_bbcode($topic->post_text);
     $topic->post_text = _phpbb2drupal_text_sanitise($topic->post_text);
 
-    $teaser = node_teaser($topic->post_text);
-
     if ($topic->post_edit_time < $topic->topic_time) {
       $topic->post_edit_time = $topic->topic_time;
     }
 
-    //construct the node
-    $node = array(
-      'type' => 'forum',
-      'title' => $topic->topic_title,
-      'uid' => $uid,
-      'status' => NODE_PUBLISHED,  // published or not - always publish
-      'promote' => $promote,
-      'created' => $topic->topic_time,
-      'changed' => $topic->post_edit_time,
-      'comment' => $comment,
-      'moderate' => 0,
-      'body' => $topic->post_text,
-      'sticky' => $sticky,
-      'format' => $input_format,
-      'teaser' => $teaser,
-    );
-    $node['title'] = _phpbb2drupal_text_sanitise($node['title']);
+    // construct the node
+    // Guide: http://timonweb.com/how-programmatically-create-nodes-comments-and-taxonomies-drupal-7
+    
+    $node = new stdClass(); // We create a new node object
+    $node->type     = 'forum'; // Or any other content type you want
+    $node->title    = _phpbb2drupal_text_sanitise($topic->topic_title);
+    $node->language = LANGUAGE_NONE;
+    $node->uid      = $uid;
+    $node->uid      = NODE_PUBLISHED; // published or not - always publish
+    $node->promote  = $promote;
+    $node->created  = $topic->topic_time;
+    $node->changed  = $topic->post_edit_time;
+    $node->comment  = $comment;
+    $node->moderate = 0;
+    $node->body[$node->language][0]['value'] = $topic->post_text;
+    $node->body[$node->language][0]['format'] = $input_format;
+    $node->sticky   = $sticky;
 
     if ($topic->topic_status == 2) {
       db_set_active('phpbb');
@@ -674,17 +672,15 @@ function phpbb2drupal_import_topics() {
       db_set_active('default');
       $moved_tid = db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = :forum_id', array(':forum_id' => $forum_id))->fetchField();
 
-      $node['tid'] = $moved_tid; // which forum it used to be part of
+      $node->field_tags[$node->language][]['tid'] = $moved_tid; // which forum it used to be part of
     }
     else {
-      $node['tid'] = $tid;
+      $node->field_tags[$node->language][]['tid'] = $tid;
     }
 
-    $node = (object) $node; // node_save requires an object form
 
     db_set_active('default');
     node_save($node);
-    taxonomy_node_save($node, array($tid));
 
     if (!$node->nid) {
       drupal_set_message(t('Failed importing %topic_id', array('%topic_id' => $topic->topic_id)));
