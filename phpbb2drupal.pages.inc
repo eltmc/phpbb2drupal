@@ -117,7 +117,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
 
   $tables = array('forums', 'posts', 'topics', 'users');
 
-  $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
+  $result = _phpbb2drupal_check_tables($tables, 'phpbb');
   $output .= $result['html'];
 
   if ($result['result'] != 1) {

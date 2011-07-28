@@ -160,7 +160,7 @@ function _phpbb2drupal_check_module($module) {
  *   $out['html'] = formatted html.
  *   $out['result'] = boolean.
  */
-function _phpbb2drupal_check_tables( $tables = array(), $db = 'default', $prefix = 1) {
+function _phpbb2drupal_check_tables( $tables = array(), $db = 'default') {
   _phpbb2drupal_db_connect();
 
   $out['html'] = '<ul>';
@@ -299,7 +299,6 @@ function phpbb2drupal_migrate_form_submit($form, $form_state) {
  * User Import Functions
  */
 function phpbb2drupal_import_users() {
-  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
   // check if the user database has been successfully imported
   db_set_active('default');
   if (variable_get('phpbb2drupal_import_user_successful', 0)) {
@@ -480,8 +479,6 @@ function phpbb2drupal_import_users() {
  * Create Forum Containers and Forums
  */
 function phpbb2drupal_import_categories() {
-  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-
   // check if the forum database has been successfully imported
   db_set_active('default');
   if (variable_get('phpbb2drupal_import_category_successful', 0)) {
@@ -552,7 +549,6 @@ function phpbb2drupal_import_categories() {
  * Imports PHPBB topics to Drupal equivalent forum nodes
  */
 function phpbb2drupal_import_topics() {
-  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
   $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = variable_get('phpbb2drupal_import_attachments', 0);
   $input_format = variable_get('phpbb2drupal_input_format', 0);
 
@@ -761,7 +757,6 @@ function phpbb2drupal_import_topics() {
  * PHPBB Posts --> Drupal Comments
  */
 function phpbb2drupal_import_posts() {
-  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
   $PHPBB2DRUPAL_IMPORT_ATTACHMENTS = variable_get('phpbb2drupal_import_attachments', 0);
   $input_format = variable_get('phpbb2drupal_input_format', 0);
 
