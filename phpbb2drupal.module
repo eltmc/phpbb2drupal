@@ -827,7 +827,7 @@ function phpbb2drupal_import_posts() {
       $uid = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $post->poster_id))->fetchField();
       $pid = db_query('SELECT MAX(pid) FROM {comments} WHERE nid = :nid', array(':nid' => $nid))->fetchField();
       // get the node ID. The title may be useful further down if the comment doesn't have its own title.
-      $node = (db_fetch_object(db_query('SELECT n.nid, n.title FROM {phpbb2drupal_temp_topic} ptt LEFT JOIN {node_revisions} AS n ON ptt.nid = n.nid  WHERE topic_id = :topic_id', array(':topic_id' => $post->topic_id))));
+      $node = db_query('SELECT n.nid, n.title FROM {phpbb2drupal_temp_topic} ptt LEFT JOIN {node_revision} AS n ON ptt.nid = n.nid  WHERE topic_id = :topic_id', array(':topic_id' => $post->topic_id))->fetchObject();
       $nid = $node->nid;
 
       $pid = (is_null($pid)) ? 0 : $pid;
@@ -850,27 +850,31 @@ function phpbb2drupal_import_posts() {
       $post->post_text = _phpbb2drupal_text_sanitise($post->post_text);
       $post->post_subject = _phpbb2drupal_text_sanitise($post->post_subject);
 
-      //construct the comment.
-      $comment = array(
-        'pid' => $pid,
-        'nid' => $nid,
-        'uid' => $uid,
-        'subject' => $post->post_subject,
-        'comment' => $post->post_text,
-        'hostname' => $hostname,
-        'timestamp' => $post->post_time,
-        'format' => $input_format
-      );
+      // Construct the comment.
+      $comment->pid = $pid;
+      $comment->nid = $nid;
+      $comment->uid = $uid;
+      $comment->cid = 0; // leave it as is
+      $comment->hostname = $hostname;
+      $comment->language = LANGUAGE_NONE;
+      $comment->is_anonymous = 0; // leave it as is
+      $comment->created = $post->post_time;
+      $comment->changed = empty($post->edit_time) ? $comment->created : $post->edit_time;
+      $comment->status = $post->post_approved;
+      $comment->subject = $post->post_subject;
+      $comment->comment_body[$comment->language][0]['value'] = $post->post_text;
+      $comment->comment_body[$comment->language][0]['format'] = $input_format;
 
       // if the title field is empty, use the node title as default.
-      if (empty($comment['subject'])) {
-        $comment['subject'] = $node->title;
+      if (empty($comment->subject)) {
+        $comment->subject = $node->title;
       }
 
       db_set_active('default');
-      $cid = phpbb2drupal_comment_save($comment);
+      comment_submit($comment);
+      comment_save($comment);
 
-      if (!$cid) {
+      if (empty($comment->cid)) {
         $errors++;
         drupal_set_message(t('Failed importing %post_id', array('%post_id' => $post->post_id)));
       }
@@ -903,7 +907,7 @@ function phpbb2drupal_import_posts() {
             ->fields(array(
               'fid' => $fid,
               'nid' => $nid,
-              'cid' => $cid,
+              'cid' => $comment->cid,
               'description' => substr($file->real_filename, 0, 255),
               'list' => 1,
               'weight' => $file->attach_id,
@@ -919,7 +923,7 @@ function phpbb2drupal_import_posts() {
       $id = db_insert('phpbb2drupal_temp_post')
       ->fields(array(
         'post_id' => $post->post_id,
-        'cid' => $cid,
+        'cid' => $comment->cid,
       ))
       ->execute();
 
@@ -1034,80 +1038,6 @@ function phpbb2drupal_profile_save_profile(&$edit, &$user, $category) {
     // Mark field as handled (prevents saving to user->data).
     $edit[$field->name] = NULL;
   }
-}
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function phpbb2drupal_comment_save($edit) {
-  db_set_active('default');
-  // Here we are building the thread field.  See the comment
-  // in comment_render().
-  if ($edit['pid'] == 0) {
-    // This is a comment with no parent comment (depth 0): we start
-    // by retrieving the maximum thread level.
-    $max = db_query('SELECT MAX(thread) FROM {comments} WHERE nid = :nid', array(':nid' => $edit['nid']))->fetchField();
-
-    // Strip the "/" from the end of the thread.
-    $max = rtrim($max, '/');
-    $thread = int2vancode(vancode2int($max) + 1) . '/';
-
-  }
-  else {
-    // This is comment with a parent comment: we increase
-    // the part of the thread value at the proper depth.
-
-    // Get the parent comment:
-    $parent = db_fetch_object(db_query('SELECT * FROM {comments} WHERE cid = :cid', array(':cid' => $edit['pid'])));
-
-    // Strip the "/" from the end of the parent thread.
-    $parent->thread = (string) rtrim((string) $parent->thread, '/');
-
-    // Get the max value in _this_ thread.
-    $max = db_query("SELECT MAX(thread) FROM {comments} WHERE thread LIKE '%s.%%' AND nid = :nid", array(':nid' => $parent->thread, '' => $edit['nid']))->fetchField();
-
-    if ($max == '') {
-      // First child of this parent.
-      $thread = $parent->thread . '.' . int2vancode(1) . '/';
-    }
-    else {
-      // Strip the "/" at the end of the thread.
-      $max = rtrim($max, '/');
-
-      // We need to get the value at the correct depth.
-      $parts = explode('.', $max);
-      $parent_depth = count(explode('.', $parent->thread));
-      $last = $parts[$parent_depth];
-
-      // Finally, build the thread field for this new comment.
-      $thread = $parent->thread . '.' . int2vancode(vancode2int($last) + 1) . '/';
-    }
-  }
-
-  if ($edit['uid'] === $user->uid) { // '===' because we want to modify anonymous users too
-    $edit['name'] = $user->name;
-  }
-
-  $id = db_insert('comments')
-  ->fields(array(
-    'nid' => $edit['nid'],
-    'pid' => $edit['pid'],
-    'uid' => $edit['uid'],
-    'subject' => $edit['subject'],
-    'comment' => $edit['comment'],
-    'format' => $edit['format'],
-    'hostname' => ip_address(),
-    'timestamp' => $edit['timestamp'],
-    'status' => $edit['status'],
-    'thread' => $thread,
-    'name' => $edit['name'],
-  ))
-  ->execute();
-  $edit['cid'] = db_last_insert_id('comments', 'cid');
-  _comment_update_node_statistics($edit['nid']);
-
-  return $edit['cid'];
 }
 
 /**
