@@ -805,7 +805,7 @@ function phpbb2drupal_import_posts() {
 
       // make sure the post is valid
       if ($querycount->fetchField()) {
-        $post = db_fetch_object($query);
+        $post = $query->fetchObject;
       }
       else {
         $errors++;
