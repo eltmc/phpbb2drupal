@@ -676,6 +676,7 @@ function phpbb2drupal_import_topics() {
 
 
     db_set_active('default');
+    node_submit($node);
     node_save($node);
 
     if (!$node->nid) {
