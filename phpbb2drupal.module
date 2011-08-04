@@ -1128,13 +1128,13 @@ function phpbb2drupal_replace_url() {
   // transform nodes:
   // As the topics have just been imported, there is only one vid for each nid,
   // so the query works as it is.
-  $result = db_query('SELECT ptt.nid, n.body, n.teaser FROM {phpbb2drupal_temp_topic} AS ptt LEFT JOIN {node_revisions} AS n ON ptt.nid = n.nid');
+  $result = db_query('SELECT ptt.nid, n.body, n.teaser FROM {phpbb2drupal_temp_topic} AS ptt LEFT JOIN {node_revision} AS n ON ptt.nid = n.nid');
 
   foreach ($result as $node) {
     $node->body = _phpbb2drupal_replace_links($node->body);
     $node->teaser = _phpbb2drupal_replace_links($node->teaser);
 
-    db_update('node_revisions')
+    db_update('node_revision')
     ->fields(array(
       'body' => $node->body,
       'teaser' => $node->teaser,
