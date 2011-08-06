@@ -19,12 +19,6 @@ function phpbb2privatemsg_schema() {
   return $schema;
 }
 
-function phpbb2privatemsg_install() {
-  // Create tables.
-  drupal_install_schema('phpbb2privatemsg');
-}
-
 function phpbb2privatemsg_uninstall() {
   variable_del('phpbb2privatemsg_import_successful');
-  drupal_uninstall_schema('phpbb2privatemsg');
 }

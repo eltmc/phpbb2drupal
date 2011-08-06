@@ -11,6 +11,7 @@ function phpbb2privatemsg_menu() {
     'access callback' => 'user_access',
     'access arguments' => array('migrate phpBB'),
     'page callback' => 'phpbb2privatemsg_main',
+    'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/phpbb2privatemsg/cleanup'] = array(
     'title' => 'Cleanup',
@@ -26,7 +27,7 @@ function phpbb2privatemsg_menu() {
  * Callback admin/phpbb2drupal
  */
 function phpbb2privatemsg_main() {
-  $output .= '<p>';
+  $output = '<p>';
   $output .= t('This module imports private messages from phpBB to Drupal. It uses settings and data from the main phpbb2drupal module. Before importing Private Messages, you must:');
   $output .= '</p>';
   $output .= '<ol><li>';
@@ -46,9 +47,8 @@ function phpbb2privatemsg_main() {
     return t('Private Messages have already been imported. You can now <a href="@cleanup">clean up</a> any variables set by this module and deactivate/uninstall it.', array('@cleanup' => url('admin/phpbb2privatemsg/cleanup')));
   }
 
-  $pre = variable_get('phpbb2drupal_table_prefix', 'phpbb_');
-  $tables = array($pre . 'privmsgs', $pre . 'privmsgs_to');
-  $result = _phpbb2drupal_check_tables($tables, 'phpbb', 0);
+  $tables = array('privmsgs', 'privmsgs_to');
+  $result = _phpbb2drupal_check_tables($tables, 'phpbb');
   $output .= $result['html'];
 
   if ($result['result'] != 1) {
@@ -57,7 +57,7 @@ function phpbb2privatemsg_main() {
     $output .= '</p>';
   }
   else {
-    $output .= drupal_get_form('phpbb2privatemsg_migrate_form');
+    $output .= drupal_render(drupal_get_form('phpbb2privatemsg_migrate_form'));
   }
   return $output;
 }
@@ -123,6 +123,7 @@ function phpbb2privatemsg_import() {
           'author' => $from,
           'subject' => substr($pm->message_subject, 0, 64),
           'body' => $pm->message_text,
+          'format' => filter_default_format($from),
           'timestamp' => $pm->message_time,
         );
 
@@ -130,8 +131,7 @@ function phpbb2privatemsg_import() {
       $dupe = db_query('SELECT COUNT(*) FROM {pm_message} WHERE author = :author AND timestamp = :timestamp', array(':author' => $message['author'], ':timestamp' => $message['timestamp']))->fetchField();
       if (!($dupe)) {
 
-        $result = drupal_write_record('pm_message', $message);
-        $message['mid'] = db_last_insert_id('pm_message', 'mid');
+        $message = drupal_write_record('pm_message', $message);
 
         // Fix the message threading.
         if ($pm->root_level <> 0) {
@@ -142,22 +142,23 @@ function phpbb2privatemsg_import() {
           $message['thread_id'] = $message['mid'];
         }
 
+        //Save message details 
         $result = $id = db_insert('phpbb2privatemsg')
-  ->fields(array(
-    'mid' => $message['mid'],
-    'thread_id' => $message['thread_id'],
-    'msg_id' => $pm->msg_id,
-  ))
-  ->execute();
+          ->fields(array(
+            'mid' => $message['mid'],
+            'thread_id' => $message['thread_id'],
+            'msg_id' => $pm->msg_id,
+          ))
+          ->execute();
 
-        //insert index record for the author and all recipients of a message.
+        // insert index record for all recipients of a message.
         db_set_active('phpbb');
         $result = db_query("SELECT * FROM {privmsgs_to}  WHERE msg_id = :msg_id ORDER BY msg_id ASC", array(':msg_id' => $pm->msg_id));
         db_set_active('default');
 
         foreach ($result as $index) {
           // Fill in appropriate fields.
-          $message['uid'] = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $index->user_id))->fetchField();
+          $message['recipient'] = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $index->user_id))->fetchField();
           $message['is_new'] = $index->pm_unread;
           $message['deleted'] = $index->pm_deleted;
 
@@ -168,7 +169,7 @@ function phpbb2privatemsg_import() {
     }
   }
   variable_set('phpbb2privatemsg_import_successful', 1);
-  drupal_set_message(t('Private Message Import successful'));
+  drupal_set_message(t('Private Message Import successful. If you are the using privatemsg_filter module, you will need to rebuild the index.'));
 }
 
 function phpbb2privatemsg_cleanup() {
