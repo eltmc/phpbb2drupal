@@ -448,7 +448,7 @@ function phpbb2drupal_import_users() {
         $data['privatemsg_allow'] = 1;
       }
 
-      $data['interests'] = _phpbb2drupal_text_sanitise($data['interests']);
+      $data['user_interests'] = _phpbb2drupal_text_sanitise($data['user_interests']);
 
       db_set_active('default');
       $drupal_user = phpbb2drupal_user_save($data, array('account', 'Personal', 'Contact'));
