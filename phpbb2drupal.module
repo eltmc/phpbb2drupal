@@ -646,6 +646,7 @@ function phpbb2drupal_import_topics() {
     $node->type     = 'forum'; // Or any other content type you want
     $node->title    = _phpbb2drupal_text_sanitise($topic->topic_title);
     $node->language = LANGUAGE_NONE;
+    $node->nid      = NULL;  //Not yet set, but http://drupal.org/node/839770 reccomends it to get past an error.
     $node->uid      = $uid;
     $node->status   = NODE_PUBLISHED; // published or not - always publish
     $node->promote  = $promote;
@@ -663,10 +664,10 @@ function phpbb2drupal_import_topics() {
       db_set_active('default');
       $moved_tid = db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = :forum_id', array(':forum_id' => $forum_id))->fetchField();
 
-      $node->field_tags[$node->language][]['tid'] = $moved_tid; // which forum it used to be part of
+      $node->taxonomy_forums[$node->language][]['tid'] = $moved_tid; // which forum it used to be part of
     }
     else {
-      $node->field_tags[$node->language][]['tid'] = $tid;
+      $node->taxonomy_forums[$node->language][]['tid'] = $tid;
     }
 
 
