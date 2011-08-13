@@ -513,25 +513,20 @@ function phpbb2drupal_import_categories() {
       
       $term = (object)$forum;
 
-      $status = taxonomy_term_save($term);
-      
-      // Stupid stupid taxonomy taxonomy_term_save does not return the saved term object.
-      // We need to make do by loading the tid from the database directly from the database table.
-      $forum['tid'] = db_query('SELECT MAX(tid) FROM {taxonomy_term_data} WHERE ( vid = :vid AND name = :name)', array (':vid' => $forum['vid'], ':name' => $forum['name']))->fetchfield();
-      
+      taxonomy_term_save($term);
 
       // serialize the forum containers
       if ($result->forum_type == 0) {
         //This is a category
         $containers = variable_get('forum_containers', array());
-        $containers[] = $forum['tid'];
+        $containers[] = $term->tid;
         variable_set('forum_containers', $containers);
       }
       //save the container to the forum table - yes this is hackish.
       $id = db_insert('phpbb2drupal_temp_forum')
       ->fields(array(
         'forum_id' => $result->forum_id,
-        'tid' => $forum['tid'],
+        'tid' => $term->tid,
       ))
       ->execute();
     }
