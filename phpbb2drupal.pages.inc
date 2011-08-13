@@ -266,7 +266,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
       $form['bbcode']['#collapsed'] = FALSE;
       $output .= '<p>' . t('<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is only recommanded. You may <a href="@adminmodules">enable the bbcode module</a> after having installed it.', array('@adminmodules' => url('admin/modules'))) . '</p>';
     }
-    $output .= t('<p>Don\'t forget to <a href="@formatenable">enable bbcode in the selected input format</a> (admin > input formats > configure) and enable bbcode for the format selected for the imported posts.  <a href="@formatconfigure">Then click on configure to see bbcode options</a></p>
+    $output .= t('<p>Don\'t forget to <a href="@formatenable">enable bbcode in the selected input format</a> (admin > config > text formats) and enable bbcode for the format selected for the imported posts.  <a href="@formatconfigure">Then click on configure to see bbcode options</a></p>
       <p>You may want to enable it for other input formats, too.</p>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure));
   }
   $output .= '<p><em>' . t('This setting will be applied to all posts, private messages and the users\' signature.') . '</em></p>';
