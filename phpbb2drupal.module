@@ -780,6 +780,7 @@ function phpbb2drupal_import_posts() {
 
   $errors = 0;
   $loops = 0;
+  $imported = 0;
   // Import the posts into drupal
   foreach ($topic_ids as $obj) {
     $loops++;
@@ -801,7 +802,7 @@ function phpbb2drupal_import_posts() {
 
       // make sure the post is valid
       if ($querycount->fetchField()) {
-        $post = $query->fetchObject;
+        $post = $query->fetchObject();
       }
       else {
         $errors++;
@@ -821,10 +822,12 @@ function phpbb2drupal_import_posts() {
 
       db_set_active('default');
       $uid = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $post->poster_id))->fetchField();
-      $pid = db_query('SELECT MAX(pid) FROM {comments} WHERE nid = :nid', array(':nid' => $nid))->fetchField();
+
       // get the node ID. The title may be useful further down if the comment doesn't have its own title.
       $node = db_query('SELECT n.nid, n.title FROM {phpbb2drupal_temp_topic} ptt LEFT JOIN {node_revision} AS n ON ptt.nid = n.nid  WHERE topic_id = :topic_id', array(':topic_id' => $post->topic_id))->fetchObject();
       $nid = $node->nid;
+
+      $pid = db_query('SELECT MAX(pid) FROM {comment} WHERE nid = :nid', array(':nid' => $nid))->fetchField();
 
       $pid = (is_null($pid)) ? 0 : $pid;
 
@@ -922,6 +925,8 @@ function phpbb2drupal_import_posts() {
         'cid' => $comment->cid,
       ))
       ->execute();
+
+      $imported++;
 
       db_set_active('phpbb');
     }
