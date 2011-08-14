@@ -673,9 +673,32 @@ function phpbb2drupal_import_topics() {
 
     db_set_active('default');
     node_submit($node);
+    
+    // $node->created is altered when calling node_submit(), re-enter the correct value.
+    $node->created  = $topic->topic_time;
+    
     node_save($node);
 
-    if (!$node->nid) {
+    if ($node->nid) {
+      // Hack: Fix the node->changed in the db as node_save always sets it at the current time.
+      db_update('node')
+        ->fields(array(
+          'changed' => $topic->post_edit_time,
+        ))
+      ->condition('nid', $node->nid)
+      ->execute();
+
+      // Hack: Keep the topics (that have no replies) in correct order by updating the
+      // 'node_comment_statistics' table with the original topic creation time.
+      db_update('node_comment_statistics')
+        ->fields(array(
+          'last_comment_timestamp' => $node->created,
+        ))
+      ->condition('nid', $node->nid)
+      ->execute();
+    }
+    else {
+      // Node import failed - display a message informing of failure.
       drupal_set_message(t('Failed importing %topic_id', array('%topic_id' => $topic->topic_id)));
     }
 
@@ -729,14 +752,6 @@ function phpbb2drupal_import_topics() {
         'post_id' => $topic->post_id,
         'nid' => $node->nid,
       ))
-    ->execute();
-
-    //hack to keep the topics in correct order
-    db_update('node_comment_statistics')
-    ->fields(array(
-        'last_comment_timestamp' => $node->created,
-      ))
-    ->condition('nid', $node->nid)
     ->execute();
 
     db_set_active('phpbb');
@@ -872,6 +887,11 @@ function phpbb2drupal_import_posts() {
 
       db_set_active('default');
       comment_submit($comment);
+
+      // Override the comment created and changed time added in comment_submit() and then save.
+      $comment->created = $post->post_time;
+      $comment->changed = empty($post->edit_time) ? $comment->created : $post->edit_time;
+
       comment_save($comment);
 
       if (empty($comment->cid)) {
