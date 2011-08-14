@@ -1092,15 +1092,15 @@ function _phpbb2drupal_replace_links_topic($matches) {
 
 function _phpbb2drupal_replace_links_post($matches) {
   //print_r($matches);
-  $result = db_fetch_object(db_query('SELECT c.cid, c.nid FROM {phpbb2drupal_temp_post} p JOIN {comments} c ON c.cid = p.cid WHERE post_id = :post_id', array(':post_id' => $matches[1])));
+  $result = db_query('SELECT c.cid, c.nid FROM {phpbb2drupal_temp_post} p JOIN {comments} c ON c.cid = p.cid WHERE post_id = :post_id', array(':post_id' => $matches[1]))->fetchObject();
   $link = 'node/' . $result->nid . '#comment-' . $result->cid . $matches[3];
   return $link;
 }
 
 function _phpbb2drupal_replace_links_forum($matches) {
   //print_r($matches);
-  $result = db_fetch_object(db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = :forum_id', array(':forum_id' => $matches[1])));
-  $link = 'forum/' . $result->tid . $matches[2];
+  $tid = db_query('SELECT tid FROM {phpbb2drupal_temp_forum} WHERE forum_id = :forum_id', array(':forum_id' => $matches[1]))->fetchField();
+  $link = 'forum/' . $tid . $matches[2];
   return $link;
 }
 
@@ -1129,34 +1129,21 @@ function phpbb2drupal_replace_url() {
   // transform nodes:
   // As the topics have just been imported, there is only one vid for each nid,
   // so the query works as it is.
-  $result = db_query('SELECT ptt.nid, n.body, n.teaser FROM {phpbb2drupal_temp_topic} AS ptt LEFT JOIN {node_revision} AS n ON ptt.nid = n.nid');
+  $result = db_query('SELECT nid FROM {phpbb2drupal_temp_topic}');
 
-  foreach ($result as $node) {
-    $node->body = _phpbb2drupal_replace_links($node->body);
-    $node->teaser = _phpbb2drupal_replace_links($node->teaser);
+  foreach ($result as $tt) {
+    $node = node_load($tt->nid);
+    $node->body[$node->language][0]['value'] = _phpbb2drupal_replace_links($node->body[$node->language][0]['value']);
+    $node->body[$node->language][0]['summary'] = _phpbb2drupal_replace_links($node->body[$node->language][0]['summary']);
+    node_save($node);
 
-    db_update('node_revision')
-    ->fields(array(
-      'body' => $node->body,
-      'teaser' => $node->teaser,
-    ))
-  ->condition('nid', $node->nid)
-  ->execute();
+    // Transform urls in comments linked to this node.
+    $cids = db_query('SELECT cid FROM {comment} WHERE nid = :nid', array(':nid' => $tt->nid));
+    foreach ($cids as $cid) {
+      $comment = comment_load($cid->cid);
+      $comment->comment_body[$comment->language][0]['value'] = _phpbb2drupal_replace_links($comment->comment_body[$comment->language][0]['value']);
+      comment_save($comment);  
+    }
   }
-
-  // transform comments:
-  $result = db_query('SELECT c.cid, c.comment FROM {phpbb2drupal_temp_post} AS p LEFT JOIN {comments} AS c ON p.cid = c.cid');
-
-  foreach ($result as $comment) {
-    $comment->comment = _phpbb2drupal_replace_links($comment->comment);
-
-    db_update('comments')
-    ->fields(array(
-      'comment' => $comment->comment,
-    ))
-    ->condition('cid', $comment->cid)
-    ->execute();
-  }
-
   variable_set('phpbb2drupal_replace_url_successful', '1');
 }
