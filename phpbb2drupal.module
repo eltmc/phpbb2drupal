@@ -1152,17 +1152,41 @@ function phpbb2drupal_replace_url() {
   $result = db_query('SELECT nid FROM {phpbb2drupal_temp_topic}');
 
   foreach ($result as $tt) {
-    $node = node_load($tt->nid);
-    $node->body[$node->language][0]['value'] = _phpbb2drupal_replace_links($node->body[$node->language][0]['value']);
-    $node->body[$node->language][0]['summary'] = _phpbb2drupal_replace_links($node->body[$node->language][0]['summary']);
-    node_save($node);
+  $fields = db_select('field_data_body', 'f')
+    ->fields('f', array('body_value', 'body_summary'))
+    ->condition('entity_type', 'node')
+    ->condition('entity_id', $tt->nid)
+    ->execute();
+
+  foreach ($fields as $field) {
+    db_update('field_data_body')
+      ->fields(array(
+        'body_value' => _phpbb2drupal_replace_links($field->body_value),
+        'body_summary' => _phpbb2drupal_replace_links($field->body_summary),
+      ))
+      ->condition('entity_type', 'node')
+      ->condition('entity_id', $tt->nid)
+      ->execute();
+  }
 
     // Transform urls in comments linked to this node.
     $cids = db_query('SELECT cid FROM {comment} WHERE nid = :nid', array(':nid' => $tt->nid));
     foreach ($cids as $cid) {
-      $comment = comment_load($cid->cid);
-      $comment->comment_body[$comment->language][0]['value'] = _phpbb2drupal_replace_links($comment->comment_body[$comment->language][0]['value']);
-      comment_save($comment);  
+    $fields = db_select('field_data_comment_body', 'f')
+      ->fields('f', array('comment_body_value'))
+      ->condition('entity_type', 'comment')
+      ->condition('entity_id', $cid)
+      ->execute();
+  
+    foreach ($fields as $field) {
+      db_update('field_data_comment_body')
+        ->fields(array(
+          'comment_body_value' => _phpbb2drupal_replace_links($field->comment_body_value),
+        ))
+        ->condition('entity_type', 'comment')
+        ->condition('entity_id', $cid)
+        ->execute();
+      }
     }
   }
   variable_set('phpbb2drupal_replace_url_successful', '1');
