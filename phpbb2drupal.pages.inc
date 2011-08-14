@@ -333,16 +333,14 @@ function phpbb2drupal_postconfiguration() {
   $output .= '</ul>';
   //User Set up
   $output .= '<h2>' . t('User Settings') . '</h2>';
-  $output .= '<p>' . t('Make sure your <a href="@usersettings">user settings</a> are correct. here you can enable or disable signature. In order to activate avatar/picture support, you need to enable pictures on this page and also:', array('@usersettings' => url('admin/user/settings'))) . '</p>';
+  $output .= '<p>' . t('Make sure your <a href="@accountsettings">account settings</a> are correct. here you can enable or disable signature. In order to activate avatar/picture support, you need to enable pictures on this page and also:', array('@accountsettings' => url('admin/config/people/accounts'))) . '</p>';
   $output .= '<ul>';
   $output .= '<li>' . t('Tick the checkboxes to allow "User pictures in posts" and/or "User pictures in comments" on the <a href="@themeconfig">themes configuration</a> page.', array('@themeconfig' => url('admin/appearance/settings'))) . '</li>';
-  $output .= '<li>' . t('Manually copy the avatars from the phpbb2/images/avatars/ directory to the @files directory.', array('@files' => file_directory_path() . '/pictures')) . '</li>';
+  $output .= '<li>' . t('Manually copy the avatars from the phpbb2/images/avatars/ directory to the @files directory.', array('@files' => variable_get('file_public_path', conf_path() . '/files')  . '/pictures')) . '</li>';
   $output .= '</ul>';
   // Forum Set up
   $output .= '<h2>' . t('Forum Settings') . '</h2>';
-  $output .= '<p>' . t('If you imported polls, you need to allow polls to show in the forums. On <a href="@forumvocab">this page</a> tick the checkbox next to the "polls" content type to allow polls to display in forums. Addidtionally check any additional content types you want to allow in the forums.',
-      array('@forumvocab' => url('admin/structure/taxonomy/edit/vocabulary/' . variable_get('forum_nav_vocabulary', 0)))) . '</p>';
-  $output .= '<p>' . t('If need be, set up the private forums as explained in the <a href="http://drupal.org/node/58969" target="_blank">documentation</a>.') . '</p>';
+  $output .= '<p>' . t('If need be, set up the private forums as explained in the <a href="http://drupal.org/node/58969" target="_blank">documentation</a>. Using the Forum Access module is the preferred and simplest method.') . '</p>';
 
   // Redirection from old URL:
   $output .= '<h2>' . t('Redirection from phpBB2 forum URL to new Drupal forum URL') . '</h2>';
