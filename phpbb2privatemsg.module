@@ -119,50 +119,54 @@ function phpbb2privatemsg_import() {
       $pm->message_subject = _phpbb2drupal_text_sanitise($pm->message_subject);
 
       // Borrow and adapt  code from patch to upgrade privatemsg module to Drupal 6 (http://drupal.org/node/202348#comment-700061).
-      $message = array(
-          'author' => $from,
-          'subject' => substr($pm->message_subject, 0, 64),
-          'body' => $pm->message_text,
-          'format' => filter_default_format($from),
-          'timestamp' => $pm->message_time,
-        );
+      $message->author = $from;
+      $message->subject= substr($pm->message_subject, 0, 64);
+      $message->body = $pm->message_text;
+      $message->format = $format;
+      $message->timestamp = $pm->message_time;
+
+      // Need to set an mid for the message before saving.
+      $last_mid = db_query('SELECT MAX(mid) FROM {pm_message}')->fetchField();
+      $message->mid = $last_mid + 1;
 
       //save message if no duplicates
-      $dupe = db_query('SELECT COUNT(*) FROM {pm_message} WHERE author = :author AND timestamp = :timestamp', array(':author' => $message['author'], ':timestamp' => $message['timestamp']))->fetchField();
+      $dupe = db_query('SELECT COUNT(*) FROM {pm_message} WHERE author = :author AND timestamp = :timestamp', array(':author' => $message->author, ':timestamp' => $message->timestamp))->fetchField();
       if (!($dupe)) {
 
-        $message = drupal_write_record('pm_message', $message);
+        $success = drupal_write_record('pm_message', $message);
 
         // Fix the message threading.
         if ($pm->root_level <> 0) {
           // This message is part of an existing thread.
-          $message['thread_id'] = db_query('SELECT thread_id FROM {phpbb2privatemsg} WHERE msg_id = :msg_id', array(':msg_id' => $pm->root_level))->fetchField();
+          $message->thread_id = db_query('SELECT thread_id FROM {phpbb2privatemsg} WHERE msg_id = :msg_id', array(':msg_id' => $pm->root_level))->fetchField();
         }
         else {
-          $message['thread_id'] = $message['mid'];
+          $message->thread_id = $message->mid;
         }
 
-        //Save message details 
+        // Save message mapping details 
         $result = $id = db_insert('phpbb2privatemsg')
           ->fields(array(
-            'mid' => $message['mid'],
-            'thread_id' => $message['thread_id'],
+            'mid' => $message->mid,
+            'thread_id' => $message->thread_id,
             'msg_id' => $pm->msg_id,
           ))
           ->execute();
 
-        // insert index record for all recipients of a message.
+        // Insert index record for all recipients of a message.
         db_set_active('phpbb');
         $result = db_query("SELECT * FROM {privmsgs_to}  WHERE msg_id = :msg_id ORDER BY msg_id ASC", array(':msg_id' => $pm->msg_id));
         db_set_active('default');
 
         foreach ($result as $index) {
-          // Fill in appropriate fields.
-          $message['recipient'] = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $index->user_id))->fetchField();
-          $message['is_new'] = $index->pm_unread;
-          $message['deleted'] = $index->pm_deleted;
+          $recipient = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $index->user_id))->fetchField();
 
-          //Save to the index.
+          // Fill in appropriate fields.
+          $message->recipient = $recipient;
+          $message->is_new = $index->pm_unread;
+          $message->deleted = $index->pm_deleted;
+
+          // Save to the index.
           $save = drupal_write_record('pm_index', $message);
         }
       }
