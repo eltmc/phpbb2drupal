@@ -306,9 +306,7 @@ function phpbb2drupal_import_users() {
     return;
   }
 
-  if (variable_get('phpbb2drupal_import_user_started', 0) == 0) {
-    // create temporary tables
-    db_set_active('default');
+  if (variable_get('phpbb2drupal_import_user_started', 0) == 0 && module_exists('profile')) {
 
     // create profile fields for icq, aim, msn...etc
     $query = db_insert('profile_field')
@@ -331,11 +329,10 @@ function phpbb2drupal_import_users() {
     } 
 
     $query->execute();
-
-    variable_set('phpbb2drupal_import_user_started', 1);
   }
+  
+  variable_set('phpbb2drupal_import_user_started', 1);
 
-  db_set_active('default');
   $drupal_admin = array_shift(user_load_multiple(array(), array('name' => variable_get('phpbb2drupal_admin_user', ''))));
   $id = db_insert('phpbb2drupal_temp_user')
     ->fields(array(
@@ -346,7 +343,6 @@ function phpbb2drupal_import_users() {
 
   $files_path = variable_get('file_directory_path', 'files');
   $pictures_path = variable_get('user_picture_path', 'pictures');
-  // FIXME continue here.
   // Insert the users into drupal
   db_set_active('phpbb');
   // Do not get "user_type = 2" as they are not real users - used for anon and for site crawlers.
@@ -423,32 +419,39 @@ function phpbb2drupal_import_users() {
       }
 
       $data = array(
-      'name' => substr($user->username, 0, 60),
-      'pass' => $user->user_password,
-      'mail' => substr($user->user_email, 0, 64),
-      'signature' => $signature,
-      'created' => $user_regdate,
-      'access' => $user_lastvisit,
-      'login' => $user_lastvisit,
-      'status' => $user->user_active,
-      'timezone' => $user->user_timezone,
-      'picture' => $user->user_avatar,
-      'init' => substr($user->user_email, 0, 64),
-      'roles' => array(0 => 2),                       # Authenticated User
-      'user_website' => $user->user_website,
-      'user_from' => $user->user_from,
-      'user_icq' => $user->user_icq,
-      'user_aim' => $user->user_aim,
-      'user_yim' => $user->user_yim,
-      'user_msnm' => $user->user_msnm,
-      'user_occ' => $user->user_occ,
-      'user_interests' => $user->user_interests
+        'name' => substr($user->username, 0, 60),
+        'pass' => $user->user_password,
+        'mail' => substr($user->user_email, 0, 64),
+        'signature' => $signature,
+        'created' => $user_regdate,
+        'access' => $user_lastvisit,
+        'login' => $user_lastvisit,
+        'status' => $user->user_active,
+        'timezone' => $user->user_timezone,
+        'picture' => $user->user_avatar,
+        'init' => substr($user->user_email, 0, 64),
+        // We do not seem to need to set the role to authenticated.
+        // Setting it to authenticated also seems to break the import - users_roles table saves the rid as "0".
+        // 'roles' => array(DRUPAL_AUTHENTICATED_RID),
       );
+
+      //Check for legacy prpfile module.
+      if (module_exists('profile')) {
+        $data = array(
+          'user_website' => $user->user_website,
+          'user_from' => $user->user_from,
+          'user_icq' => $user->user_icq,
+          'user_aim' => $user->user_aim,
+          'user_yim' => $user->user_yim,
+          'user_msnm' => $user->user_msnm,
+          'user_occ' => $user->user_occ,
+          'user_interests' => _phpbb2drupal_text_sanitise($user->user_interests)
+        );
+      }
+
       if (variable_get('phpbb2drupal_import_pm', 0)) {
         $data['privatemsg_allow'] = 1;
       }
-
-      $data['user_interests'] = _phpbb2drupal_text_sanitise($data['user_interests']);
 
       db_set_active('default');
       $drupal_user = phpbb2drupal_user_save($data, array('account', 'Personal', 'Contact'));
@@ -1013,14 +1016,12 @@ function phpbb2drupal_user_save($phpbb_user, $category = array()) {
     $account = new stdClass();
     $account->uid = FALSE;
     $user = user_save($account, $phpbb_user);
-    //Drupal overrides the phpBB user registration date when creating a Drupal account.
-    //so we need to update it here.
-    $user = user_save($user, array('created' => $phpbb_user['created']));
 
-    //Insert the user password hash
+    // Override the user password hash and the user created times.
     $result = db_update('users')
       ->fields(array(
         'pass' => $phpbb_user['pass'],
+        'created' => $phpbb_user['created']
       ))
       ->condition('uid', $user->uid)
       ->execute();
@@ -1028,14 +1029,17 @@ function phpbb2drupal_user_save($phpbb_user, $category = array()) {
   $phpbb_user['uid'] = $user->uid;
 
   db_set_active('default');
-  phpbb2drupal_profile_save_profile($phpbb_user, $user, $category); // add user profile information
+  
+  // Legacy profile module.
+  if (module_exists('profile')) {
+    phpbb2drupal_profile_save_profile($phpbb_user, $user, $category); // add user profile information
+  }
 
   return $user;
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Saves data to the legacy profile module.
  */
 function phpbb2drupal_profile_save_profile(&$edit, &$user, $category) {
   $result = db_query('SELECT fid, name, type, category, weight FROM {profile_field} WHERE register = :register ORDER BY category, weight', array(':register' => 1));
