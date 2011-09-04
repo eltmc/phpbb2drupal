@@ -804,8 +804,7 @@ function phpbb2drupal_import_posts() {
   foreach ($topic_ids as $obj) {
     $loops++;
 
-    // skip first post if the post is not a poll
-    // stupid phpbb... make the way you store topics consistent for crying out loud
+    // Get the id's of posts that need to be imported.
     db_set_active('phpbb');
     $post_ids = db_query('SELECT post_id FROM {posts} WHERE topic_id = :topic_id AND post_id <> :post_id ORDER BY post_id', array(':topic_id' => $obj->topic_id, ':post_id' => $obj->topic_first_post_id));
 
@@ -842,7 +841,7 @@ function phpbb2drupal_import_posts() {
       db_set_active('default');
       $uid = db_query('SELECT uid FROM {phpbb2drupal_temp_user} WHERE user_id = :user_id', array(':user_id' => $post->poster_id))->fetchField();
 
-      // get the node ID. The title may be useful further down if the comment doesn't have its own title.
+      // Get the node ID. The title may be useful further down if the comment doesn't have its own title.
       $node = db_query('SELECT n.nid, n.title FROM {phpbb2drupal_temp_topic} ptt LEFT JOIN {node_revision} AS n ON ptt.nid = n.nid  WHERE topic_id = :topic_id', array(':topic_id' => $post->topic_id))->fetchObject();
       $nid = $node->nid;
 
@@ -860,7 +859,7 @@ function phpbb2drupal_import_posts() {
 
       $hostname = phpbb2drupal_decode_ip($post->poster_ip);
 
-      // remove the :bbcode_uid from post_text
+      // Remove the :bbcode_uid from post_text
       if (!empty($post->bbcode_uid)) {
         $post->post_text = preg_replace("/:$post->bbcode_uid/", '', $post->post_text);
       }
@@ -869,6 +868,7 @@ function phpbb2drupal_import_posts() {
       $post->post_subject = _phpbb2drupal_text_sanitise($post->post_subject);
 
       // Construct the comment.
+      // Guide: http://timonweb.com/how-programmatically-create-nodes-comments-and-taxonomies-drupal-7
       $comment->pid = $pid;
       $comment->nid = $nid;
       $comment->uid = $uid;
@@ -1150,7 +1150,7 @@ function _phpbb2drupal_replace_links($html) {
 function phpbb2drupal_replace_url() {
   db_set_active('default');
 
-  // transform nodes:
+  // Transform nodes:
   // As the topics have just been imported, there is only one vid for each nid,
   // so the query works as it is.
   $result = db_query('SELECT nid FROM {phpbb2drupal_temp_topic}');
