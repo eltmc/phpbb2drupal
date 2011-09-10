@@ -848,6 +848,9 @@ function phpbb2drupal_import_posts() {
       $pid = db_query('SELECT MAX(pid) FROM {comment} WHERE nid = :nid', array(':nid' => $nid))->fetchField();
 
       $pid = (is_null($pid)) ? 0 : $pid;
+      
+      // By default, posts are not anonymous.
+      $anon = 0;
 
       if ($post->poster_id == 2) { // is the admin
         $user = array_shift(user_load_multiple(array(), array('name' => variable_get('phpbb2drupal_admin_user', ''))));
@@ -855,6 +858,7 @@ function phpbb2drupal_import_posts() {
       }
       else if ($post->poster_id == -1) { // anonymous
         $uid = 0;
+        $anon = 1;
       }
 
       $hostname = phpbb2drupal_decode_ip($post->poster_ip);
@@ -871,11 +875,12 @@ function phpbb2drupal_import_posts() {
       // Guide: http://timonweb.com/how-programmatically-create-nodes-comments-and-taxonomies-drupal-7
       $comment->pid = $pid;
       $comment->nid = $nid;
+      $comment->name = $post->post_username;
       $comment->uid = $uid;
       $comment->cid = 0; // leave it as is
       $comment->hostname = $hostname;
       $comment->language = LANGUAGE_NONE;
-      $comment->is_anonymous = 0; // leave it as is
+      $comment->is_anonymous = $anon;
       $comment->created = $post->post_time;
       $comment->changed = empty($post->edit_time) ? $comment->created : $post->edit_time;
       $comment->status = $post->post_approved;
@@ -894,6 +899,7 @@ function phpbb2drupal_import_posts() {
       // Override the comment created and changed time added in comment_submit() and then save.
       $comment->created = $post->post_time;
       $comment->changed = empty($post->edit_time) ? $comment->created : $post->edit_time;
+      $comment->uid = $uid;
 
       comment_save($comment);
 
