@@ -396,7 +396,7 @@ function phpbb2drupal_import_users() {
       $signature = _phpbb2drupal_text_sanitise($signature);
 
       // Signatures for Forums module supports longer values than default 255 chars
-      // http://drupal.org/project/signature_forum0
+      // http://drupal.org/project/signature_forum
       if (!module_exists('signature_forum')) {
         $signature = substr($signature, 0, 255);
       }
@@ -410,10 +410,10 @@ function phpbb2drupal_import_users() {
         $user_lastvisit = $user->user_lastvisit;
       }
 
-      //phpbb3 stores user status in user_type instead of user_active as phpbb2 did. inactive users get an id of 1. there are other status too, no idea what they mean.
-      //KISS - user_type of 1 = inactive. The rest mean active.
-      //further complication - duplicate check sets $user->user_active to 0 if the user is a duplicate.
-      //Assume the only time the $user->user_active is set before now is in duplicate check and nothing is taken from database - so php isset() should work.
+      // phpbb3 stores user status in user_type instead of user_active as phpbb2 did. inactive users get an id of 1. there are other status too, no idea what they mean.
+      // KISS - user_type of 1 = inactive. The rest mean active.
+      // Further complication - duplicate check sets $user->user_active to 0 if the user is a duplicate.
+      // Assume the only time the $user->user_active is set before now is in duplicate check and nothing is taken from database - so php isset() should work.
       if ($user->user_type <> 1 && !(isset($user->user_active))) {
         $user->user_active = 1;
       }
@@ -435,7 +435,7 @@ function phpbb2drupal_import_users() {
         // 'roles' => array(DRUPAL_AUTHENTICATED_RID),
       );
 
-      //Check for legacy prpfile module.
+      // Check for legacy profile module.
       if (module_exists('profile')) {
         $data = array(
           'user_website' => $user->user_website,
@@ -482,7 +482,7 @@ function phpbb2drupal_import_users() {
  * Create Forum Containers and Forums
  */
 function phpbb2drupal_import_categories() {
-  // check if the forum database has been successfully imported
+  // Check if the forum database has been successfully imported.
   db_set_active('default');
   if (variable_get('phpbb2drupal_import_category_successful', 0)) {
     drupal_set_message(t('Categories already imported successfully'));
@@ -520,12 +520,12 @@ function phpbb2drupal_import_categories() {
 
       // serialize the forum containers
       if ($result->forum_type == 0) {
-        //This is a category
+        // This is a category
         $containers = variable_get('forum_containers', array());
         $containers[] = $term->tid;
         variable_set('forum_containers', $containers);
       }
-      //save the container to the forum table - yes this is hackish.
+      // Save the container to the forum table - yes this is hackish.
       $id = db_insert('phpbb2drupal_temp_forum')
       ->fields(array(
         'forum_id' => $result->forum_id,
@@ -569,7 +569,7 @@ function phpbb2drupal_import_topics() {
   db_set_active('phpbb');
 
   foreach ($topic_ids as $result) {
-    // check if this topic has been imported already just to be sure
+    // Check if this topic has been imported already just to be sure.
     db_set_active('default');
     $count = db_query('SELECT count(*) FROM {phpbb2drupal_temp_topic} WHERE topic_id = :topic_id', array(':topic_id' => $result->topic_id))->fetchField();
     if ($count > 0) {
@@ -590,7 +590,7 @@ function phpbb2drupal_import_topics() {
       AND t.topic_id = :topic_id', array(':topic_id' => $result->topic_id));
 
 
-    // check if the topic is a valid topic.  if not, continue on
+    // Check if the topic is a valid topic.  if not, continue on.
     if ($querycount->fetchField()) {
       $topic = db_query($query)->fetchObject();;
     }
@@ -631,7 +631,7 @@ function phpbb2drupal_import_topics() {
       $comment = 2; // read-write
     }
 
-    // remove the bbcode_uid from post_text
+    // Remove the bbcode_uid from post_text
     if (!empty($topic->bbcode_uid)) {
       $topic->post_text = preg_replace("/:$topic->bbcode_uid/", '', $topic->post_text);
     }
@@ -761,7 +761,7 @@ function phpbb2drupal_import_topics() {
   }
 
   db_set_active('default');
-  // set the topic import successful flag in the variable table
+  // Set the topic import successful flag in the variable table.
   variable_set('phpbb2drupal_import_topic_successful', '1');
 
   $count = db_query('SELECT COUNT(*) FROM {phpbb2drupal_temp_topic}')->fetchField();
@@ -800,7 +800,7 @@ function phpbb2drupal_import_posts() {
   $errors = 0;
   $loops = 0;
   $imported = 0;
-  // Import the posts into drupal
+  // Import the posts into drupal.
   foreach ($topic_ids as $obj) {
     $loops++;
 
@@ -818,7 +818,7 @@ function phpbb2drupal_import_posts() {
       $query = db_query('SELECT * FROM {posts} WHERE post_id = :post_id', array(':post_id' => $result->post_id));
       $querycount = db_query('SELECT COUNT(*) FROM {posts} WHERE post_id = :post_id', array(':post_id' => $result->post_id));
 
-      // make sure the post is valid
+      // Make sure the post is valid.
       if ($querycount->fetchField()) {
         $post = $query->fetchObject();
       }
@@ -828,7 +828,7 @@ function phpbb2drupal_import_posts() {
         continue;
       }
 
-      // skip if the post has already been imported
+      // Skip if the post has already been imported.
       db_set_active('default');
       $count = db_query('SELECT COUNT(*) FROM {phpbb2drupal_temp_post} WHERE post_id = :post_id', array(':post_id' => $post->post_id))->fetchField();
       if ($count > 0) {
@@ -888,7 +888,7 @@ function phpbb2drupal_import_posts() {
       $comment->comment_body[$comment->language][0]['value'] = $post->post_text;
       $comment->comment_body[$comment->language][0]['format'] = $input_format;
 
-      // if the title field is empty, use the node title as default.
+      // If the title field is empty, use the node title as default.
       if (empty($comment->subject)) {
         $comment->subject = $node->title;
       }
@@ -962,7 +962,7 @@ function phpbb2drupal_import_posts() {
     }
   }
 
-  // set the post import successful flag in the variable table
+  // Set the post import successful flag in the variable table.
   db_set_active('default');
   variable_set('phpbb2drupal_import_post_successful', '1');
   drupal_set_message(t('Successfully Imported %imported posts', array('%imported' => $imported)));
