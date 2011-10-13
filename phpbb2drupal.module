@@ -437,15 +437,18 @@ function phpbb2drupal_import_users() {
 
       // Check for legacy profile module.
       if (module_exists('profile')) {
-        $data = array(
-          'user_website' => $user->user_website,
-          'user_from' => $user->user_from,
-          'user_icq' => $user->user_icq,
-          'user_aim' => $user->user_aim,
-          'user_yim' => $user->user_yim,
-          'user_msnm' => $user->user_msnm,
-          'user_occ' => $user->user_occ,
-          'user_interests' => _phpbb2drupal_text_sanitise($user->user_interests)
+        $data = array_merge(
+          $data,
+	  array(
+	    'user_website' => $user->user_website,
+	    'user_from' => $user->user_from,
+	    'user_icq' => $user->user_icq,
+	    'user_aim' => $user->user_aim,
+	    'user_yim' => $user->user_yim,
+	    'user_msnm' => $user->user_msnm,
+	    'user_occ' => $user->user_occ,
+	    'user_interests' => _phpbb2drupal_text_sanitise($user->user_interests)
+	  )
         );
       }
 
