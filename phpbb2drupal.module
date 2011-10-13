@@ -61,7 +61,7 @@ function phpbb2drupal_permission() {
   return array(
     'migrate phpBB' => array(
       'title' => t('migrate phpBB'),
-      'description' => t('TODO Add a description for \'migrate phpBB\''),
+      'description' => t('<i>Warning: it is <b>not</b> not recommended you grant this permission to any user but the administrator</i>'),
     ),
   );
 }
