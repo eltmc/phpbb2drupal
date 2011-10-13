@@ -183,7 +183,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
     '#title' => t('Import users who have never posted?'),
     '#return_value' => 1,
     '#default_value' => variable_get('phpbb2drupal_import_spammers', 1),
-    '#description' => 'Do you want to import with zero posts? If the phpbb forums had a problem with spam accounts, it may be beneficial to not import any users with zero posts.',
+    '#description' => 'Do you want to import with zero posts? If the phpBB forums had a problem with spam accounts, it may be beneficial to not import any users with zero posts.',
   );
 
   // Input format settings
@@ -264,7 +264,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
   else {
     if ($result7['result'] == 0) {
       $form['bbcode']['#collapsed'] = FALSE;
-      $output .= '<p>' . t('<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is only recommanded. You may <a href="@adminmodules">enable the bbcode module</a> after having installed it.', array('@adminmodules' => url('admin/modules'))) . '</p>';
+      $output .= '<p>' . t('<a href="http://drupal.org/project/bbcode" target="_blank">The bbcode module</a> is only recommended. You may <a href="@adminmodules">enable the bbcode module</a> after having installed it.', array('@adminmodules' => url('admin/modules'))) . '</p>';
     }
     $output .= t('<p>Don\'t forget to <a href="@formatenable">enable bbcode in the selected input format</a> (admin > config > text formats) and enable bbcode for the format selected for the imported posts.  <a href="@formatconfigure">Then click on configure to see bbcode options</a></p>
       <p>You may want to enable it for other input formats, too.</p>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure));
@@ -333,10 +333,10 @@ function phpbb2drupal_postconfiguration() {
   $output .= '</ul>';
   //User Set up
   $output .= '<h2>' . t('User Settings') . '</h2>';
-  $output .= '<p>' . t('Make sure your <a href="@accountsettings">account settings</a> are correct. here you can enable or disable signature. In order to activate avatar/picture support, you need to enable pictures on this page and also:', array('@accountsettings' => url('admin/config/people/accounts'))) . '</p>';
+  $output .= '<p>' . t('Make sure your <a href="@accountsettings">account settings</a> are correct. Here you can enable or disable a signature. In order for avatars to display correctly, you need to enable pictures on this page and:', array('@accountsettings' => url('admin/config/people/accounts'))) . '</p>';
   $output .= '<ul>';
   $output .= '<li>' . t('Tick the checkboxes to allow "User pictures in posts" and/or "User pictures in comments" on the <a href="@themeconfig">themes configuration</a> page.', array('@themeconfig' => url('admin/appearance/settings'))) . '</li>';
-  $output .= '<li>' . t('Manually copy the avatars from the phpbb2/images/avatars/ directory to the @files directory.', array('@files' => variable_get('file_public_path', conf_path() . '/files')  . '/pictures')) . '</li>';
+  $output .= '<li>' . t('Manually copy the avatars from the <tt>phpbb2/images/avatars/</tt> directory to the <tt>@files</tt> directory.', array('@files' => variable_get('file_public_path', conf_path() . '/files')  . '/pictures')) . '</li>';
   $output .= '</ul>';
   // Forum Set up
   $output .= '<h2>' . t('Forum Settings') . '</h2>';
@@ -344,7 +344,7 @@ function phpbb2drupal_postconfiguration() {
 
   // Redirection from old URL:
   $output .= '<h2>' . t('Redirection from phpBB2 forum URL to new Drupal forum URL') . '</h2>';
-  $output .= '<p>' . t('Enable the phpbb_redirect.module. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum. (note that currently the module assumes that the phpbb forum was located in the forum/ subdirectory of your Drupal installation).') . '</p>';
+  $output .= '<p>' . t('Enable the phpbb_redirect.module. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum. (Note: currently the module assumes that the phpBB forum was located in the <tt>forum/</tt> subdirectory of your Drupal installation).') . '</p>';
 
   // BBcode
   $bbcode = variable_get('phpbb2drupal_bbcode', 0);
@@ -354,7 +354,7 @@ function phpbb2drupal_postconfiguration() {
   }
   else {
     $output .= '<h2>' . t('Configure BBcode module') . '</h2>';
-    $output .= '<p>' . t('Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode.module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.') . '</p>';
+    $output .= '<p>' . t('Most probably, there are many phpBB forum postings formatted in BBcode. During the import procedure, the BBcode has been cleaned so that it can work with the Drupal bbcode module. Please install and configure the <a href="http://drupal.org/project/bbcode" target="_blank">BBcode module</a> so that the forum topics display properly. See the BBcode module documentation for details.') . '</p>';
   }
 
   return $output;
@@ -386,12 +386,12 @@ function phpbb2drupal_main() {
   $output .= t('Enable the phpBB_Redirect module for seamless redirection from the old forums to the new. This module requires <a href="@cleanurls">clean urls</a> to be active.', array('@cleanurls' => url('admin/config/search/clean-urls')));
   $output .= '</li>';
   $output .= '<li>';
-  $output .= t('If you decide to use the phpBB_Redirect module, do NOT uninstall phpbb2drupal - This will delete tables necessary for redirection. You CAN deactivate the module safely.');
+  $output .= t('If you decide to use the phpBB_Redirect module, do NOT uninstall phpbb2drupal - This will delete tables necessary for redirection. However, you CAN deactivate the module safely.');
   $output .= '</li>';
   $output .= '</ol>';
 
   // process will die() if the link to the phpBB2 database is wrong:
-  $output .= '<p>' . t('If the phpBB2 data is in another data base, but you made a mistake while setting up the data base url, you may be unable to access the setting page due to some limitations of the core of Drupal. <a href="@reseturl">Click here to reset the database url</a>.',
+  $output .= '<p>' . t('If the phpBB2 data is in another database, but you mistakenly used the wrong database url, you may be unable to access the setting page due to some limitations of Drupal. <a href="@reseturl">Click here to reset the database url</a>.',
       array('@reseturl' => url('admin/phpbb2drupal/reset'))) . '</p>';
 
   return $output;
