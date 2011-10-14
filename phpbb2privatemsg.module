@@ -139,6 +139,9 @@ function phpbb2privatemsg_import() {
         if ($pm->root_level <> 0) {
           // This message is part of an existing thread.
           $message->thread_id = db_query('SELECT thread_id FROM {phpbb2privatemsg} WHERE msg_id = :msg_id', array(':msg_id' => $pm->root_level))->fetchField();
+          // Assert that thread_id is set here.
+          // If it is not, then the thread may contain messages omitted because the users are not imported
+          assert('$message->thread_id /* thread_id should be set if we get here */');
         }
         else {
           $message->thread_id = $message->mid;
