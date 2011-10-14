@@ -162,7 +162,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
   // User to map admin user too
   $drupal_admin = user_load(1);
   $form['users']['phpbb2drupal_admin_user'] = array(
-    '#title' => t('User to map phpBB admin'),
+    '#title' => t('Drupal user to map phpBB admin to'),
     '#type' => 'textfield',
     '#autocomplete_path' => 'user/autocomplete',
     '#default_value' => variable_get('phpbb2drupal_admin_user', $drupal_admin->name ),
