@@ -1188,7 +1188,7 @@ function phpbb2drupal_replace_url() {
     $fields = db_select('field_data_comment_body', 'f')
       ->fields('f', array('comment_body_value'))
       ->condition('entity_type', 'comment')
-      ->condition('entity_id', $cid)
+      ->condition('entity_id', $cid->cid)
       ->execute();
   
     foreach ($fields as $field) {
@@ -1197,7 +1197,7 @@ function phpbb2drupal_replace_url() {
           'comment_body_value' => _phpbb2drupal_replace_links($field->comment_body_value),
         ))
         ->condition('entity_type', 'comment')
-        ->condition('entity_id', $cid)
+        ->condition('entity_id', $cid->cid)
         ->execute();
       }
     }
