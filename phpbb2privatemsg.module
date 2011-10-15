@@ -34,7 +34,7 @@ function phpbb2privatemsg_main() {
   $output .= l(t('Check import settings'), 'admin/config/phpbb2drupal');
   $output .= '</li>';
   $output .= '<li>';
-  $output .= t('Import atleast user data from phpBB using the <a href="@phpbb2drupal">phpbb2drupal</a> module if you have not already done so', array('@phpbb2drupal' => url('admin/phpbb2drupal/execute')));
+  $output .= t('If you have not already done so, you must import user data from phpBB using the <a href="@phpbb2drupal">phpbb2drupal</a> module, at minimum.', array('@phpbb2drupal' => url('admin/phpbb2drupal/execute')));
   $output .= '</li>';
   $output .= '<p>';
   $output .= t('In cases where either recipients or senders of a message have NOT had their user data already imported into Drupal, that message will be lost.');

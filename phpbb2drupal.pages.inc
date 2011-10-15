@@ -333,20 +333,18 @@ function phpbb2drupal_postconfiguration() {
   $output .= '</ul>';
   //User Set up
   $output .= '<h2>' . t('User Settings') . '</h2>';
-  $output .= '<p>' . t('Make sure your <a href="@accountsettings">account settings</a> are correct. Here you can enable or disable a signature. In order for avatars to display correctly, you need to enable pictures on this page and:', array('@accountsettings' => url('admin/config/people/accounts'))) . '</p>';
-  $output .= '<ul>';
-  $output .= '<li>' . t('Tick the checkboxes to allow "User pictures in posts" and/or "User pictures in comments" on the <a href="@themeconfig">themes configuration</a> page.', array('@themeconfig' => url('admin/appearance/settings'))) . '</li>';
-  $output .= '<li>' . t('Manually copy the avatars from the <tt>phpbb2/images/avatars/</tt> directory to the <tt>@files</tt> directory.', array('@files' => variable_get('file_public_path', conf_path() . '/files')  . '/pictures')) . '</li>';
-  $output .= '</ul>';
+  $output .= '<p>' . t('Visit the <a href="@accountsettings">account settings</a> page and make sure they are correct. In order for avatars to display correctly, the "enable user pictures" option must be checked.', array('@accountsettings' => url('admin/config/people/accounts'))) . '</p>';
+  $output .= '<p>' . t('Visit the <a href="@themeconfig">themes configuration</a> page and check "User pictures in posts" and/or "User pictures in comments"', array('@themeconfig' => url('admin/appearance/settings'))) . '</p>';
+  $output .= '<p>' . t('Finally, manually copy the avatar icons from the <tt>phpbb2/images/avatars/</tt> directory to the <tt>@files</tt> directory.', array('@files' => variable_get('file_public_path', conf_path() . '/files')  . '/pictures')) . '</p>';
   // Forum Set up
   $output .= '<h2>' . t('Forum Settings') . '</h2>';
   $output .= '<p>' . t('If need be, set up the private forums as explained in the <a href="http://drupal.org/node/58969" target="_blank">documentation</a>. Using the Forum Access module is the preferred and simplest method.') . '</p>';
 
   // Redirection from old URL:
   $output .= '<h2>' . t('Redirection from phpBB2 forum URL to new Drupal forum URL') . '</h2>';
-  $output .= '<p>' . t('Enable the phpbb_redirect.module. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum. (Note: currently the module assumes that the phpBB forum was located in the <tt>forum/</tt> subdirectory of your Drupal installation).') . '</p>';
+  $output .= '<p>' . t('Enable the phpbb_redirect.module. This way, users accessing URLs from your old phpBB2 installation will be redirected to your new Drupal forum. (Note that currently the module assumes that the phpBB forum was located in the <tt>forum/</tt> subdirectory of your Drupal installation).') . '</p>';
 
-  // BBcode
+  // BBcode  
   $bbcode = variable_get('phpbb2drupal_bbcode', 0);
   if ($bbcode) {
     $output .= '<h2>' . t('Remove BBcode module') . '</h2>';
