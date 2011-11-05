@@ -68,7 +68,7 @@ function phpbb_redirect_viewtopic() {
     }
 
     $cid = db_query('SELECT cid FROM {phpbb2drupal_temp_post} WHERE post_id = :post_id', array(':post_id' => $post_id))->fetchField();
-    $nid = db_query('SELECT nid FROM {comments} WHERE cid = :cid', array(':cid' => $cid))->fetchField();
+    $nid = db_query('SELECT nid FROM {comment} WHERE cid = :cid', array(':cid' => $cid))->fetchField();
 
     $node = node_load($nid);
     $mode = _comment_get_display_setting('mode', $node);
@@ -76,7 +76,7 @@ function phpbb_redirect_viewtopic() {
     $flat = in_array($mode, array(COMMENT_MODE_FLAT_COLLAPSED, COMMENT_MODE_FLAT_EXPANDED));
     if ($flat) {
       $comments_per_page = _comment_get_display_setting('comments_per_page', $node);
-      $comment_count = db_query('SELECT COUNT(c.cid) FROM {comments} c WHERE c.nid = :c.nid AND c.status = :c.status AND c.cid < :c.cid', array(':c.nid' => $nid, ':c.status' => COMMENT_PUBLISHED, ':c.cid' => $cid))->fetchField();
+      $comment_count = db_query('SELECT COUNT(c.cid) FROM {comment} c WHERE c.nid = :c.nid AND c.status = :c.status AND c.cid < :c.cid', array(':c.nid' => $nid, ':c.status' => COMMENT_PUBLISHED, ':c.cid' => $cid))->fetchField();
       $page_number = floor($comment_count / $comments_per_page);
     }
 
