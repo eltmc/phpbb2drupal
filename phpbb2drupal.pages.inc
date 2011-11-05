@@ -253,7 +253,7 @@ function phpbb2drupal_admin_settings($form, &$form_state) {
         You first need to <a href="@adminmodules">enable the bbcode module</a>', array('@adminmodules' => url('admin/modules')));
       $output .= '</span></p>';
     }
-    $result = db_query('SELECT COUNT(*) FROM {filters} WHERE module = :module AND format = :format', array(':module' => 'bbcode', ':format' => $input_format,));
+    $result = db_query('SELECT COUNT(*) FROM {filter} WHERE module = :module AND format = :format', array(':module' => 'bbcode', ':format' => $input_format,));
     if (!$result->fetchField()) {
       $form['bbcode']['#collapsed'] = FALSE;
       $output .= '<p class="marker">' . t('You need to <a href="@formatenable">enable bbcode in the selected input format</a> <a href="@formatconfigure">THEN click on configure to see bbcode options</a>', array('@formatenable' => $link_input_format_enable, '@formatconfigure' => $link_input_format_configure)) . '</p>';
