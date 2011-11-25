@@ -1101,8 +1101,14 @@ function _phpbb2drupal_strip_bbcode($text) {
 
   // If bbcode conversion to has been selected, the following will convert the bbcode to normal html.
   if (variable_get('phpbb2drupal_bbcode', 0)) {
-    $input_format = variable_get('phpbb2drupal_input_format', 0);
-    $text = bbcode_filter('process', 0, $input_format, $text);
+    // This is a hacky fix to the following broken code which uses a non-existant obsolete function. (-- wu-lee)
+    // $input_format = variable_get('phpbb2drupal_input_format', 0);
+    // $text = bbcode_filter($text, $input_format);
+
+    // We pass in the default settings, since I don't currently know where to get some user-supplied ones.
+    $filters = bbcode_filter_info();
+    include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'bbcode') . '/bbcode-filter.inc';
+    $text = _bbcode_filter_process($text, $filters['bbcode']['default settings']);
   }
   return $text;
 }
