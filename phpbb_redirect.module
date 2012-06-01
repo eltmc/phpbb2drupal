@@ -32,13 +32,13 @@ function phpbb_redirect_help($path, $arg) {
 function phpbb_redirect_menu() {
   $items = array();
 
-  $items['forum/viewtopic.php'] = array(
+  $items['messageboard/viewtopic.php'] = array(
     'title' => 'Topic Redirect',
     'page callback' => 'phpbb_redirect_viewtopic',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK
   );
-  $items['forum/viewforum.php'] = array(
+  $items['messageboard/viewforum.php'] = array(
     'title' => 'Forum Redirect',
     'page callback' => 'phpbb_redirect_viewforum',
     'access callback' => TRUE,
